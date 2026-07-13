@@ -173,6 +173,9 @@
     position: fixed;
     inset: 0;
     z-index: 10;
+    border: none;
+    background: transparent;
+    cursor: default;
   }
 
   &__menu {

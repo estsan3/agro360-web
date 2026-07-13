@@ -115,7 +115,12 @@
                         <app-icon name="more-vertical" />
                       </button>
                       @if (menuAbierto() === $any(row)['id']) {
-                        <div class="acciones__backdrop" (click)="menuAbierto.set(null)"></div>
+                        <button
+                          class="acciones__backdrop"
+                          type="button"
+                          aria-label="Cerrar menú"
+                          (click)="menuAbierto.set(null)"
+                        ></button>
                         <div class="acciones__menu" role="menu">
                           <button
                             type="button"
