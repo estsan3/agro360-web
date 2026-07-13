@@ -79,13 +79,22 @@ export class GestionOperativaPage {
   protected readonly despachos = this.store.despachos;
   protected readonly busqueda = signal('');
   protected readonly expandidas = signal<Set<string>>(new Set());
+  /** Filtro por estado activado desde los totalizadores (toggle) */
+  protected readonly filtroEstado = signal<EstadoViaje | null>(null);
 
   protected readonly campanias = computed<CampaniaVm[]>(() => {
     const catalogos = this.store.catalogos().data;
     const filtro = this.busqueda().toLowerCase();
+    const estado = this.filtroEstado();
 
     return this.store
       .enOperacion()
+      .map((despacho) =>
+        estado
+          ? { ...despacho, viajes: despacho.viajes.filter((viaje) => viaje.estado === estado) }
+          : despacho,
+      )
+      .filter((despacho) => despacho.viajes.length > 0)
       .map((despacho) => {
         const productor = catalogos?.productores.find((p) => p.id === despacho.productorId);
         const campo = productor?.campos.find((c) => c.id === despacho.campoId);
@@ -136,6 +145,15 @@ export class GestionOperativaPage {
   protected readonly finalizados = computed(
     () => this.todosLosViajes().filter((v) => v.estado === 'completado').length,
   );
+
+  protected toggleFiltroEstado(estado: EstadoViaje): void {
+    const nuevo = this.filtroEstado() === estado ? null : estado;
+    this.filtroEstado.set(nuevo);
+    if (nuevo) {
+      // Expandir todas las campañas con coincidencias para ver los viajes
+      this.expandidas.set(new Set(this.campanias().map((campania) => campania.id)));
+    }
+  }
 
   constructor() {
     this.store.cargarDespachos();

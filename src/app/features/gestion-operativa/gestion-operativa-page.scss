@@ -27,6 +27,59 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: t.$space-md;
+
+  &__filtro {
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    border-radius: t.$radius-md;
+    transition: transform 0.1s ease;
+
+    app-kpi-card {
+      display: block;
+    }
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    &--activo {
+      outline: 2px solid t.$color-primary;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.filtro-activo {
+  display: flex;
+  align-items: center;
+  gap: t.$space-sm;
+  padding: t.$space-sm t.$space-md;
+  border-radius: t.$radius-md;
+  background: t.$color-primary-light;
+  color: t.$color-primary-dark;
+  font-size: ty.$font-size-md;
+  align-self: flex-start;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: t.$space-xs;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: ty.$font-size-sm;
+    font-weight: ty.$font-weight-semibold;
+    color: t.$color-primary-dark;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .toolbar {

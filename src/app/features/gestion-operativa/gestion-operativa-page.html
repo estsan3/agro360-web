@@ -1,24 +1,82 @@
 <section class="page">
   <div class="kpis">
-    <app-kpi-card tone="orange" label="En Ruta" [value]="'' + enRuta()" trend="+12%">
-      <app-icon name="truck" />
-    </app-kpi-card>
-    <app-kpi-card tone="amber" label="Pendientes" [value]="'' + pendientes()" trend="-5%">
-      <app-icon name="clock" />
-    </app-kpi-card>
-    <app-kpi-card
-      tone="red"
-      label="Incidentes"
-      [value]="'' + incidentes()"
-      trend="+1"
-      trendTone="bad"
+    <button
+      type="button"
+      class="kpis__filtro"
+      [class.kpis__filtro--activo]="filtroEstado() === 'en-viaje'"
+      [attr.aria-pressed]="filtroEstado() === 'en-viaje'"
+      (click)="toggleFiltroEstado('en-viaje')"
     >
-      <app-icon name="alert-triangle" />
-    </app-kpi-card>
-    <app-kpi-card tone="green" label="Finalizados" [value]="'' + finalizados()" trend="+18%">
-      <app-icon name="check-circle" />
-    </app-kpi-card>
+      <app-kpi-card tone="orange" label="En Ruta" [value]="'' + enRuta()" trend="+12%">
+        <app-icon name="truck" />
+      </app-kpi-card>
+    </button>
+    <button
+      type="button"
+      class="kpis__filtro"
+      [class.kpis__filtro--activo]="filtroEstado() === 'pendiente'"
+      [attr.aria-pressed]="filtroEstado() === 'pendiente'"
+      (click)="toggleFiltroEstado('pendiente')"
+    >
+      <app-kpi-card tone="amber" label="Pendientes" [value]="'' + pendientes()" trend="-5%">
+        <app-icon name="clock" />
+      </app-kpi-card>
+    </button>
+    <button
+      type="button"
+      class="kpis__filtro"
+      [class.kpis__filtro--activo]="filtroEstado() === 'retrasado'"
+      [attr.aria-pressed]="filtroEstado() === 'retrasado'"
+      (click)="toggleFiltroEstado('retrasado')"
+    >
+      <app-kpi-card
+        tone="red"
+        label="Incidentes"
+        [value]="'' + incidentes()"
+        trend="+1"
+        trendTone="bad"
+      >
+        <app-icon name="alert-triangle" />
+      </app-kpi-card>
+    </button>
+    <button
+      type="button"
+      class="kpis__filtro"
+      [class.kpis__filtro--activo]="filtroEstado() === 'completado'"
+      [attr.aria-pressed]="filtroEstado() === 'completado'"
+      (click)="toggleFiltroEstado('completado')"
+    >
+      <app-kpi-card tone="green" label="Finalizados" [value]="'' + finalizados()" trend="+18%">
+        <app-icon name="check-circle" />
+      </app-kpi-card>
+    </button>
   </div>
+
+  @if (filtroEstado()) {
+    <div class="filtro-activo">
+      Mostrando solo viajes
+      <strong>
+        @switch (filtroEstado()) {
+          @case ('en-viaje') {
+            en ruta
+          }
+          @case ('pendiente') {
+            pendientes
+          }
+          @case ('retrasado') {
+            con incidentes
+          }
+          @case ('completado') {
+            finalizados
+          }
+        }
+      </strong>
+      <button type="button" (click)="filtroEstado.set(null)">
+        <app-icon name="x" />
+        Quitar filtro
+      </button>
+    </div>
+  }
 
   <div class="toolbar">
     <app-search-bar
