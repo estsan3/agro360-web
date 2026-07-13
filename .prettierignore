@@ -2,3 +2,5 @@ dist
 coverage
 node_modules
 .angular
+storybook-static
+documentation.json

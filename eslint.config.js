@@ -1,4 +1,5 @@
 // @ts-check
+const storybook = require('eslint-plugin-storybook');
 const eslint = require('@eslint/js');
 const { defineConfig } = require('eslint/config');
 const tseslint = require('typescript-eslint');
@@ -40,4 +41,5 @@ module.exports = defineConfig([
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
     rules: {},
   },
+  ...storybook.configs['flat/recommended'],
 ]);
