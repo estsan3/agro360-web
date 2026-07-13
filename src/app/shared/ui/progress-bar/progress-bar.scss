@@ -3,8 +3,9 @@
 
 .progress {
   position: relative;
-  width: 120px;
-  height: 16px;
+  width: 100%;
+  min-width: 120px;
+  height: 18px;
   border-radius: t.$radius-full;
   background: t.$color-background-alt;
   overflow: hidden;

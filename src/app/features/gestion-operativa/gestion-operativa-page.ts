@@ -28,15 +28,17 @@ interface CampaniaVm {
   viajes: Viaje[];
 }
 
-// Anchos fijos: todas las tablas expandidas comparten la misma grilla
+// Anchos fijos: todas las tablas expandidas comparten la misma grilla.
+// Visual management: Estado y Progreso dominan; Observaciones compacta
+// con popup para el texto completo.
 const VIAJES_COLUMNS: TableColumn[] = [
   { key: 'id', label: 'ID', width: '96px' },
   { key: 'chofer', label: 'Chofer / Patente', width: '170px' },
   { key: 'destino', label: 'Destino' },
   { key: 'toneladas', label: 'Toneladas', align: 'right', width: '90px' },
-  { key: 'estado', label: 'Estado', width: '120px' },
-  { key: 'progreso', label: 'Progreso', width: '150px' },
-  { key: 'observaciones', label: 'Observaciones' },
+  { key: 'estado', label: 'Estado', width: '150px' },
+  { key: 'progreso', label: 'Progreso', width: '230px' },
+  { key: 'observaciones', label: 'Obs.', width: '150px' },
   { key: 'acciones', label: 'Acciones', align: 'right', width: '140px' },
 ];
 
@@ -215,6 +217,23 @@ export class GestionOperativaPage {
 
   /** id del viaje cuyo menú "más opciones" está abierto */
   protected readonly menuAbierto = signal<string | null>(null);
+
+  /** Popup de observación completa: id del viaje + coordenadas del clic
+   * (position fixed para que no lo recorte el scroll de la tabla) */
+  protected readonly obsAbierta = signal<{ id: string; x: number; y: number } | null>(null);
+
+  protected toggleObs(viajeId: string, event: MouseEvent): void {
+    if (this.obsAbierta()?.id === viajeId) {
+      this.obsAbierta.set(null);
+      return;
+    }
+    const boton = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.obsAbierta.set({
+      id: viajeId,
+      x: Math.max(boton.right - 260, 8),
+      y: boton.bottom + 6,
+    });
+  }
 
   private adjuntoPendiente: { viajeId: string; tipo: string } | null = null;
 

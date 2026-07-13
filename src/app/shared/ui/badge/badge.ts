@@ -15,4 +15,5 @@ export type BadgeVariant = 'success' | 'danger' | 'info' | 'warning' | 'neutral'
 })
 export class Badge {
   readonly variant = input<BadgeVariant>('neutral');
+  readonly size = input<'sm' | 'md'>('sm');
 }

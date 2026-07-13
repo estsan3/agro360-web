@@ -163,16 +163,16 @@
                 <ng-template appTableCell="estado" let-row>
                   @switch (row['estado']) {
                     @case ('en-viaje') {
-                      <app-badge variant="info">En viaje</app-badge>
+                      <app-badge variant="info" size="md">En viaje</app-badge>
                     }
                     @case ('pendiente') {
-                      <app-badge variant="warning">Pendiente</app-badge>
+                      <app-badge variant="warning" size="md">Pendiente</app-badge>
                     }
                     @case ('retrasado') {
-                      <app-badge variant="danger">Retrasado</app-badge>
+                      <app-badge variant="danger" size="md">Retrasado</app-badge>
                     }
                     @case ('completado') {
-                      <app-badge variant="success">Completado</app-badge>
+                      <app-badge variant="success" size="md">Completado</app-badge>
                     }
                   }
                 </ng-template>
@@ -181,6 +181,43 @@
                     [value]="$any(row)['progreso']"
                     [variant]="progressVariant($any(row)['estado'])"
                   />
+                </ng-template>
+                <ng-template appTableCell="observaciones" let-row>
+                  <div class="obs">
+                    <span class="obs__texto" [attr.title]="row['observaciones']">
+                      {{ row['observaciones'] }}
+                    </span>
+                    @if (($any(row)['observaciones'] || '').length > 14) {
+                      <div class="obs__wrap">
+                        <button
+                          class="obs__ver"
+                          type="button"
+                          title="Ver observación completa"
+                          aria-label="Ver observación completa"
+                          (click)="toggleObs($any(row)['id'], $event)"
+                        >
+                          <app-icon name="info" />
+                        </button>
+                        @if (obsAbierta()?.id === $any(row)['id']) {
+                          <button
+                            class="obs__backdrop"
+                            type="button"
+                            aria-label="Cerrar observación"
+                            (click)="obsAbierta.set(null)"
+                          ></button>
+                          <div
+                            class="obs__popup"
+                            role="tooltip"
+                            [style.left.px]="obsAbierta()?.x"
+                            [style.top.px]="obsAbierta()?.y"
+                          >
+                            <strong>Observaciones · {{ row['id'] }}</strong>
+                            <p>{{ row['observaciones'] }}</p>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
                 </ng-template>
                 <ng-template appTableCell="acciones" let-row>
                   <div class="acciones">

@@ -12,6 +12,11 @@
   line-height: ty.$line-height-base;
   white-space: nowrap;
 
+  &--md {
+    font-size: ty.$font-size-md;
+    padding: 4px t.$space-md;
+  }
+
   &--success {
     background: t.$color-success-bg;
     color: t.$color-primary-dark;

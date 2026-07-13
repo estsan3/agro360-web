@@ -331,3 +331,78 @@
     }
   }
 }
+
+// Observaciones compacta con popup (visual management)
+.obs {
+  display: flex;
+  align-items: center;
+  gap: t.$space-xs;
+  min-width: 0;
+
+  &__texto {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: t.$color-text-muted;
+    font-size: ty.$font-size-sm;
+  }
+
+  &__wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  &__ver {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: t.$radius-sm;
+    background: transparent;
+    color: t.$color-info-text;
+    font-size: 15px;
+    cursor: pointer;
+
+    &:hover {
+      background: t.$color-info-bg;
+    }
+  }
+
+  &__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    border: none;
+    background: transparent;
+    cursor: default;
+  }
+
+  &__popup {
+    position: fixed;
+    z-index: 11;
+    width: 260px;
+    padding: t.$space-md;
+    background: t.$color-surface;
+    border: 1px solid t.$color-border;
+    border-radius: t.$radius-md;
+    box-shadow: t.$shadow-md;
+
+    strong {
+      display: block;
+      font-size: ty.$font-size-sm;
+      color: t.$color-primary-dark;
+      margin-bottom: t.$space-xs;
+    }
+
+    p {
+      margin: 0;
+      font-size: ty.$font-size-md;
+      color: t.$color-text;
+      white-space: normal;
+    }
+  }
+}
