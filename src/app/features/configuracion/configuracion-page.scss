@@ -88,7 +88,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: t.$space-md;
   align-items: start;
 
@@ -96,10 +96,6 @@
     grid-column: 1 / -1;
     display: flex;
     justify-content: flex-end;
-  }
-
-  @media (max-width: t.$breakpoint-tablet) {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 

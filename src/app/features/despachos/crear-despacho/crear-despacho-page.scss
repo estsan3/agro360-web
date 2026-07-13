@@ -60,7 +60,7 @@
   gap: t.$space-md;
   align-items: end;
 
-  @media (max-width: t.$breakpoint-tablet) {
+  @media (max-width: t.$breakpoint-desktop) {
     grid-template-columns: 1fr 1fr;
   }
 }

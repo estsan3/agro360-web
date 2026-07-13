@@ -25,12 +25,8 @@
 
 .kpis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: t.$space-md;
-
-  @media (max-width: t.$breakpoint-tablet) {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 .charts {
