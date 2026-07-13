@@ -7,23 +7,217 @@
   gap: t.$space-lg;
   padding: t.$space-lg;
   font-family: ty.$font-family-base;
+}
 
-  &__header {
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: t.$space-md;
+  flex-wrap: wrap;
+
+  &__search {
+    flex: 1;
+    max-width: 340px;
+  }
+
+  &__actions {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: t.$space-md;
+    gap: t.$space-sm;
+  }
+}
 
-    h1 {
-      margin: 0;
-      font-size: ty.$font-size-3xl;
-      font-weight: ty.$font-weight-bold;
+.draft-cols {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr 1.1fr 1.1fr 90px 110px 230px;
+  align-items: center;
+  gap: t.$space-md;
+  width: 100%;
+  padding: t.$space-md t.$space-lg;
+  text-align: left;
+
+  @media (max-width: t.$breakpoint-tablet) {
+    grid-template-columns: 1.5fr 90px 230px;
+
+    .draft__dato {
+      display: none;
+    }
+  }
+}
+
+.grid-container {
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-lg;
+  overflow: hidden;
+
+  &__head {
+    background: #f0faec;
+    color: t.$color-primary-dark;
+    font-size: ty.$font-size-sm;
+    font-weight: ty.$font-weight-semibold;
+
+    @media (max-width: t.$breakpoint-tablet) {
+      span:nth-child(2),
+      span:nth-child(3),
+      span:nth-child(4),
+      span:nth-child(6) {
+        display: none;
+      }
+    }
+  }
+
+  &__num {
+    text-align: center;
+  }
+}
+
+.draft {
+  border-top: 1px solid t.$color-border;
+
+  &__row {
+    background: t.$color-surface;
+    font-size: ty.$font-size-md-sm;
+    color: t.$color-text;
+  }
+
+  &__campania {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    small {
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__nombre {
+    display: flex;
+    align-items: center;
+    gap: t.$space-sm;
+    font-weight: ty.$font-weight-semibold;
+  }
+
+  &__dato {
+    color: t.$color-text-muted;
+  }
+
+  &__metric {
+    font-weight: ty.$font-weight-medium;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  &__acciones {
+    display: flex;
+    align-items: center;
+    gap: t.$space-xs;
+  }
+
+  &__ver-viajes {
+    display: inline-flex;
+    align-items: center;
+    gap: t.$space-xs;
+    height: 32px;
+    padding: 0 t.$space-md;
+    border: none;
+    border-radius: t.$radius-md;
+    background: t.$color-background-alt;
+    font-family: inherit;
+    font-size: ty.$font-size-sm;
+    font-weight: ty.$font-weight-medium;
+    color: t.$color-text;
+    cursor: pointer;
+
+    app-icon {
+      transition: transform 0.2s ease;
+    }
+
+    &--abierto app-icon {
+      transform: rotate(180deg);
+    }
+
+    &:hover {
+      background: t.$color-border;
+    }
+  }
+
+  &__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: t.$radius-sm;
+    background: transparent;
+    color: t.$color-text-muted;
+    font-size: 16px;
+    cursor: pointer;
+
+    &:hover {
+      background: t.$color-background-alt;
       color: t.$color-text;
     }
 
-    p {
-      margin: t.$space-xs 0 0;
-      color: t.$color-text-muted;
+    &--rojo {
+      color: t.$color-danger-strong;
+
+      &:hover {
+        background: t.$color-danger-bg;
+        color: t.$color-danger-strong;
+      }
     }
+  }
+}
+
+// --- Tabla interna de viajes en borrador ---
+.viajes {
+  margin: 0 t.$space-md t.$space-md;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-md;
+  overflow-x: auto;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 0.8fr 1.3fr 1.1fr 90px 240px;
+    align-items: center;
+    gap: t.$space-md;
+    padding: t.$space-sm t.$space-md;
+    border-bottom: 1px solid t.$color-border;
+    font-size: ty.$font-size-md-sm;
+    min-width: 720px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &--head {
+      background: #f0faec;
+      color: t.$color-primary-dark;
+      font-size: ty.$font-size-sm;
+      font-weight: ty.$font-weight-semibold;
+    }
+  }
+
+  &__desde {
+    white-space: pre-line;
+    color: t.$color-text-muted;
+  }
+
+  &__num {
+    text-align: center;
+  }
+
+  &__acciones {
+    display: flex;
+    align-items: center;
+    gap: t.$space-xs;
+  }
+
+  &__vacio {
+    padding: t.$space-lg;
+    text-align: center;
+    color: t.$color-text-muted;
   }
 }

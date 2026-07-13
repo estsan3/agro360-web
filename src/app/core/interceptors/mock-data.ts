@@ -113,7 +113,7 @@ interface MockViaje {
   dominio: string;
   destino: string;
   toneladas: number;
-  estado: 'pendiente' | 'en_viaje' | 'retrasado' | 'completado';
+  estado: 'borrador' | 'pendiente' | 'en_viaje' | 'retrasado' | 'completado';
   progreso: number;
   observaciones: string;
 }
@@ -250,7 +250,28 @@ export const MOCK_DESPACHOS: MockDespacho[] = [
     fecha_inicio: '2026-09-15',
     fecha_llegada_estimada: '2026-10-01',
     estado: 'borrador',
-    viajes: [],
+    viajes: [
+      {
+        id: '#12360',
+        chofer: 'Carlos Ruiz',
+        dominio: 'AA123BB',
+        destino: 'Puerto San Martín',
+        toneladas: 28.5,
+        estado: 'borrador',
+        progreso: 0,
+        observaciones: '',
+      },
+      {
+        id: '#12361',
+        chofer: 'Roberto Gómez',
+        dominio: 'BC456CD',
+        destino: 'Puerto San Martín',
+        toneladas: 27.5,
+        estado: 'borrador',
+        progreso: 0,
+        observaciones: '',
+      },
+    ],
   },
 ];
 

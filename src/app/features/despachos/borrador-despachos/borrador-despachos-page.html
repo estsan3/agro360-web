@@ -1,31 +1,150 @@
 <section class="page">
-  <header class="page__header">
-    <div>
-      <h1>Borrador despachos</h1>
-      <p>Campañas guardadas sin enviar</p>
+  <div class="toolbar">
+    <app-search-bar
+      class="toolbar__search"
+      placeholder="Buscar viajes, choferes, productores..."
+      (valueChange)="busqueda.set($event)"
+    />
+    <div class="toolbar__actions">
+      <app-button variant="outline" size="md">
+        <app-icon name="filter" />
+        Filtros
+      </app-button>
+      <app-button variant="primary" size="md" (clicked)="crearDespacho()">
+        <app-icon name="plus" />
+        Crear Despacho
+      </app-button>
     </div>
-    <app-button variant="primary" size="md" (clicked)="crearNuevo()">
-      <app-icon name="plus" />
-      Crear despacho
-    </app-button>
-  </header>
+  </div>
 
   <app-state-wrapper
     [status]="despachos().status"
     [error]="despachos().error ?? ''"
-    [empty]="rows().length === 0"
+    [empty]="borradores().length === 0"
     emptyMessage="No tenés borradores guardados"
     [skeletonRows]="4"
   >
-    <app-table [columns]="columns" [rows]="rows()">
-      <ng-template appTableCell="estado">
-        <app-badge variant="warning">Borrador</app-badge>
-      </ng-template>
-      <ng-template appTableCell="acciones" let-row>
-        <app-button variant="danger" size="sm" (clicked)="eliminar($any(row)['id'])">
-          Eliminar
-        </app-button>
-      </ng-template>
-    </app-table>
+    <div class="grid-container">
+      <div class="draft-cols grid-container__head">
+        <span>Campaña</span>
+        <span>Fecha</span>
+        <span>Administrador</span>
+        <span>Vendedor</span>
+        <span class="grid-container__num">Total Viajes</span>
+        <span class="grid-container__num">Total Toneladas</span>
+        <span>Acciones</span>
+      </div>
+
+      @for (borrador of borradores(); track borrador.id) {
+        <article class="draft">
+          <div class="draft-cols draft__row">
+            <div class="draft__campania">
+              <div class="draft__nombre">
+                {{ borrador.nombre }}
+                <app-badge variant="warning">Borrador</app-badge>
+              </div>
+              <small>{{ borrador.codigo }}</small>
+            </div>
+            <span class="draft__dato">{{ borrador.fecha }}</span>
+            <span class="draft__dato">{{ borrador.administrador }}</span>
+            <span class="draft__dato">{{ borrador.vendedor }}</span>
+            <span class="draft__metric">{{ borrador.totalViajes }}</span>
+            <span class="draft__metric">{{ borrador.totalToneladas }} tn</span>
+            <div class="draft__acciones">
+              <button
+                class="draft__ver-viajes"
+                type="button"
+                [class.draft__ver-viajes--abierto]="expandidos().has(borrador.id)"
+                (click)="toggle(borrador.id)"
+              >
+                <app-icon name="chevron-down" />
+                Ver viajes
+              </button>
+              <button
+                class="draft__icono"
+                type="button"
+                title="Editar borrador"
+                aria-label="Editar borrador"
+                (click)="editar()"
+              >
+                <app-icon name="file-text" />
+              </button>
+              <button
+                class="draft__icono draft__icono--rojo"
+                type="button"
+                title="Eliminar borrador"
+                aria-label="Eliminar borrador"
+                (click)="eliminarDespacho(borrador.id, borrador.nombre)"
+              >
+                <app-icon name="trash" />
+              </button>
+              <button
+                class="draft__icono"
+                type="button"
+                title="Más opciones"
+                aria-label="Más opciones"
+                (click)="masOpciones()"
+              >
+                <app-icon name="more-vertical" />
+              </button>
+            </div>
+          </div>
+
+          @if (expandidos().has(borrador.id)) {
+            <div class="viajes">
+              <div class="viajes__row viajes__row--head">
+                <span>Nombre</span>
+                <span>Patente</span>
+                <span>Desde</span>
+                <span>Hasta</span>
+                <span class="viajes__num">Toneladas</span>
+                <span>Acciones</span>
+              </div>
+              @for (viaje of borrador.viajes; track viaje.id) {
+                <div class="viajes__row">
+                  <span>{{ viaje.chofer }}</span>
+                  <span>{{ viaje.dominio }}</span>
+                  <span class="viajes__desde">{{ borrador.desde }}</span>
+                  <span>{{ viaje.destino }}</span>
+                  <span class="viajes__num"
+                    ><strong>{{ viaje.toneladas }} tn</strong></span
+                  >
+                  <div class="viajes__acciones">
+                    <app-button
+                      variant="primary"
+                      size="sm"
+                      (clicked)="iniciarViaje(borrador.id, viaje)"
+                    >
+                      <app-icon name="play" />
+                      Iniciar Viaje
+                    </app-button>
+                    <button
+                      class="draft__icono"
+                      type="button"
+                      title="Duplicar viaje"
+                      aria-label="Duplicar viaje"
+                      (click)="duplicarViaje(borrador.id, viaje.id)"
+                    >
+                      <app-icon name="copy" />
+                    </button>
+                    <button
+                      class="draft__icono draft__icono--rojo"
+                      type="button"
+                      title="Eliminar viaje"
+                      aria-label="Eliminar viaje"
+                      (click)="eliminarViaje(borrador.id, viaje.id)"
+                    >
+                      <app-icon name="trash" />
+                    </button>
+                  </div>
+                </div>
+              } @empty {
+                <div class="viajes__vacio">Este borrador no tiene viajes pendientes</div>
+              }
+            </div>
+          }
+        </article>
+      }
+    </div>
   </app-state-wrapper>
 </section>

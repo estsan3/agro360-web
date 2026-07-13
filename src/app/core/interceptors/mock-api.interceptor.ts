@@ -35,6 +35,7 @@ let nextMensajeId = 100;
 // Configuración en memoria
 const usuariosDb: MockUsuario[] = [...MOCK_USUARIOS];
 let nextUsuarioId = usuariosDb.length + 1;
+let nextViajeId = 30;
 const catalogosDb = structuredClone(MOCK_CATALOGOS);
 let nextCatalogoId = 100;
 let parametros: MockParametros = { precio_por_tonelada: 1000, moneda: 'ARS' };
@@ -185,10 +186,10 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
       id: `d-${nextDespachoId++}`,
       viajes: body.viajes.map((viaje, index) => ({
         ...viaje,
-        id: `#${12350 + index}`,
-        estado: 'pendiente' as const,
+        id: `#${12350 + nextViajeId++ + index}`,
+        estado: body.estado === 'borrador' ? ('borrador' as const) : ('pendiente' as const),
         progreso: 0,
-        observaciones: 'Pendiente asignación',
+        observaciones: body.estado === 'borrador' ? '' : 'Pendiente asignación',
       })),
     };
     despachosDb.push(nuevo);
@@ -214,6 +215,39 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
     };
     conversacion.mensajes.push(mensaje);
     return ok(mensaje);
+  }
+
+  const viajeAccion = /^\/despachos\/([^/]+)\/viajes\/([^/]+)(?:\/(iniciar|duplicar))?$/.exec(path);
+  if (viajeAccion) {
+    const despacho = despachosDb.find((d) => d.id === viajeAccion[1]);
+    const viajeId = decodeURIComponent(viajeAccion[2]);
+    const viaje = despacho?.viajes.find((v) => v.id === viajeId);
+    if (!despacho || !viaje) {
+      return fail(404);
+    }
+
+    if (req.method === 'POST' && viajeAccion[3] === 'iniciar') {
+      viaje.estado = 'en_viaje';
+      viaje.progreso = 0;
+      viaje.observaciones = 'Viaje iniciado';
+      // Si no quedan viajes en borrador, el despacho pasa a activo
+      if (despacho.viajes.every((v) => v.estado !== 'borrador')) {
+        despacho.estado = 'activo';
+      }
+      return ok(despacho);
+    }
+
+    if (req.method === 'POST' && viajeAccion[3] === 'duplicar') {
+      const copia = { ...viaje, id: `#${12350 + nextViajeId++}` };
+      despacho.viajes.splice(despacho.viajes.indexOf(viaje) + 1, 0, copia);
+      return ok(despacho);
+    }
+
+    if (req.method === 'DELETE' && !viajeAccion[3]) {
+      despacho.viajes.splice(despacho.viajes.indexOf(viaje), 1);
+      return ok(despacho);
+    }
+    return fail(404);
   }
 
   const deleteMatch = /^\/despachos\/(.+)$/.exec(path);

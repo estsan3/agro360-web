@@ -81,7 +81,7 @@ export class Topbar {
       return [];
     }
     return this.despachoStore
-      .activos()
+      .enOperacion()
       .flatMap((despacho) =>
         despacho.viajes.map((viaje) => ({
           id: viaje.id,

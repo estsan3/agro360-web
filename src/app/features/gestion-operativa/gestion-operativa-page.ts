@@ -40,6 +40,7 @@ const VIAJES_COLUMNS: TableColumn[] = [
 ];
 
 const PROGRESS_VARIANT: Record<EstadoViaje, ProgressVariant> = {
+  borrador: 'neutral',
   completado: 'success',
   'en-viaje': 'info',
   retrasado: 'danger',
@@ -84,7 +85,7 @@ export class GestionOperativaPage {
     const filtro = this.busqueda().toLowerCase();
 
     return this.store
-      .activos()
+      .enOperacion()
       .map((despacho) => {
         const productor = catalogos?.productores.find((p) => p.id === despacho.productorId);
         const campo = productor?.campos.find((c) => c.id === despacho.campoId);
@@ -120,7 +121,9 @@ export class GestionOperativaPage {
   });
 
   // Totalizadores (los % de tendencia llegan con el backend — TODO)
-  private readonly todosLosViajes = computed(() => this.store.activos().flatMap((d) => d.viajes));
+  private readonly todosLosViajes = computed(() =>
+    this.store.enOperacion().flatMap((d) => d.viajes),
+  );
   protected readonly enRuta = computed(
     () => this.todosLosViajes().filter((v) => v.estado === 'en-viaje').length,
   );
@@ -150,7 +153,7 @@ export class GestionOperativaPage {
   }
 
   private expandirTodas(): void {
-    this.expandidas.set(new Set(this.store.activos().map((d) => d.id)));
+    this.expandidas.set(new Set(this.store.enOperacion().map((d) => d.id)));
   }
 
   /** Mensajes sin leer del chofer de un viaje (badge en el icono de chat) */

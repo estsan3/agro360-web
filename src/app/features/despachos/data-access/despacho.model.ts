@@ -1,7 +1,7 @@
 /**
  * Modelo de dominio del front (camelCase, fechas como Date).
  */
-export type EstadoViaje = 'pendiente' | 'en-viaje' | 'retrasado' | 'completado';
+export type EstadoViaje = 'borrador' | 'pendiente' | 'en-viaje' | 'retrasado' | 'completado';
 export type EstadoDespacho = 'borrador' | 'activo';
 
 export interface Viaje {

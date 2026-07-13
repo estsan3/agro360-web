@@ -2,6 +2,7 @@ import { CatalogosDto, CrearDespachoDto, DespachoDto, ViajeDto } from './despach
 import { Catalogos, Despacho, EstadoViaje, NuevoDespacho, Viaje } from './despacho.model';
 
 const ESTADO_VIAJE_MAP: Record<ViajeDto['estado'], EstadoViaje> = {
+  borrador: 'borrador',
   pendiente: 'pendiente',
   en_viaje: 'en-viaje',
   retrasado: 'retrasado',

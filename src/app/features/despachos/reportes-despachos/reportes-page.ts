@@ -27,7 +27,7 @@ export class ReportesPage {
 
   protected readonly despachos = this.store.despachos;
 
-  private readonly viajes = computed(() => this.store.activos().flatMap((d) => d.viajes));
+  private readonly viajes = computed(() => this.store.enOperacion().flatMap((d) => d.viajes));
 
   protected readonly enRuta = computed(
     () => this.viajes().filter((viaje) => viaje.estado === 'en-viaje').length,
@@ -48,7 +48,7 @@ export class ReportesPage {
 
   protected readonly viajesPorMaterial = computed<ChartDatum[]>(() => {
     const counts = new Map<string, number>();
-    for (const despacho of this.store.activos()) {
+    for (const despacho of this.store.enOperacion()) {
       counts.set(despacho.material, (counts.get(despacho.material) ?? 0) + despacho.viajes.length);
     }
     return [...counts.entries()]
@@ -59,7 +59,7 @@ export class ReportesPage {
   protected readonly viajesPorCampo = computed<ChartDatum[]>(() => {
     const catalogos = this.store.catalogos().data;
     const counts = new Map<string, number>();
-    for (const despacho of this.store.activos()) {
+    for (const despacho of this.store.enOperacion()) {
       const productor = catalogos?.productores.find((p) => p.id === despacho.productorId);
       const campo = productor?.campos.find((c) => c.id === despacho.campoId);
       const nombre = campo?.nombre ?? 'Sin campo';

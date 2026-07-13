@@ -23,6 +23,30 @@ export class DespachoService {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
+  iniciarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/iniciar`,
+        {},
+      )
+      .pipe(map(toDespacho));
+  }
+
+  duplicarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/duplicar`,
+        {},
+      )
+      .pipe(map(toDespacho));
+  }
+
+  eliminarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.http
+      .delete<DespachoDto>(`${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}`)
+      .pipe(map(toDespacho));
+  }
+
   getCatalogos(): Observable<Catalogos> {
     return this.http
       .get<CatalogosDto>(`${environment.apiBaseUrl}/catalogos`)

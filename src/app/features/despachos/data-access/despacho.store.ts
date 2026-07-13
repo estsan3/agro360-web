@@ -31,6 +31,20 @@ export class DespachoStore {
     (this._despachos().data ?? []).filter((despacho) => despacho.estado === 'activo'),
   );
 
+  /**
+   * Despachos con operación en curso: activos + borradores cuyos viajes
+   * ya iniciaron (los viajes en borrador se excluyen del detalle).
+   * Es lo que muestran Gestión operativa y Reportería.
+   */
+  readonly enOperacion = computed(() =>
+    (this._despachos().data ?? [])
+      .map((despacho) => ({
+        ...despacho,
+        viajes: despacho.viajes.filter((viaje) => viaje.estado !== 'borrador'),
+      }))
+      .filter((despacho) => despacho.estado === 'activo' || despacho.viajes.length > 0),
+  );
+
   cargarDespachos(): void {
     if (this._despachos().status === 'loading') {
       return;
@@ -67,6 +81,33 @@ export class DespachoStore {
         }
       }),
     );
+  }
+
+  iniciarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.api
+      .iniciarViaje(despachoId, viajeId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  duplicarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.api
+      .duplicarViaje(despachoId, viajeId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  eliminarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.api
+      .eliminarViaje(despachoId, viajeId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  private reemplazar(despacho: Despacho): void {
+    const actual = this._despachos();
+    if (actual.status === 'success') {
+      this._despachos.set(
+        asyncSuccess((actual.data ?? []).map((d) => (d.id === despacho.id ? despacho : d))),
+      );
+    }
   }
 
   eliminarDespacho(id: string): Observable<void> {

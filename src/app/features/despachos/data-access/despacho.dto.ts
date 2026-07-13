@@ -8,7 +8,7 @@ export interface ViajeDto {
   dominio: string;
   destino: string;
   toneladas: number;
-  estado: 'pendiente' | 'en_viaje' | 'retrasado' | 'completado';
+  estado: 'borrador' | 'pendiente' | 'en_viaje' | 'retrasado' | 'completado';
   progreso: number; // 0-100
   observaciones: string;
 }
