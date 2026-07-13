@@ -22,7 +22,10 @@ export type IconName =
   | 'more-vertical'
   | 'ticket'
   | 'file-text'
-  | 'clock';
+  | 'clock'
+  | 'fuel'
+  | 'copy'
+  | 'trash';
 
 /**
  * Iconografía del kit Agro360 (Figma: Componentes → íconos).

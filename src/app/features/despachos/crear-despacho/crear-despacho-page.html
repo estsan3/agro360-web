@@ -1,9 +1,4 @@
 <section class="page">
-  <header class="page__header">
-    <h1>Crear despacho</h1>
-    <p>Definí la campaña, el origen y los viajes asignados</p>
-  </header>
-
   @if (mensajeExito()) {
     <app-toast
       variant="success"
@@ -18,100 +13,255 @@
     [error]="catalogos().error ?? ''"
     [skeletonRows]="5"
   >
-    <form class="card" [formGroup]="form">
-      <div class="grid grid--full">
-        <app-text-input
-          label="Nombre de Campaña / Despacho *"
-          placeholder="Campaña Soja 2026"
-          formControlName="nombre"
-          [error]="fieldError('nombre')"
-        />
-      </div>
-      <div class="grid">
-        <app-select-input
-          label="Productor *"
-          [options]="productorOptions()"
-          formControlName="productorId"
-          [error]="fieldError('productorId')"
-        />
-        <app-select-input
-          label="Campo *"
-          placeholder="Elegí primero un productor"
-          [options]="campoOptions()"
-          formControlName="campoId"
-          [error]="fieldError('campoId')"
-        />
-        <app-text-input
-          label="Origen *"
-          placeholder="Rosario, Santa Fe"
-          formControlName="origen"
-          [error]="fieldError('origen')"
-        />
-        <app-text-input
-          label="Entrada Campo"
-          placeholder="Entrada Norte (Lat, Lng)"
-          formControlName="entradaCampo"
-        />
-        <app-select-input
-          label="Tipo de Material a Transportar *"
-          [options]="materialOptions()"
-          formControlName="material"
-          [error]="fieldError('material')"
-        />
-        <app-select-input
-          label="Administrador *"
-          [options]="administradorOptions()"
-          formControlName="administradorId"
-          [error]="fieldError('administradorId')"
-        />
-        <app-select-input
-          label="Vendedor *"
-          [options]="vendedorOptions()"
-          formControlName="vendedorId"
-          [error]="fieldError('vendedorId')"
-        />
-        <app-text-input
-          label="Fecha de inicio *"
-          type="date"
-          formControlName="fechaInicio"
-          [error]="fieldError('fechaInicio')"
-        />
-        <app-text-input
-          label="Fecha de llegada estimada"
-          type="date"
-          formControlName="fechaLlegadaEstimada"
-        />
-      </div>
-    </form>
-
+    <!-- ============ MASTER: Información General ============ -->
     <div class="card">
-      <h2>Viajes asignados</h2>
-      <form class="viaje-form" [formGroup]="viajeForm" (ngSubmit)="agregarViaje()">
-        <app-select-input label="Chofer" [options]="choferOptions()" formControlName="choferId" />
-        <app-text-input
-          label="Destino"
-          placeholder="Buenos Aires - Puerto"
-          formControlName="destino"
-        />
-        <app-text-input
-          label="Toneladas"
-          type="number"
-          placeholder="28.5"
-          formControlName="toneladas"
-        />
-        <app-button type="submit" variant="outline" size="md">
-          <app-icon name="plus" />
-          Agregar viaje
-        </app-button>
-      </form>
+      <h2 class="card__title">Información General del Despacho</h2>
 
-      <app-table [columns]="viajesColumns" [rows]="viajesRows()">
-        <ng-template appTableCell="acciones" let-row>
-          <app-button variant="danger" size="sm" (clicked)="quitarViaje(viajesRows().indexOf(row))">
-            Quitar
+      <nav class="tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          class="tabs__tab"
+          [class.tabs__tab--active]="tab() === 1"
+          [attr.aria-selected]="tab() === 1"
+          (click)="tab.set(1)"
+        >
+          Información 1
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tabs__tab"
+          [class.tabs__tab--active]="tab() === 2"
+          [attr.aria-selected]="tab() === 2"
+          (click)="tab.set(2)"
+        >
+          Información 2
+        </button>
+      </nav>
+
+      @if (tab() === 1) {
+        <form class="grid" [formGroup]="form">
+          <div class="grid__full">
+            <app-text-input
+              label="Nombre de Campaña / Despacho *"
+              placeholder="Campaña Soja 2026"
+              formControlName="nombre"
+              [error]="fieldError('nombre')"
+            />
+          </div>
+          <app-select-input
+            label="Productor *"
+            [options]="productorOptions()"
+            formControlName="productorId"
+            [error]="fieldError('productorId')"
+          />
+          <app-select-input
+            label="Campo *"
+            placeholder="Elegí primero un productor"
+            [options]="campoOptions()"
+            formControlName="campoId"
+            [error]="fieldError('campoId')"
+          />
+          <app-text-input
+            label="Origen *"
+            placeholder="Rosario, Santa Fe"
+            formControlName="origen"
+            [error]="fieldError('origen')"
+          />
+          <app-select-input
+            label="Entrada Campo *"
+            [options]="entradaOptions"
+            formControlName="entradaCampo"
+            [error]="fieldError('entradaCampo')"
+          />
+          <app-select-input
+            label="Tipo de Material a Transportar *"
+            [options]="materialOptions()"
+            formControlName="material"
+            [error]="fieldError('material')"
+          />
+          <app-select-input
+            label="Administrador *"
+            [options]="administradorOptions()"
+            formControlName="administradorId"
+            [error]="fieldError('administradorId')"
+          />
+          <div class="grid__full grid__tres">
+            <app-select-input
+              label="Vendedor *"
+              [options]="vendedorOptions()"
+              formControlName="vendedorId"
+              [error]="fieldError('vendedorId')"
+            />
+            <app-text-input
+              label="Fecha de Inicio *"
+              type="date"
+              formControlName="fechaInicio"
+              [error]="fieldError('fechaInicio')"
+            />
+            <app-text-input
+              label="Fecha de Llegada Estimada"
+              type="date"
+              formControlName="fechaLlegadaEstimada"
+            />
+          </div>
+        </form>
+      } @else {
+        <div class="tab-pendiente">
+          <p>Información 2 — contenido a definir</p>
+        </div>
+      }
+
+      <footer class="card__nav">
+        <app-button variant="outline" size="md" [disabled]="tab() === 1" (clicked)="volverTab()">
+          Volver
+        </app-button>
+        <app-button variant="primary" size="md" [disabled]="tab() === 2" (clicked)="siguienteTab()">
+          Siguiente paso
+        </app-button>
+      </footer>
+    </div>
+
+    <!-- ============ DETALLE: Viajes del Despacho ============ -->
+    <div class="card">
+      <div class="viajes-head">
+        <div>
+          <h2 class="card__title">Viajes del Despacho</h2>
+          <p class="card__hint">Agregue los viajes que serán parte de este despacho</p>
+        </div>
+        <div class="totales">
+          <app-icon name="info" />
+          <span>
+            Total de viajes: <strong>{{ totalViajes() }}</strong>
+          </span>
+          <span class="totales__sep"></span>
+          <span>
+            Total toneladas: <strong>{{ totalToneladas() | number: '1.0-2' }} tn</strong>
+          </span>
+        </div>
+      </div>
+
+      <div class="viajes-acciones">
+        <div class="viajes-acciones__masivas">
+          <app-button
+            variant="primary"
+            size="md"
+            class="btn-carta"
+            (clicked)="accionMasiva('carta de porte')"
+          >
+            <app-icon name="file-text" />
+            Crear Carta de Porte
           </app-button>
-        </ng-template>
-      </app-table>
+          <app-button variant="primary" size="md" (clicked)="accionMasiva('ticket de gasoil')">
+            <app-icon name="fuel" />
+            Ticket Gasoil
+          </app-button>
+        </div>
+        <app-button variant="primary" size="md" (clicked)="agregarViaje()">
+          <app-icon name="plus" />
+          Agregar Viaje
+        </app-button>
+      </div>
+
+      <div class="vtable">
+        <div class="vtable__row vtable__row--head">
+          <input
+            type="checkbox"
+            aria-label="Seleccionar todos"
+            [checked]="todosSeleccionados()"
+            (change)="toggleTodos()"
+          />
+          <span>ID</span>
+          <span>Chofer</span>
+          <span>Dominio</span>
+          <span>Destino</span>
+          <span>Toneladas</span>
+          <span>Acciones</span>
+        </div>
+
+        @for (grupo of viajes.controls; track grupo; let i = $index) {
+          <div class="vtable__row">
+            <input
+              type="checkbox"
+              [attr.aria-label]="'Seleccionar viaje ' + (i + 1)"
+              [checked]="seleccionados().has(i)"
+              (change)="toggleSeleccion(i)"
+            />
+            <span class="vtable__id">#{{ i + 1 }}</span>
+            <select
+              class="vtable__input"
+              [attr.aria-label]="'Chofer del viaje ' + (i + 1)"
+              [formControl]="grupo.controls.choferId"
+              (change)="choferElegido(i)"
+            >
+              <option value="">Chofer…</option>
+              @for (chofer of catalogos().data?.choferes ?? []; track chofer.id) {
+                <option [value]="chofer.id">{{ chofer.nombre }}</option>
+              }
+            </select>
+            <input
+              class="vtable__input"
+              [attr.aria-label]="'Dominio del viaje ' + (i + 1)"
+              placeholder="AA123BB"
+              [formControl]="grupo.controls.dominio"
+            />
+            <input
+              class="vtable__input"
+              [attr.aria-label]="'Destino del viaje ' + (i + 1)"
+              placeholder="Puerto San Martín"
+              [formControl]="grupo.controls.destino"
+            />
+            <input
+              class="vtable__input"
+              type="number"
+              [attr.aria-label]="'Toneladas del viaje ' + (i + 1)"
+              placeholder="28.5"
+              [formControl]="grupo.controls.toneladas"
+            />
+            <div class="vtable__acciones">
+              <button
+                type="button"
+                class="vtable__accion vtable__accion--verde"
+                title="Ticket de combustible"
+                aria-label="Ticket de combustible"
+                (click)="accionFila(i, 'ticket de gasoil')"
+              >
+                <app-icon name="fuel" />
+              </button>
+              <button
+                type="button"
+                class="vtable__accion vtable__accion--verde"
+                title="Generar carta de porte"
+                aria-label="Generar carta de porte"
+                (click)="accionFila(i, 'carta de porte')"
+              >
+                <app-icon name="file-text" />
+              </button>
+              <button
+                type="button"
+                class="vtable__accion"
+                title="Duplicar viaje"
+                aria-label="Duplicar viaje"
+                (click)="duplicarViaje(i)"
+              >
+                <app-icon name="copy" />
+              </button>
+              <button
+                type="button"
+                class="vtable__accion vtable__accion--rojo"
+                title="Eliminar viaje"
+                aria-label="Eliminar viaje"
+                (click)="eliminarViaje(i)"
+              >
+                <app-icon name="trash" />
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <div class="vtable__vacio">Sin viajes — usá "Agregar Viaje"</div>
+        }
+      </div>
     </div>
 
     <footer class="actions">
@@ -129,8 +279,7 @@
         [disabled]="guardando()"
         (clicked)="guardar('activo')"
       >
-        <app-icon name="plus" />
-        {{ guardando() ? 'Enviando…' : 'Enviar Despacho' }}
+        {{ guardando() ? 'Creando…' : 'Crear Despacho' }}
       </app-button>
     </footer>
   </app-state-wrapper>

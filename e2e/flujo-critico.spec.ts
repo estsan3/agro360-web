@@ -13,24 +13,24 @@ test('login → crear despacho → gestión operativa → logout', async ({ page
   await page.click('button[type="submit"]');
   await expect(page).toHaveURL(/\/despachos/);
 
-  // --- Crear despacho con un viaje ---
+  // --- Crear despacho con un viaje (formulario con tabs + tabla editable) ---
   await page.fill('input[placeholder="Campaña Soja 2026"]', 'Campaña E2E');
   const selects = page.locator('select');
-  await selects.nth(0).selectOption({ label: 'Agro SA' });
-  await selects.nth(1).selectOption({ label: 'Campo Norte' });
+  await selects.nth(0).selectOption({ label: 'Agro SA' }); // productor
+  await selects.nth(1).selectOption({ label: 'Campo Norte' }); // campo
   await page.fill('input[placeholder="Rosario, Santa Fe"]', 'Rosario, Santa Fe');
-  await selects.nth(2).selectOption({ label: 'Soja' });
-  await selects.nth(3).selectOption({ index: 1 });
-  await selects.nth(4).selectOption({ index: 1 });
+  await selects.nth(2).selectOption({ index: 1 }); // entrada campo
+  await selects.nth(3).selectOption({ label: 'Soja' }); // material
+  await selects.nth(4).selectOption({ index: 1 }); // administrador
+  await selects.nth(5).selectOption({ index: 1 }); // vendedor
   await page.locator('input[type="date"]').first().fill('2026-09-01');
 
-  await selects.nth(5).selectOption({ index: 1 });
-  await page.fill('input[placeholder="Buenos Aires - Puerto"]', 'Buenos Aires - Puerto');
-  await page.fill('input[type="number"]', '28.5');
-  await page.getByRole('button', { name: /Agregar viaje/ }).click();
-  await expect(page.locator('tbody tr')).toHaveCount(1);
+  // Fila inicial de la tabla editable de viajes
+  await selects.nth(6).selectOption({ index: 1 }); // chofer (autocompleta dominio)
+  await page.fill('input[placeholder="Puerto San Martín"]', 'Buenos Aires - Puerto');
+  await page.locator('.vtable input[type="number"]').fill('28.5');
 
-  await page.getByRole('button', { name: /Enviar Despacho/ }).click();
+  await page.getByRole('button', { name: /Crear Despacho/ }).click();
   await expect(page.getByText('creado correctamente')).toBeVisible();
 
   // --- Verlo en gestión operativa (comunicación vía store + recarga) ---
