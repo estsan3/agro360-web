@@ -1,1 +1,18 @@
-/* You can add global styles to this file, and also import other style files */
+// Estilos globales — la lógica de estilos por componente vive en cada .scss
+@use './styles/tokens' as t;
+@use './styles/typography' as ty;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: ty.$font-family-base;
+  font-size: ty.$font-size-md;
+  color: t.$color-text;
+  background-color: t.$color-background;
+}

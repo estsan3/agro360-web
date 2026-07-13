@@ -1,0 +1,44 @@
+// ============================================================
+// Design tokens — fuente de verdad: Figma "Agro360" (UI Kits)
+// Los valores definitivos se extraen de Figma en el Paso 3.
+// Ningún componente debe hardcodear colores/spacing: usar estos tokens.
+// ============================================================
+
+// --- Breakpoints (PC + tablet, enfoque desktop-first) ---
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1280px;
+
+// --- Colores de marca (placeholder — reemplazar con variables de Figma) ---
+$color-primary: #16a34a;
+$color-primary-dark: #14532d;
+$color-primary-light: #dcfce7;
+
+// --- Semánticos ---
+$color-success: #16a34a;
+$color-warning: #eab308;
+$color-danger: #dc2626;
+$color-info: #2563eb;
+
+// --- Neutrales ---
+$color-text: #1f2937;
+$color-text-muted: #6b7280;
+$color-border: #e5e7eb;
+$color-surface: #ffffff;
+$color-background: #f9fafb;
+
+// --- Spacing ---
+$space-xs: 0.25rem; // 4px
+$space-sm: 0.5rem; // 8px
+$space-md: 1rem; // 16px
+$space-lg: 1.5rem; // 24px
+$space-xl: 2rem; // 32px
+
+// --- Radios ---
+$radius-sm: 0.25rem;
+$radius-md: 0.5rem;
+$radius-lg: 1rem;
+$radius-full: 9999px;
+
+// --- Sombras ---
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
