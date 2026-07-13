@@ -1,0 +1,86 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: t.$space-md;
+  padding: t.$space-md;
+  border-radius: t.$radius-md;
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  box-shadow: t.$shadow-sm;
+  font-family: ty.$font-family-base;
+  min-width: 200px;
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: t.$radius-md;
+    background: t.$color-primary;
+    color: #fff;
+    font-size: 20px;
+    flex-shrink: 0;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__label {
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: t.$space-sm;
+  }
+
+  &__value {
+    font-size: ty.$font-size-3xl;
+    font-weight: ty.$font-weight-bold;
+    color: t.$color-text;
+  }
+
+  &__trend {
+    font-size: ty.$font-size-xs;
+    font-weight: ty.$font-weight-medium;
+    padding: 1px t.$space-sm;
+    border-radius: t.$radius-full;
+    background: t.$color-success-bg;
+    color: t.$color-primary-dark;
+
+    &--down {
+      background: t.$color-danger-bg;
+      color: t.$color-danger-text;
+    }
+  }
+
+  &--dark {
+    background: t.$color-primary-deep;
+    border-color: transparent;
+
+    .kpi__icon {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .kpi__label {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .kpi__value {
+      color: #fff;
+    }
+  }
+}

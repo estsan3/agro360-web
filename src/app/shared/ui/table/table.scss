@@ -1,0 +1,51 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.table-wrap {
+  // Responsive tablet: la tabla scrollea dentro de su contenedor,
+  // nunca desborda la página
+  overflow-x: auto;
+  border-radius: t.$radius-md;
+  border: 1px solid t.$color-border;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ty.$font-family-base;
+  font-size: ty.$font-size-md-sm;
+  background: t.$color-surface;
+
+  th {
+    background: t.$color-primary;
+    color: #fff;
+    font-size: ty.$font-size-sm;
+    font-weight: ty.$font-weight-semibold;
+    padding: t.$space-sm t.$space-md;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: t.$space-sm t.$space-md;
+    border-bottom: 1px solid t.$color-border;
+    color: t.$color-text;
+  }
+
+  tbody tr {
+    transition: background-color 0.1s ease;
+
+    &:hover {
+      background: t.$color-background;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    color: t.$color-text-muted;
+    padding: t.$space-lg !important;
+  }
+}

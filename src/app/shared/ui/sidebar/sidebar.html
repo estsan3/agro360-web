@@ -1,0 +1,35 @@
+<nav class="sidebar">
+  <div class="sidebar__logo">
+    <app-logo size="sm" [compact]="true" />
+  </div>
+
+  <div class="sidebar__section">
+    @for (item of itemsIn('top'); track item.id) {
+      <button
+        class="sidebar__item"
+        type="button"
+        [class.sidebar__item--active]="item.id === activeId()"
+        [attr.aria-label]="item.label"
+        [attr.title]="item.label"
+        (click)="itemSelected.emit(item.id)"
+      >
+        <app-icon [name]="item.icon" />
+      </button>
+    }
+  </div>
+
+  <div class="sidebar__section sidebar__section--bottom">
+    @for (item of itemsIn('bottom'); track item.id) {
+      <button
+        class="sidebar__item"
+        type="button"
+        [class.sidebar__item--active]="item.id === activeId()"
+        [attr.aria-label]="item.label"
+        [attr.title]="item.label"
+        (click)="itemSelected.emit(item.id)"
+      >
+        <app-icon [name]="item.icon" />
+      </button>
+    }
+  </div>
+</nav>

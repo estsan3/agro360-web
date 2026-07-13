@@ -1,0 +1,10 @@
+<label class="search">
+  <app-icon name="search" />
+  <input
+    class="search__input"
+    type="search"
+    [placeholder]="placeholder()"
+    [value]="value()"
+    (input)="handleInput($event)"
+  />
+</label>
