@@ -32,6 +32,9 @@ export class Table {
   readonly columns = input.required<TableColumn[]>();
   readonly rows = input.required<Record<string, unknown>[]>();
   readonly headerVariant = input<'solid' | 'soft'>('solid');
+  /** fixed: anchos deterministas — tablas repetidas quedan alineadas entre sí */
+  readonly layout = input<'auto' | 'fixed'>('auto');
+  readonly minWidth = input('');
   /** Clase de estado por fila: 'row--danger' | 'row--warning' | 'row--success' | '' */
   readonly rowClass = input<(row: Record<string, unknown>) => string>(() => '');
 

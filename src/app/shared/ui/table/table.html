@@ -1,5 +1,10 @@
 <div class="table-wrap">
-  <table class="table" [class.table--soft]="headerVariant() === 'soft'">
+  <table
+    class="table"
+    [class.table--soft]="headerVariant() === 'soft'"
+    [class.table--fixed]="layout() === 'fixed'"
+    [style.min-width]="minWidth() || null"
+  >
     <thead>
       <tr>
         @for (col of columns(); track col.key) {

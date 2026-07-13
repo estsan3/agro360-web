@@ -28,13 +28,14 @@ interface CampaniaVm {
   viajes: Viaje[];
 }
 
+// Anchos fijos: todas las tablas expandidas comparten la misma grilla
 const VIAJES_COLUMNS: TableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'chofer', label: 'Chofer / Patente' },
+  { key: 'id', label: 'ID', width: '96px' },
+  { key: 'chofer', label: 'Chofer / Patente', width: '170px' },
   { key: 'destino', label: 'Destino' },
-  { key: 'toneladas', label: 'Toneladas', align: 'right' },
-  { key: 'estado', label: 'Estado' },
-  { key: 'progreso', label: 'Progreso' },
+  { key: 'toneladas', label: 'Toneladas', align: 'right', width: '90px' },
+  { key: 'estado', label: 'Estado', width: '120px' },
+  { key: 'progreso', label: 'Progreso', width: '150px' },
   { key: 'observaciones', label: 'Observaciones' },
   { key: 'acciones', label: 'Acciones', align: 'right', width: '140px' },
 ];

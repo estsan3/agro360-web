@@ -43,6 +43,14 @@
     }
   }
 
+  &--fixed {
+    table-layout: fixed;
+
+    td {
+      overflow: hidden;
+    }
+  }
+
   &--soft th {
     background: #f0faec;
     color: t.$color-primary-dark;
