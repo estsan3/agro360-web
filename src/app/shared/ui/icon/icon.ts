@@ -25,7 +25,10 @@ export type IconName =
   | 'clock'
   | 'fuel'
   | 'copy'
-  | 'trash';
+  | 'trash'
+  | 'check-double'
+  | 'map-pin'
+  | 'send';
 
 /**
  * Iconografía del kit Agro360 (Figma: Componentes → íconos).

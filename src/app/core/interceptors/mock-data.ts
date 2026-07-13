@@ -40,8 +40,19 @@ export interface MockConversacion {
   id: string;
   chofer: string;
   dominio: string;
+  viaje_id: string;
+  origen: string;
+  destino: string;
+  estado_viaje: 'pendiente' | 'en_viaje' | 'retrasado' | 'completado';
+  en_linea: boolean;
   no_leidos: number;
-  mensajes: { id: string; autor: 'admin' | 'chofer'; texto: string; fecha: string }[];
+  mensajes: {
+    id: string;
+    autor: 'admin' | 'chofer';
+    texto: string;
+    fecha: string;
+    leido: boolean;
+  }[];
 }
 
 export const MOCK_CONVERSACIONES: MockConversacion[] = [
@@ -49,6 +60,11 @@ export const MOCK_CONVERSACIONES: MockConversacion[] = [
     id: 'conv-1',
     chofer: 'Carlos Ruiz',
     dominio: 'AA123BB',
+    viaje_id: '#12391',
+    origen: 'Salta Capital',
+    destino: 'Rosario - Terminal',
+    estado_viaje: 'en_viaje',
+    en_linea: true,
     no_leidos: 2,
     mensajes: [
       {
@@ -56,18 +72,21 @@ export const MOCK_CONVERSACIONES: MockConversacion[] = [
         autor: 'admin',
         texto: 'Hola Carlos, ¿cómo va el viaje?',
         fecha: '2026-07-13T08:15:00',
+        leido: true,
       },
       {
         id: 'm-2',
         autor: 'chofer',
-        texto: 'Todo bien, la carga va segura. Llego al puerto en 2 horas.',
+        texto: 'Todo bien, voy por la ruta 34. Sin problemas hasta ahora.',
         fecha: '2026-07-13T08:22:00',
+        leido: true,
       },
       {
         id: 'm-3',
         autor: 'chofer',
-        texto: 'Ya estoy en la fila de descarga.',
+        texto: 'Perfecto, ya estoy llegando a destino.',
         fecha: '2026-07-13T10:05:00',
+        leido: false,
       },
     ],
   },
@@ -75,13 +94,19 @@ export const MOCK_CONVERSACIONES: MockConversacion[] = [
     id: 'conv-2',
     chofer: 'Pedro Ramírez',
     dominio: 'XY789ZA',
+    viaje_id: '#12392',
+    origen: 'Salta Capital',
+    destino: 'San Lorenzo - Puerto',
+    estado_viaje: 'retrasado',
+    en_linea: false,
     no_leidos: 1,
     mensajes: [
       {
         id: 'm-4',
         autor: 'chofer',
-        texto: 'Tengo un desperfecto técnico en ruta, voy a demorar.',
+        texto: 'Hay un problema en la ruta, corte total en el km 120. Voy a demorar.',
         fecha: '2026-07-13T09:40:00',
+        leido: false,
       },
     ],
   },
@@ -89,19 +114,80 @@ export const MOCK_CONVERSACIONES: MockConversacion[] = [
     id: 'conv-3',
     chofer: 'Miguel Torres',
     dominio: 'EF789GH',
+    viaje_id: '#12390',
+    origen: 'Salta Capital',
+    destino: 'Rosario - Terminal',
+    estado_viaje: 'en_viaje',
+    en_linea: true,
     no_leidos: 0,
     mensajes: [
       {
         id: 'm-5',
         autor: 'admin',
-        texto: 'Miguel, mañana salís con la carga de soja a Rosario.',
+        texto: 'Miguel, ¿pudiste cargar completo?',
         fecha: '2026-07-12T18:00:00',
+        leido: true,
       },
       {
         id: 'm-6',
         autor: 'chofer',
-        texto: 'Perfecto, ¿a qué hora paso a cargar?',
+        texto: 'Sí, 32 toneladas. Salgo mañana temprano.',
         fecha: '2026-07-12T18:12:00',
+        leido: true,
+      },
+      {
+        id: 'm-7',
+        autor: 'admin',
+        texto: 'Perfecto, buen viaje.',
+        fecha: '2026-07-13T07:30:00',
+        leido: true,
+      },
+    ],
+  },
+  {
+    id: 'conv-4',
+    chofer: 'Roberto Gómez',
+    dominio: 'BC456CD',
+    viaje_id: '#12394',
+    origen: 'Salta Capital',
+    destino: 'Rosario - Terminal',
+    estado_viaje: 'completado',
+    en_linea: false,
+    no_leidos: 0,
+    mensajes: [
+      {
+        id: 'm-8',
+        autor: 'chofer',
+        texto: 'Descarga terminada, todo en orden. Firmaron el remito.',
+        fecha: '2026-07-12T16:45:00',
+        leido: true,
+      },
+      {
+        id: 'm-9',
+        autor: 'admin',
+        texto: 'Gracias Roberto, quedó registrado.',
+        fecha: '2026-07-12T17:00:00',
+        leido: true,
+      },
+    ],
+  },
+  {
+    id: 'conv-5',
+    chofer: 'Carlos Ruiz',
+    dominio: 'AA123BB',
+    viaje_id: '#12332',
+    origen: 'Pergamino',
+    destino: 'Puerto San Martín',
+    estado_viaje: 'en_viaje',
+    en_linea: true,
+    no_leidos: 0,
+    mensajes: [
+      {
+        id: 'm-10',
+        autor: 'admin',
+        texto: 'Carlos, este es el canal del viaje a Puerto San Martín.',
+        fecha: '2026-07-13T06:50:00',
+        leido: true,
       },
     ],
   },

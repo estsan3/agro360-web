@@ -1,17 +1,26 @@
 <section class="page">
-  <header class="page__header">
-    <h1>Mensajería</h1>
-    <p>Comunicación directa con los choferes en ruta</p>
-  </header>
-
   <app-state-wrapper
     [status]="store.conversaciones().status"
     [error]="store.conversaciones().error ?? ''"
     [skeletonRows]="5"
   >
     <div class="chat">
+      <!-- ============ Lista de conversaciones ============ -->
       <aside class="chat__list">
-        <app-search-bar placeholder="Buscar chofer..." (valueChange)="busqueda.set($event)" />
+        <div class="chat__list-head">
+          <h2>Mensajes</h2>
+          <label class="chat__buscar">
+            <app-icon name="search" />
+            <input
+              type="search"
+              placeholder="Buscar conversación..."
+              [ngModel]="busqueda()"
+              (ngModelChange)="busqueda.set($event)"
+              name="busqueda"
+            />
+          </label>
+        </div>
+
         <ul>
           @for (conversacion of filtradas(); track conversacion.id) {
             <li>
@@ -21,54 +30,112 @@
                 [class.conv--active]="conversacion.id === store.seleccionadaId()"
                 (click)="store.seleccionar(conversacion.id)"
               >
-                <span class="conv__avatar">{{ iniciales(conversacion.chofer) }}</span>
+                <span class="conv__avatar">
+                  {{ iniciales(conversacion.chofer) }}
+                  <span
+                    class="conv__punto"
+                    [class.conv__punto--offline]="!conversacion.enLinea"
+                  ></span>
+                </span>
                 <span class="conv__info">
-                  <span class="conv__nombre">
-                    {{ conversacion.chofer }}
-                    <small>· {{ conversacion.dominio }}</small>
+                  <span class="conv__linea1">
+                    <span class="conv__nombre">
+                      {{ conversacion.chofer }} <small>· {{ conversacion.viajeId }}</small>
+                    </span>
+                    <time>{{ conversacion.mensajes.at(-1)?.fecha | date: 'HH:mm' }}</time>
                   </span>
+                  <span class="conv__ruta"
+                    >{{ conversacion.origen }} - {{ conversacion.destino }}</span
+                  >
                   <span class="conv__preview">
+                    @if (conversacion.mensajes.at(-1)?.autor === 'admin') {
+                      <app-icon name="check-double" />
+                    }
                     {{ conversacion.mensajes.at(-1)?.texto ?? 'Sin mensajes' }}
                   </span>
+                  <span class="conv__linea2">
+                    <span class="conv__meta">
+                      <app-icon name="truck" />
+                      {{ conversacion.dominio }} · {{ estadoLabel(conversacion.estadoViaje) }}
+                    </span>
+                    @if (conversacion.noLeidos > 0) {
+                      <span class="conv__badge">{{ conversacion.noLeidos }}</span>
+                    }
+                  </span>
                 </span>
-                @if (conversacion.noLeidos > 0) {
-                  <span class="conv__badge">{{ conversacion.noLeidos }}</span>
-                }
               </button>
             </li>
           }
         </ul>
       </aside>
 
+      <!-- ============ Panel de chat ============ -->
       <div class="chat__panel">
         @if (store.seleccionada(); as conversacion) {
           <header class="chat__header">
-            <span class="conv__avatar">{{ iniciales(conversacion.chofer) }}</span>
-            <div>
+            <span class="conv__avatar">
+              {{ iniciales(conversacion.chofer) }}
+              <span class="conv__punto" [class.conv__punto--offline]="!conversacion.enLinea"></span>
+            </span>
+            <div class="chat__header-info">
               <strong>{{ conversacion.chofer }}</strong>
-              <small>{{ conversacion.dominio }}</small>
+              <small>
+                {{ conversacion.origen }} - {{ conversacion.destino }} ·
+                <app-icon name="truck" />
+                {{ conversacion.dominio }}
+              </small>
             </div>
           </header>
 
+          <div
+            class="chat__estado"
+            [class.chat__estado--detenido]="conversacion.estadoViaje === 'detenido'"
+          >
+            <span>
+              Estado del viaje: <strong>{{ estadoLabel(conversacion.estadoViaje) }}</strong>
+            </span>
+            <button type="button" (click)="verUbicacion()">
+              <app-icon name="map-pin" />
+              Ver ubicación
+            </button>
+          </div>
+
           <div class="chat__mensajes" #mensajesPanel>
-            @for (mensaje of conversacion.mensajes; track mensaje.id) {
-              <div class="burbuja" [class.burbuja--propia]="mensaje.autor === 'admin'">
-                <p>{{ mensaje.texto }}</p>
-                <time>{{ mensaje.fecha | date: 'HH:mm' }}</time>
-              </div>
+            @for (grupo of grupos(); track grupo.etiqueta) {
+              <span class="chat__dia">{{ grupo.etiqueta }}</span>
+              @for (mensaje of grupo.mensajes; track mensaje.id) {
+                <div class="burbuja" [class.burbuja--propia]="mensaje.autor === 'admin'">
+                  <p>{{ mensaje.texto }}</p>
+                  <span class="burbuja__meta">
+                    <time>{{ mensaje.fecha | date: 'HH:mm' }}</time>
+                    @if (mensaje.autor === 'admin') {
+                      <app-icon name="check-double" />
+                    }
+                  </span>
+                </div>
+              }
             }
           </div>
 
           <form class="chat__input" (submit)="enviar(); $event.preventDefault()">
+            <button
+              type="button"
+              class="chat__alerta"
+              title="Reportar problema"
+              aria-label="Reportar problema"
+              (click)="reportarProblema()"
+            >
+              <app-icon name="alert-triangle" />
+            </button>
             <input
               type="text"
-              placeholder="Escribí un mensaje..."
+              placeholder="Escribe un mensaje..."
               [(ngModel)]="borrador"
               name="mensaje"
               autocomplete="off"
             />
-            <button type="submit" aria-label="Enviar mensaje">
-              <app-icon name="play" />
+            <button type="submit" class="chat__enviar" aria-label="Enviar mensaje">
+              <app-icon name="send" />
             </button>
           </form>
         } @else {

@@ -212,6 +212,7 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
       autor: 'admin' as const,
       texto,
       fecha: new Date().toISOString(),
+      leido: false,
     };
     conversacion.mensajes.push(mensaje);
     return ok(mensaje);

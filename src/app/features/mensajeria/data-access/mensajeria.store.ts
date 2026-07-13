@@ -79,6 +79,7 @@ export class MensajeriaStore {
         autor: 'chofer',
         texto: 'Recibido, gracias 👍',
         fecha: new Date(),
+        leido: false,
       };
       this.agregarMensaje(conversacionId, respuesta);
       if (this._seleccionadaId() !== conversacionId) {
