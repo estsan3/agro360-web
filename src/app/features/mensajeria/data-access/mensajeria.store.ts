@@ -7,6 +7,7 @@ import {
   asyncSuccess,
 } from '../../../core/models/async-state';
 import { NotificationStore } from '../../../notifications/state/notification.store';
+import { PreferenciasStore } from '../../../notifications/state/preferencias.store';
 import { Conversacion, Mensaje } from './mensaje.model';
 import { MensajeriaService } from './mensajeria.service';
 
@@ -19,6 +20,7 @@ import { MensajeriaService } from './mensajeria.service';
 export class MensajeriaStore {
   private readonly api = inject(MensajeriaService);
   private readonly notifications = inject(NotificationStore);
+  private readonly preferencias = inject(PreferenciasStore);
 
   private readonly _conversaciones = signal<AsyncState<Conversacion[]>>(asyncIdle());
   private readonly _seleccionadaId = signal<string>('');
@@ -82,7 +84,9 @@ export class MensajeriaStore {
       if (this._seleccionadaId() !== conversacionId) {
         this.actualizarConversacion(conversacionId, (c) => ({ ...c, noLeidos: c.noLeidos + 1 }));
       }
-      this.notifications.success(`Nuevo mensaje de ${chofer}`, respuesta.texto);
+      if (this.preferencias.preferencias().mensajeChofer) {
+        this.notifications.success(`Nuevo mensaje de ${chofer}`, respuesta.texto);
+      }
     }, 2500);
   }
 

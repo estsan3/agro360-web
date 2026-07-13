@@ -253,3 +253,46 @@ export const MOCK_DESPACHOS: MockDespacho[] = [
     viajes: [],
   },
 ];
+
+export interface MockUsuario {
+  id: string;
+  nombre: string;
+  dni: string;
+  email: string;
+  rol: 'administrador' | 'vendedor';
+}
+
+export const MOCK_USUARIOS: MockUsuario[] = [
+  {
+    id: 'u-1',
+    nombre: 'María González',
+    dni: '27888999',
+    email: 'admin@agro360.com',
+    rol: 'administrador',
+  },
+  {
+    id: 'u-2',
+    nombre: 'Juan Pérez',
+    dni: '12345678',
+    email: 'juan.perez@email.com',
+    rol: 'vendedor',
+  },
+  {
+    id: 'u-3',
+    nombre: 'Carlos Rodríguez',
+    dni: '23456789',
+    email: 'carlos.rodriguez@agro360.com',
+    rol: 'vendedor',
+  },
+];
+
+export interface MockParametros {
+  precio_por_tonelada: number;
+  moneda: 'ARS' | 'USD';
+}
+
+export interface MockPreferencias {
+  viaje_retrasado: boolean;
+  viaje_completado: boolean;
+  mensaje_chofer: boolean;
+}

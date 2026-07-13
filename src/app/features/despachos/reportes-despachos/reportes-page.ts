@@ -6,10 +6,8 @@ import { DonutChart } from '../../../shared/ui/charts/donut-chart';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { KpiCard } from '../../../shared/ui/kpi-card/kpi-card';
 import { StateWrapper } from '../../../shared/ui/state-wrapper/state-wrapper';
+import { ParametrosStore } from '../../../core/state/parametros.store';
 import { DespachoStore } from '../data-access/despacho.store';
-
-// Precio ficticio por tonelada hasta que el backend exponga recaudación real
-const PRECIO_POR_TONELADA = 1000;
 
 /**
  * Reportería (Figma: UI Kit Gestión → Reportería): KPIs + composición
@@ -25,6 +23,7 @@ const PRECIO_POR_TONELADA = 1000;
 })
 export class ReportesPage {
   private readonly store = inject(DespachoStore);
+  private readonly parametrosStore = inject(ParametrosStore);
 
   protected readonly despachos = this.store.despachos;
 
@@ -43,7 +42,8 @@ export class ReportesPage {
     () =>
       this.viajes()
         .filter((viaje) => viaje.estado === 'completado')
-        .reduce((sum, viaje) => sum + viaje.toneladas, 0) * PRECIO_POR_TONELADA,
+        .reduce((sum, viaje) => sum + viaje.toneladas, 0) *
+      this.parametrosStore.parametros().precioPorTonelada,
   );
 
   protected readonly viajesPorMaterial = computed<ChartDatum[]>(() => {
@@ -71,5 +71,6 @@ export class ReportesPage {
   constructor() {
     this.store.cargarDespachos();
     this.store.cargarCatalogos();
+    this.parametrosStore.cargar();
   }
 }

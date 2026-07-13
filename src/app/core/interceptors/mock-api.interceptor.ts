@@ -6,8 +6,12 @@ import {
   MOCK_CATALOGOS,
   MOCK_CONVERSACIONES,
   MOCK_DESPACHOS,
+  MOCK_USUARIOS,
   MockConversacion,
   MockDespacho,
+  MockParametros,
+  MockPreferencias,
+  MockUsuario,
 } from './mock-data';
 
 const MOCK_USER: User = {
@@ -27,6 +31,18 @@ let nextDespachoId = despachosDb.length + 1;
 // Conversaciones en memoria (deep copy para poder mutar mensajes)
 const conversacionesDb: MockConversacion[] = structuredClone(MOCK_CONVERSACIONES);
 let nextMensajeId = 100;
+
+// Configuración en memoria
+const usuariosDb: MockUsuario[] = [...MOCK_USUARIOS];
+let nextUsuarioId = usuariosDb.length + 1;
+const catalogosDb = structuredClone(MOCK_CATALOGOS);
+let nextCatalogoId = 100;
+let parametros: MockParametros = { precio_por_tonelada: 1000, moneda: 'ARS' };
+let preferencias: MockPreferencias = {
+  viaje_retrasado: true,
+  viaje_completado: true,
+  mensaje_chofer: true,
+};
 
 /**
  * API fake para desarrollar sin backend. Se desactiva completo con
@@ -59,7 +75,98 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   if (req.method === 'GET' && path === '/catalogos') {
-    return ok(MOCK_CATALOGOS);
+    return ok(catalogosDb);
+  }
+
+  // --- Configuración: usuarios ---
+  if (req.method === 'GET' && path === '/usuarios') {
+    return ok(usuariosDb);
+  }
+  if (req.method === 'POST' && path === '/usuarios') {
+    const nuevo: MockUsuario = {
+      ...(req.body as Omit<MockUsuario, 'id'>),
+      id: `u-${nextUsuarioId++}`,
+    };
+    usuariosDb.push(nuevo);
+    return ok(nuevo);
+  }
+  const usuarioMatch = /^\/usuarios\/(.+)$/.exec(path);
+  if (req.method === 'DELETE' && usuarioMatch) {
+    const index = usuariosDb.findIndex((u) => u.id === usuarioMatch[1]);
+    if (index === -1) {
+      return fail(404);
+    }
+    usuariosDb.splice(index, 1);
+    return ok(null);
+  }
+
+  // --- Configuración: parámetros y preferencias ---
+  if (path === '/parametros') {
+    if (req.method === 'PUT') {
+      parametros = { ...parametros, ...(req.body as Partial<MockParametros>) };
+    }
+    return ok(parametros);
+  }
+  if (path === '/preferencias') {
+    if (req.method === 'PUT') {
+      preferencias = { ...preferencias, ...(req.body as Partial<MockPreferencias>) };
+    }
+    return ok(preferencias);
+  }
+
+  // --- Configuración: catálogos maestros ---
+  if (req.method === 'POST' && path === '/catalogos/productores') {
+    const nuevo = { ...(req.body as { nombre: string }), id: `p-${nextCatalogoId++}`, campos: [] };
+    catalogosDb.productores.push(nuevo);
+    return ok(nuevo);
+  }
+  const campoMatch = /^\/catalogos\/productores\/([^/]+)\/campos$/.exec(path);
+  if (req.method === 'POST' && campoMatch) {
+    const productor = catalogosDb.productores.find((p) => p.id === campoMatch[1]);
+    if (!productor) {
+      return fail(404);
+    }
+    const nuevo = { ...(req.body as { nombre: string }), id: `c-${nextCatalogoId++}` };
+    productor.campos.push(nuevo);
+    return ok(nuevo);
+  }
+  if (req.method === 'POST' && path === '/catalogos/choferes') {
+    const nuevo = {
+      ...(req.body as { nombre: string; dominio: string }),
+      id: `ch-${nextCatalogoId++}`,
+    };
+    catalogosDb.choferes.push(nuevo);
+    return ok(nuevo);
+  }
+  if (req.method === 'POST' && path === '/catalogos/vendedores') {
+    const nuevo = { ...(req.body as { nombre: string }), id: `v-${nextCatalogoId++}` };
+    catalogosDb.vendedores.push(nuevo);
+    return ok(nuevo);
+  }
+  if (req.method === 'POST' && path === '/catalogos/materiales') {
+    const { nombre } = req.body as { nombre: string };
+    if (!catalogosDb.materiales.includes(nombre)) {
+      catalogosDb.materiales.push(nombre);
+    }
+    return ok({ nombre });
+  }
+  const catalogoDeleteMatch =
+    /^\/catalogos\/(productores|choferes|vendedores|materiales)\/([^/]+)$/.exec(path);
+  if (req.method === 'DELETE' && catalogoDeleteMatch) {
+    const [, tipo, id] = catalogoDeleteMatch;
+    if (tipo === 'materiales') {
+      catalogosDb.materiales = catalogosDb.materiales.filter((m) => m !== decodeURIComponent(id));
+    } else {
+      const lista = catalogosDb[tipo as 'productores' | 'choferes' | 'vendedores'] as {
+        id: string;
+      }[];
+      const index = lista.findIndex((item) => item.id === id);
+      if (index === -1) {
+        return fail(404);
+      }
+      lista.splice(index, 1);
+    }
+    return ok(null);
   }
 
   if (req.method === 'GET' && path === '/despachos') {
@@ -123,7 +230,10 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
 };
 
 function ok(body: unknown) {
-  return of(new HttpResponse({ status: 200, body })).pipe(delay(400));
+  // Clonar: nunca entregar referencias vivas de las "tablas" en memoria
+  // (un store que guarde la referencia vería mutaciones fantasma)
+  const snapshot = body === null ? null : structuredClone(body);
+  return of(new HttpResponse({ status: 200, body: snapshot })).pipe(delay(400));
 }
 
 function fail(status: number) {

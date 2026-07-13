@@ -1,0 +1,231 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-lg;
+  padding: t.$space-lg;
+  font-family: ty.$font-family-base;
+
+  &__header {
+    h1 {
+      margin: 0;
+      font-size: ty.$font-size-3xl;
+      font-weight: ty.$font-weight-bold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: t.$space-xs 0 0;
+      color: t.$color-text-muted;
+    }
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: t.$space-xs;
+  border-bottom: 1px solid t.$color-border;
+  overflow-x: auto;
+
+  &__tab {
+    padding: t.$space-sm t.$space-md;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    font-family: inherit;
+    font-size: ty.$font-size-md;
+    font-weight: ty.$font-weight-medium;
+    color: t.$color-text-muted;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      color: t.$color-text;
+    }
+
+    &--active {
+      color: t.$color-primary-dark;
+      border-bottom-color: t.$color-primary;
+    }
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-md;
+  padding: t.$space-lg;
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-lg;
+
+  h2 {
+    margin: 0;
+    font-size: ty.$font-size-xl;
+    font-weight: ty.$font-weight-semibold;
+    color: t.$color-text;
+  }
+
+  &__hint {
+    margin: -#{t.$space-sm} 0 0;
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
+  }
+
+  &--narrow {
+    max-width: 480px;
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: t.$space-md;
+      align-items: flex-start;
+    }
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: t.$space-md;
+  align-items: start;
+
+  &__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: t.$breakpoint-tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cuenta {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: t.$space-sm;
+  margin: 0;
+
+  dt {
+    color: t.$color-text-muted;
+    font-size: ty.$font-size-md;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: ty.$font-weight-medium;
+  }
+}
+
+.catalogos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: t.$space-md;
+
+  @media (max-width: t.$breakpoint-tablet) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-sm;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: t.$space-sm;
+    font-size: ty.$font-size-md;
+
+    small {
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__delete {
+    display: inline-flex;
+    border: none;
+    background: transparent;
+    color: t.$color-text-muted;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px;
+
+    &:hover {
+      color: t.$color-danger-strong;
+    }
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: t.$space-xs;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: t.$space-xs;
+  padding: 2px t.$space-sm;
+  border-radius: t.$radius-full;
+  background: t.$color-primary-light;
+  color: t.$color-primary-dark;
+  font-size: ty.$font-size-sm;
+
+  &--removable button {
+    display: inline-flex;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+  }
+}
+
+.add-form {
+  display: flex;
+  gap: t.$space-sm;
+
+  input,
+  select {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 t.$space-md;
+    border: 1px solid t.$color-border;
+    border-radius: t.$radius-md;
+    font-family: inherit;
+    font-size: ty.$font-size-md;
+
+    &:focus {
+      outline: none;
+      border-color: t.$color-primary;
+    }
+  }
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: t.$space-sm;
+  font-size: ty.$font-size-md;
+  color: t.$color-text;
+  cursor: pointer;
+
+  input {
+    width: 18px;
+    height: 18px;
+    accent-color: t.$color-primary;
+    cursor: pointer;
+  }
+}

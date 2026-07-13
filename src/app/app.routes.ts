@@ -1,9 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
-const placeholder = () =>
-  import('./shared/ui/page-placeholder/page-placeholder').then((m) => m.PagePlaceholder);
-
 export const routes: Routes = [
   {
     path: 'login',
@@ -36,13 +33,16 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/despachos/despachos.routes').then((m) => m.REPORTES_ROUTES),
       },
-      // Placeholders: se reemplazan por las rutas reales del feature en los pasos 11-12
       {
         path: 'mensajeria',
         loadComponent: () =>
           import('./features/mensajeria/mensajeria-page').then((m) => m.MensajeriaPage),
       },
-      { path: 'configuracion', loadComponent: placeholder, data: { title: 'Configuración' } },
+      {
+        path: 'configuracion',
+        loadComponent: () =>
+          import('./features/configuracion/configuracion-page').then((m) => m.ConfiguracionPage),
+      },
       { path: '', redirectTo: 'despachos', pathMatch: 'full' },
     ],
   },

@@ -46,6 +46,11 @@ export class DespachoStore {
     if (this._catalogos().status !== 'idle') {
       return; // catálogos estables: se cargan una vez por sesión
     }
+    this.recargarCatalogos();
+  }
+
+  /** Recarga forzada — la usa Configuración tras editar catálogos */
+  recargarCatalogos(): void {
     this._catalogos.set(asyncLoading());
     this.api.getCatalogos().subscribe({
       next: (catalogos) => this._catalogos.set(asyncSuccess(catalogos)),

@@ -1,0 +1,324 @@
+<section class="page">
+  <header class="page__header">
+    <h1>Configuración</h1>
+    <p>Usuarios, catálogos y parámetros del sistema</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    @for (item of secciones; track item.id) {
+      <button
+        type="button"
+        role="tab"
+        class="tabs__tab"
+        [class.tabs__tab--active]="seccion() === item.id"
+        [attr.aria-selected]="seccion() === item.id"
+        (click)="seccion.set(item.id)"
+      >
+        {{ item.label }}
+      </button>
+    }
+  </nav>
+
+  @switch (seccion()) {
+    <!-- ============ USUARIOS (tabla de Figma) ============ -->
+    @case ('usuarios') {
+      <div class="card">
+        <h2>Alta de usuario</h2>
+        <form class="grid" [formGroup]="usuarioForm">
+          <app-text-input
+            label="Nombre y Apellido *"
+            placeholder="Juan Pérez"
+            formControlName="nombre"
+          />
+          <app-text-input label="DNI *" placeholder="12345678" formControlName="dni" />
+          <app-text-input
+            label="Email *"
+            type="email"
+            placeholder="juan@empresa.com"
+            formControlName="email"
+          />
+          <app-select-input label="Rol *" [options]="rolOptions" formControlName="rol" />
+          <div class="grid__actions">
+            <app-button variant="primary" size="md" (clicked)="crearUsuario()">
+              <app-icon name="plus" />
+              Crear usuario
+            </app-button>
+          </div>
+        </form>
+      </div>
+
+      <app-state-wrapper
+        [status]="usuariosStore.usuarios().status"
+        [error]="usuariosStore.usuarios().error ?? ''"
+        [empty]="usuariosRows().length === 0"
+        emptyMessage="No hay usuarios"
+        [skeletonRows]="3"
+      >
+        <app-table [columns]="usuariosColumns" [rows]="usuariosRows()">
+          <ng-template appTableCell="rol" let-row>
+            <app-badge [variant]="row['rol'] === 'administrador' ? 'info' : 'neutral'">
+              {{ row['rol'] }}
+            </app-badge>
+          </ng-template>
+          <ng-template appTableCell="acciones" let-row>
+            <app-button
+              variant="danger"
+              size="sm"
+              (clicked)="darDeBaja($any(row)['id'], $any(row)['nombre'])"
+            >
+              Dar de Baja
+            </app-button>
+          </ng-template>
+        </app-table>
+      </app-state-wrapper>
+    }
+
+    <!-- ============ MI CUENTA ============ -->
+    @case ('cuenta') {
+      <div class="card card--narrow">
+        <h2>Mi cuenta</h2>
+        @if (authStore.user(); as user) {
+          <dl class="cuenta">
+            <dt>Nombre</dt>
+            <dd>{{ user.nombre }}</dd>
+            <dt>Email</dt>
+            <dd>{{ user.email }}</dd>
+            <dt>Rol</dt>
+            <dd>
+              <app-badge variant="info">{{ user.rol }}</app-badge>
+            </dd>
+          </dl>
+        }
+        <div>
+          <app-button variant="danger" size="md" (clicked)="cerrarSesion()">
+            Cerrar sesión
+          </app-button>
+        </div>
+      </div>
+    }
+
+    <!-- ============ CATÁLOGOS MAESTROS ============ -->
+    @case ('catalogos') {
+      <app-state-wrapper
+        [status]="despachoStore.catalogos().status"
+        [error]="despachoStore.catalogos().error ?? ''"
+        [skeletonRows]="4"
+      >
+        @if (despachoStore.catalogos().data; as catalogos) {
+          <div class="catalogos">
+            <div class="card">
+              <h2>Productores y campos</h2>
+              <ul class="lista">
+                @for (productor of catalogos.productores; track productor.id) {
+                  <li>
+                    <div class="lista__item">
+                      <strong>{{ productor.nombre }}</strong>
+                      <button
+                        class="lista__delete"
+                        type="button"
+                        [attr.aria-label]="'Eliminar ' + productor.nombre"
+                        (click)="eliminarCatalogo('productores', productor.id)"
+                      >
+                        <app-icon name="x" />
+                      </button>
+                    </div>
+                    <div class="chips">
+                      @for (campo of productor.campos; track campo.id) {
+                        <span class="chip">{{ campo.nombre }}</span>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+              <div class="add-form">
+                <input placeholder="Nuevo productor" [(ngModel)]="nuevoProductor" />
+                <app-button
+                  variant="outline"
+                  size="md"
+                  (clicked)="
+                    nuevoProductor.trim() &&
+                      agregarCatalogo('productores', { nombre: nuevoProductor.trim() });
+                    nuevoProductor = ''
+                  "
+                >
+                  <app-icon name="plus" />
+                </app-button>
+              </div>
+              <div class="add-form">
+                <select [(ngModel)]="campoProductorId">
+                  <option value="">Productor…</option>
+                  @for (option of productorOptions(); track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+                <input placeholder="Nuevo campo" [(ngModel)]="nuevoCampo" />
+                <app-button variant="outline" size="md" (clicked)="agregarCampo()">
+                  <app-icon name="plus" />
+                </app-button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Choferes</h2>
+              <ul class="lista">
+                @for (chofer of catalogos.choferes; track chofer.id) {
+                  <li class="lista__item">
+                    <span
+                      >{{ chofer.nombre }} <small>· {{ chofer.dominio }}</small></span
+                    >
+                    <button
+                      class="lista__delete"
+                      type="button"
+                      [attr.aria-label]="'Eliminar ' + chofer.nombre"
+                      (click)="eliminarCatalogo('choferes', chofer.id)"
+                    >
+                      <app-icon name="x" />
+                    </button>
+                  </li>
+                }
+              </ul>
+              <div class="add-form">
+                <input placeholder="Nombre" [(ngModel)]="nuevoChofer" />
+                <input placeholder="Dominio" [(ngModel)]="nuevoDominio" />
+                <app-button
+                  variant="outline"
+                  size="md"
+                  (clicked)="
+                    nuevoChofer.trim() &&
+                      nuevoDominio.trim() &&
+                      agregarCatalogo('choferes', {
+                        nombre: nuevoChofer.trim(),
+                        dominio: nuevoDominio.trim(),
+                      });
+                    nuevoChofer = '';
+                    nuevoDominio = ''
+                  "
+                >
+                  <app-icon name="plus" />
+                </app-button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Vendedores</h2>
+              <ul class="lista">
+                @for (vendedor of catalogos.vendedores; track vendedor.id) {
+                  <li class="lista__item">
+                    <span>{{ vendedor.nombre }}</span>
+                    <button
+                      class="lista__delete"
+                      type="button"
+                      [attr.aria-label]="'Eliminar ' + vendedor.nombre"
+                      (click)="eliminarCatalogo('vendedores', vendedor.id)"
+                    >
+                      <app-icon name="x" />
+                    </button>
+                  </li>
+                }
+              </ul>
+              <div class="add-form">
+                <input placeholder="Nuevo vendedor" [(ngModel)]="nuevoVendedor" />
+                <app-button
+                  variant="outline"
+                  size="md"
+                  (clicked)="
+                    nuevoVendedor.trim() &&
+                      agregarCatalogo('vendedores', { nombre: nuevoVendedor.trim() });
+                    nuevoVendedor = ''
+                  "
+                >
+                  <app-icon name="plus" />
+                </app-button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Materiales</h2>
+              <div class="chips">
+                @for (material of catalogos.materiales; track material) {
+                  <span class="chip chip--removable">
+                    {{ material }}
+                    <button
+                      type="button"
+                      [attr.aria-label]="'Eliminar ' + material"
+                      (click)="eliminarCatalogo('materiales', material)"
+                    >
+                      <app-icon name="x" />
+                    </button>
+                  </span>
+                }
+              </div>
+              <div class="add-form">
+                <input placeholder="Nuevo material" [(ngModel)]="nuevoMaterial" />
+                <app-button
+                  variant="outline"
+                  size="md"
+                  (clicked)="
+                    nuevoMaterial.trim() &&
+                      agregarCatalogo('materiales', { nombre: nuevoMaterial.trim() });
+                    nuevoMaterial = ''
+                  "
+                >
+                  <app-icon name="plus" />
+                </app-button>
+              </div>
+            </div>
+          </div>
+        }
+      </app-state-wrapper>
+    }
+
+    <!-- ============ NOTIFICACIONES ============ -->
+    @case ('notificaciones') {
+      <div class="card card--narrow">
+        <h2>Preferencias de notificaciones</h2>
+        <p class="card__hint">Elegí qué eventos muestran un aviso en pantalla</p>
+        @if (preferenciasStore.preferencias(); as prefs) {
+          <label class="toggle">
+            <input
+              type="checkbox"
+              [checked]="prefs.viajeRetrasado"
+              (change)="actualizarPreferencia('viajeRetrasado', $any($event.target).checked)"
+            />
+            Viaje retrasado o con problemas
+          </label>
+          <label class="toggle">
+            <input
+              type="checkbox"
+              [checked]="prefs.viajeCompletado"
+              (change)="actualizarPreferencia('viajeCompletado', $any($event.target).checked)"
+            />
+            Viaje completado
+          </label>
+          <label class="toggle">
+            <input
+              type="checkbox"
+              [checked]="prefs.mensajeChofer"
+              (change)="actualizarPreferencia('mensajeChofer', $any($event.target).checked)"
+            />
+            Nuevo mensaje de un chofer
+          </label>
+        }
+      </div>
+    }
+
+    <!-- ============ PARÁMETROS ============ -->
+    @case ('parametros') {
+      <div class="card card--narrow">
+        <h2>Parámetros del negocio</h2>
+        <p class="card__hint">Usados por Reportería para calcular la recaudación</p>
+        <form [formGroup]="parametrosForm">
+          <app-text-input
+            label="Precio por tonelada *"
+            type="number"
+            formControlName="precioPorTonelada"
+          />
+          <app-select-input label="Moneda *" [options]="monedaOptions" formControlName="moneda" />
+          <app-button variant="primary" size="md" (clicked)="guardarParametros()"
+            >Guardar cambios</app-button
+          >
+        </form>
+      </div>
+    }
+  }
+</section>
