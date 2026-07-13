@@ -126,6 +126,14 @@ export class GestionOperativaPage {
     return PROGRESS_VARIANT[estado];
   }
 
+  /** Fila pintada según estado del viaje (diseño: retrasado en rosa) */
+  protected readonly estadoRowClass = (row: Record<string, unknown>): string =>
+    row['estado'] === 'retrasado' ? 'row--danger' : '';
+
+  protected crearDespacho(): void {
+    this.router.navigate(['/despachos']);
+  }
+
   // --- Acciones por viaje ---
 
   /** id del viaje cuyo menú "más opciones" está abierto */

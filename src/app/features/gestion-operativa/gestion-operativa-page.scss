@@ -9,12 +9,6 @@
   font-family: ty.$font-family-base;
 
   &__header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: t.$space-md;
-    flex-wrap: wrap;
-
     h1 {
       margin: 0;
       font-size: ty.$font-size-3xl;
@@ -27,55 +21,86 @@
       color: t.$color-text-muted;
     }
   }
+}
 
-  &__tools {
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: t.$space-md;
+  flex-wrap: wrap;
+
+  &__search {
+    flex: 1;
+    max-width: 340px;
+  }
+
+  &__actions {
     display: flex;
     gap: t.$space-sm;
-    align-items: center;
+  }
+}
 
-    app-search-bar {
-      width: 320px;
+// Grilla compartida entre el header de columnas y las filas de campaña
+.camp-cols {
+  display: grid;
+  grid-template-columns: 24px 1.3fr 1.4fr 1fr 1fr 90px 110px auto 40px;
+  align-items: center;
+  gap: t.$space-md;
+  width: 100%;
+  padding: t.$space-md t.$space-lg;
+  text-align: left;
+
+  @media (max-width: t.$breakpoint-tablet) {
+    grid-template-columns: 24px 1fr auto auto 40px;
+
+    .camp__dato {
+      display: none;
     }
   }
 }
 
-.campanias {
-  display: flex;
-  flex-direction: column;
-  gap: t.$space-md;
-}
-
-.camp {
+// Contenedor único de todas las campañas (diseño Figma)
+.grid-container {
   background: t.$color-surface;
   border: 1px solid t.$color-border;
   border-radius: t.$radius-lg;
   overflow: hidden;
 
+  &__head {
+    background: #f0faec;
+    color: t.$color-primary-dark;
+    font-size: ty.$font-size-sm;
+    font-weight: ty.$font-weight-semibold;
+
+    @media (max-width: t.$breakpoint-tablet) {
+      span:nth-child(3),
+      span:nth-child(4),
+      span:nth-child(5) {
+        display: none;
+      }
+    }
+  }
+
+  &__num {
+    text-align: center;
+  }
+}
+
+.camp {
+  border-top: 1px solid t.$color-border;
+
   &__header {
-    display: grid;
-    grid-template-columns: 24px 1.4fr 1.4fr 1fr 1fr auto auto auto 24px;
-    align-items: center;
-    gap: t.$space-md;
-    width: 100%;
-    padding: t.$space-md t.$space-lg;
     border: none;
-    background: t.$color-primary-light;
+    background: t.$color-surface;
     font-family: inherit;
     font-size: ty.$font-size-md-sm;
     color: t.$color-text;
-    text-align: left;
     cursor: pointer;
+    transition: background-color 0.12s ease;
 
     &:hover {
-      background: t.$color-primary-surface;
-    }
-
-    @media (max-width: t.$breakpoint-tablet) {
-      grid-template-columns: 24px 1fr auto auto 24px;
-
-      .camp__dato {
-        display: none;
-      }
+      background: t.$color-background;
     }
   }
 
@@ -100,6 +125,7 @@
   &__metric {
     font-weight: ty.$font-weight-medium;
     white-space: nowrap;
+    text-align: center;
   }
 
   &__estados {
@@ -112,18 +138,18 @@
     align-items: center;
     gap: 2px;
     font-size: ty.$font-size-sm;
-    font-weight: ty.$font-weight-medium;
+    font-weight: ty.$font-weight-semibold;
 
     &--info {
-      color: t.$color-info-text;
+      color: #d97706; // camión naranja (diseño Figma)
     }
 
     &--success {
-      color: t.$color-primary-dark;
+      color: t.$color-primary;
     }
 
     &--warning {
-      color: t.$color-warning-text;
+      color: t.$color-danger-strong;
     }
   }
 
@@ -134,7 +160,18 @@
   }
 
   &__body {
-    padding: t.$space-md;
+    padding: 0 t.$space-md t.$space-md;
+  }
+}
+
+.viaje-id {
+  display: inline-flex;
+  align-items: center;
+  gap: t.$space-xs;
+
+  &__alerta {
+    color: t.$color-danger-strong;
+    font-size: 14px;
   }
 }
 
@@ -162,6 +199,10 @@
     &:hover {
       background: t.$color-primary-light;
       color: t.$color-primary-dark;
+    }
+
+    &--chat {
+      color: t.$color-primary;
     }
   }
 

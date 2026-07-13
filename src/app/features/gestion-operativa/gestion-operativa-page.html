@@ -4,17 +4,25 @@
       <h1>Gestión operativa</h1>
       <p>Seguimiento en tiempo real de campañas y viajes</p>
     </div>
-    <div class="page__tools">
-      <app-search-bar
-        placeholder="Grupo, viaje, choferes, productores..."
-        (valueChange)="busqueda.set($event)"
-      />
+  </header>
+
+  <div class="toolbar">
+    <app-search-bar
+      class="toolbar__search"
+      placeholder="Buscar viajes, choferes, productores..."
+      (valueChange)="busqueda.set($event)"
+    />
+    <div class="toolbar__actions">
       <app-button variant="outline" size="md">
         <app-icon name="filter" />
         Filtros
       </app-button>
+      <app-button variant="primary" size="md" (clicked)="crearDespacho()">
+        <app-icon name="plus" />
+        Crear Despacho
+      </app-button>
     </div>
-  </header>
+  </div>
 
   <app-state-wrapper
     [status]="despachos().status"
@@ -23,10 +31,22 @@
     emptyMessage="No hay campañas activas"
     [skeletonRows]="4"
   >
-    <div class="campanias">
+    <div class="grid-container">
+      <div class="camp-cols grid-container__head">
+        <span></span>
+        <span>Campaña</span>
+        <span>Productor / Campo</span>
+        <span>Administrador</span>
+        <span>Vendedor</span>
+        <span class="grid-container__num">Total Viajes</span>
+        <span class="grid-container__num">Total Toneladas</span>
+        <span>Estado</span>
+        <span>Acciones</span>
+      </div>
+
       @for (campania of campanias(); track campania.id) {
         <article class="camp">
-          <button class="camp__header" type="button" (click)="toggle(campania.id)">
+          <button class="camp-cols camp__header" type="button" (click)="toggle(campania.id)">
             <span class="camp__chevron" [class.camp__chevron--open]="expandidas().has(campania.id)">
               <app-icon name="chevron-down" />
             </span>
@@ -34,7 +54,7 @@
             <span class="camp__dato">{{ campania.productorCampo }}</span>
             <span class="camp__dato">{{ campania.administrador }}</span>
             <span class="camp__dato">{{ campania.vendedor }}</span>
-            <span class="camp__metric">{{ campania.totalViajes }} viajes</span>
+            <span class="camp__metric">{{ campania.totalViajes }}</span>
             <span class="camp__metric">{{ campania.totalToneladas }} tn</span>
             <span class="camp__estados">
               <span class="camp__estado camp__estado--info">
@@ -52,7 +72,20 @@
 
           @if (expandidas().has(campania.id)) {
             <div class="camp__body">
-              <app-table [columns]="viajesColumns" [rows]="viajesRows(campania)">
+              <app-table
+                [columns]="viajesColumns"
+                [rows]="viajesRows(campania)"
+                headerVariant="soft"
+                [rowClass]="estadoRowClass"
+              >
+                <ng-template appTableCell="id" let-row>
+                  <span class="viaje-id">
+                    @if (row['estado'] === 'retrasado') {
+                      <app-icon class="viaje-id__alerta" name="alert-triangle" />
+                    }
+                    {{ row['id'] }}
+                  </span>
+                </ng-template>
                 <ng-template appTableCell="estado" let-row>
                   @switch (row['estado']) {
                     @case ('en-viaje') {
@@ -96,7 +129,7 @@
                       <app-icon name="file-text" />
                     </button>
                     <button
-                      class="acciones__btn"
+                      class="acciones__btn acciones__btn--chat"
                       type="button"
                       title="Chatear con el chofer"
                       aria-label="Chatear con el chofer"

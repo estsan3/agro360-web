@@ -17,7 +17,8 @@ export interface TableColumn {
 
 /**
  * Tabla genérica del kit Agro360 (Figma: Componentes → Table elements).
- * Header verde de marca; celdas custom por columna vía appTableCell.
+ * Header solid (verde de marca) o soft (verde pálido, como la tabla de
+ * gestión operativa); celdas custom por columna vía appTableCell.
  * Responsive: scrollea horizontal dentro de su contenedor en tablet.
  */
 @Component({
@@ -30,6 +31,9 @@ export interface TableColumn {
 export class Table {
   readonly columns = input.required<TableColumn[]>();
   readonly rows = input.required<Record<string, unknown>[]>();
+  readonly headerVariant = input<'solid' | 'soft'>('solid');
+  /** Clase de estado por fila: 'row--danger' | 'row--warning' | 'row--success' | '' */
+  readonly rowClass = input<(row: Record<string, unknown>) => string>(() => '');
 
   private readonly cellDefs = contentChildren(TableCellDef);
 

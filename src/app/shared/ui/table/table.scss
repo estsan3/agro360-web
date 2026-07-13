@@ -43,6 +43,24 @@
     }
   }
 
+  &--soft th {
+    background: #f0faec;
+    color: t.$color-primary-dark;
+    font-weight: ty.$font-weight-semibold;
+  }
+
+  .row--danger td {
+    background: t.$color-toast-error-bg;
+  }
+
+  .row--warning td {
+    background: t.$color-toast-warning-bg;
+  }
+
+  .row--success td {
+    background: t.$color-toast-success-bg;
+  }
+
   &__empty {
     text-align: center;
     color: t.$color-text-muted;

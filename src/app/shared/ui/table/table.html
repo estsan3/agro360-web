@@ -1,5 +1,5 @@
 <div class="table-wrap">
-  <table class="table">
+  <table class="table" [class.table--soft]="headerVariant() === 'soft'">
     <thead>
       <tr>
         @for (col of columns(); track col.key) {
@@ -11,7 +11,7 @@
     </thead>
     <tbody>
       @for (row of rows(); track $index) {
-        <tr>
+        <tr [class]="rowClass()(row)">
           @for (col of columns(); track col.key) {
             <td [style.text-align]="col.align ?? 'left'">
               @if (templateFor(col.key); as tpl) {
