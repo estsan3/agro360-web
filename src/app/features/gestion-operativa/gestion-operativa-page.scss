@@ -137,3 +137,76 @@
     padding: t.$space-md;
   }
 }
+
+.acciones {
+  display: inline-flex;
+  align-items: center;
+  gap: t.$space-xs;
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: t.$radius-sm;
+    background: transparent;
+    color: t.$color-text;
+    font-size: 16px;
+    cursor: pointer;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease;
+
+    &:hover {
+      background: t.$color-primary-light;
+      color: t.$color-primary-dark;
+    }
+  }
+
+  &__menu-wrap {
+    position: relative;
+  }
+
+  &__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+  }
+
+  &__menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 11;
+    min-width: 180px;
+    padding: t.$space-xs;
+    background: t.$color-surface;
+    border: 1px solid t.$color-border;
+    border-radius: t.$radius-md;
+    box-shadow: t.$shadow-md;
+    display: flex;
+    flex-direction: column;
+
+    button {
+      padding: t.$space-sm t.$space-md;
+      border: none;
+      border-radius: t.$radius-sm;
+      background: transparent;
+      font-family: inherit;
+      font-size: ty.$font-size-md;
+      color: t.$color-text;
+      text-align: left;
+      cursor: pointer;
+
+      &:hover {
+        background: t.$color-background;
+      }
+
+      &:last-child {
+        color: t.$color-danger-strong;
+      }
+    }
+  }
+}

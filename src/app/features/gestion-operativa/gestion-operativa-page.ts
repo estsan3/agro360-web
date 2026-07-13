@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { NotificationStore } from '../../notifications/state/notification.store';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -32,6 +34,7 @@ const VIAJES_COLUMNS: TableColumn[] = [
   { key: 'estado', label: 'Estado' },
   { key: 'progreso', label: 'Progreso' },
   { key: 'observaciones', label: 'Observaciones' },
+  { key: 'acciones', label: 'Acciones', align: 'right', width: '140px' },
 ];
 
 const PROGRESS_VARIANT: Record<EstadoViaje, ProgressVariant> = {
@@ -54,6 +57,8 @@ const PROGRESS_VARIANT: Record<EstadoViaje, ProgressVariant> = {
 })
 export class GestionOperativaPage {
   private readonly store = inject(DespachoStore);
+  private readonly router = inject(Router);
+  private readonly notifications = inject(NotificationStore);
 
   protected readonly viajesColumns = VIAJES_COLUMNS;
   protected readonly despachos = this.store.despachos;
@@ -119,5 +124,45 @@ export class GestionOperativaPage {
 
   protected progressVariant(estado: EstadoViaje): ProgressVariant {
     return PROGRESS_VARIANT[estado];
+  }
+
+  // --- Acciones por viaje ---
+
+  /** id del viaje cuyo menú "más opciones" está abierto */
+  protected readonly menuAbierto = signal<string | null>(null);
+
+  private adjuntoPendiente: { viajeId: string; tipo: string } | null = null;
+
+  protected adjuntar(viajeId: string, tipo: 'ticket de gasoil' | 'carta de porte'): void {
+    // TODO(backend): subir el archivo al viaje; hoy solo se simula la carga
+    this.adjuntoPendiente = { viajeId, tipo };
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = tipo === 'carta de porte' ? '.pdf,image/*' : 'image/*,.pdf';
+    input.onchange = () => {
+      const archivo = input.files?.[0];
+      if (archivo && this.adjuntoPendiente) {
+        this.notifications.success(
+          `Se adjuntó ${this.adjuntoPendiente.tipo}`,
+          `${archivo.name} → viaje ${this.adjuntoPendiente.viajeId}`,
+        );
+      }
+      this.adjuntoPendiente = null;
+    };
+    input.click();
+  }
+
+  protected abrirChat(viajeId: string, choferPatente: string): void {
+    const chofer = choferPatente.split(' / ')[0];
+    this.router.navigate(['/mensajeria'], { queryParams: { chofer, viaje: viajeId } });
+  }
+
+  protected toggleMenu(viajeId: string): void {
+    this.menuAbierto.update((actual) => (actual === viajeId ? null : viajeId));
+  }
+
+  protected opcionMenu(opcion: string, viajeId: string): void {
+    this.menuAbierto.set(null);
+    this.notifications.warning(opcion, `Viaje ${viajeId} — disponible próximamente`);
   }
 }

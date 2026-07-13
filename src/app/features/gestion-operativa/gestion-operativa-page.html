@@ -75,6 +75,74 @@
                     [variant]="progressVariant($any(row)['estado'])"
                   />
                 </ng-template>
+                <ng-template appTableCell="acciones" let-row>
+                  <div class="acciones">
+                    <button
+                      class="acciones__btn"
+                      type="button"
+                      title="Adjuntar ticket de gasoil"
+                      aria-label="Adjuntar ticket de gasoil"
+                      (click)="adjuntar($any(row)['id'], 'ticket de gasoil')"
+                    >
+                      <app-icon name="ticket" />
+                    </button>
+                    <button
+                      class="acciones__btn"
+                      type="button"
+                      title="Adjuntar carta de porte"
+                      aria-label="Adjuntar carta de porte"
+                      (click)="adjuntar($any(row)['id'], 'carta de porte')"
+                    >
+                      <app-icon name="file-text" />
+                    </button>
+                    <button
+                      class="acciones__btn"
+                      type="button"
+                      title="Chatear con el chofer"
+                      aria-label="Chatear con el chofer"
+                      (click)="abrirChat($any(row)['id'], $any(row)['chofer'])"
+                    >
+                      <app-icon name="message" />
+                    </button>
+                    <div class="acciones__menu-wrap">
+                      <button
+                        class="acciones__btn"
+                        type="button"
+                        title="Más opciones"
+                        aria-label="Más opciones"
+                        (click)="toggleMenu($any(row)['id'])"
+                      >
+                        <app-icon name="more-vertical" />
+                      </button>
+                      @if (menuAbierto() === $any(row)['id']) {
+                        <div class="acciones__backdrop" (click)="menuAbierto.set(null)"></div>
+                        <div class="acciones__menu" role="menu">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="opcionMenu('Ver detalle del viaje', $any(row)['id'])"
+                          >
+                            Ver detalle del viaje
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="opcionMenu('Reasignar chofer', $any(row)['id'])"
+                          >
+                            Reasignar chofer
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="opcionMenu('Cancelar viaje', $any(row)['id'])"
+                          >
+                            Cancelar viaje
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </ng-template>
               </app-table>
             </div>
           }
