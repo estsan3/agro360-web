@@ -11,9 +11,11 @@ test('login → crear despacho → gestión operativa → logout', async ({ page
   await page.fill('input[type="email"]', 'admin@agro360.com');
   await page.fill('input[type="password"]', 'demo12345');
   await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/\/despachos/);
+  await expect(page).toHaveURL(/\/gestion-operativa/);
 
   // --- Crear despacho con un viaje (formulario con tabs + tabla editable) ---
+  await page.click('button[aria-label="Crear despacho"]');
+  await expect(page).toHaveURL(/\/despachos/);
   await page.fill('input[placeholder="Campaña Soja 2026"]', 'Campaña E2E');
   const selects = page.locator('select');
   await selects.nth(0).selectOption({ label: 'Agro SA' }); // productor

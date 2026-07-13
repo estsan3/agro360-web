@@ -6,8 +6,8 @@ import { Sidebar, SidebarItem } from '../../shared/ui/sidebar/sidebar';
 import { Topbar } from './topbar';
 
 const NAV_ITEMS: SidebarItem[] = [
-  { id: 'despachos', icon: 'truck', label: 'Despachos' },
-  { id: 'gestion-operativa', icon: 'grid', label: 'Gestión operativa' },
+  { id: 'gestion-operativa', icon: 'truck', label: 'Gestión operativa' },
+  { id: 'despachos', icon: 'plus', label: 'Crear despacho' },
   { id: 'reportes', icon: 'dollar', label: 'Reportería' },
   { id: 'mensajeria', icon: 'message', label: 'Mensajería' },
   { id: 'borradores', icon: 'list', label: 'Borradores' },

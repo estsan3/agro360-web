@@ -43,7 +43,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/configuracion/configuracion-page').then((m) => m.ConfiguracionPage),
       },
-      { path: '', redirectTo: 'despachos', pathMatch: 'full' },
+      { path: '', redirectTo: 'gestion-operativa', pathMatch: 'full' },
     ],
   },
   { path: '**', redirectTo: '' },
