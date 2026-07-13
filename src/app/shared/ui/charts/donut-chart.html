@@ -25,8 +25,14 @@
       <li>
         <span class="donut__dot" [style.background]="segment.color"></span>
         <span class="donut__name">{{ segment.label }}</span>
-        <span class="donut__value">{{ segment.value }}</span>
-        <span class="donut__percent">{{ segment.percent }}%</span>
+        <span class="donut__value">{{ segment.value | number }}</span>
+        @if (segment.trend) {
+          <span class="donut__chip" [class.donut__chip--bad]="segment.trend.startsWith('-')">
+            {{ segment.trend }}
+          </span>
+        } @else {
+          <span class="donut__percent">{{ segment.percent }}%</span>
+        }
       </li>
     }
   </ul>

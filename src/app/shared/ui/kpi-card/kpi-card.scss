@@ -104,6 +104,55 @@
     }
   }
 
+  // Layout stat (dashboard Reportería): icono arriba, chip flotante, valor grande
+  &--stat {
+    position: relative;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: t.$space-sm;
+    padding: t.$space-lg;
+
+    .kpi__icon {
+      width: 44px;
+      height: 44px;
+      background: t.$color-background-alt;
+      color: t.$color-text;
+      font-size: 20px;
+    }
+
+    .kpi__row {
+      position: absolute;
+      top: t.$space-md;
+      right: t.$space-md;
+    }
+
+    .kpi__trend {
+      padding: 2px t.$space-sm;
+      border-radius: t.$radius-full;
+      background: t.$color-success-bg;
+      color: t.$color-primary-dark;
+
+      &--bad {
+        background: t.$color-danger-bg;
+        color: t.$color-danger-text;
+      }
+    }
+
+    .kpi__value {
+      font-size: 30px;
+    }
+
+    &.kpi--dark .kpi__icon {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    &.kpi--dark .kpi__trend {
+      background: rgba(255, 255, 255, 0.15);
+      color: t.$color-accent-green;
+    }
+  }
+
   &--orange {
     @include tone(#fdf0e3, #ea580c);
   }

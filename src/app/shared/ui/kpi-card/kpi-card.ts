@@ -18,6 +18,8 @@ export type KpiTone = 'brand' | 'orange' | 'amber' | 'red' | 'green';
 export class KpiCard {
   readonly variant = input<'light' | 'dark'>('light');
   readonly tone = input<KpiTone>('brand');
+  /** stat: icono arriba y chip de tendencia flotante (dashboard Reportería) */
+  readonly layout = input<'row' | 'stat'>('row');
   readonly label = input.required<string>();
   readonly value = input.required<string>();
   /** Chip de tendencia, ej. "+12%" */

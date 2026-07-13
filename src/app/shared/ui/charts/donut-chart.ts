@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { CHART_COLORS, ChartDatum } from './chart-colors';
 
@@ -8,6 +9,7 @@ interface DonutSegment {
   color: string;
   dasharray: string;
   dashoffset: number;
+  trend?: string;
 }
 
 const RADIUS = 60;
@@ -20,6 +22,7 @@ const GAP = 3; // px de separación entre segmentos (spacer sobre superficie)
  */
 @Component({
   selector: 'app-donut-chart',
+  imports: [DecimalPipe],
   templateUrl: './donut-chart.html',
   styleUrl: './donut-chart.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +49,7 @@ export class DonutChart {
       const segment: DonutSegment = {
         label: datum.label,
         value: datum.value,
+        trend: datum.trend,
         percent: Math.round(fraction * 100),
         color: CHART_COLORS[index % CHART_COLORS.length],
         dasharray: `${length} ${CIRCUMFERENCE - length}`,

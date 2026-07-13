@@ -8,4 +8,9 @@ export const CHART_COLORS = ['#007c2e', '#2563eb', '#d97706', '#37b38d'] as cons
 export interface ChartDatum {
   label: string;
   value: number;
+  /** Chip de tendencia opcional en la leyenda, ej. "+8%" */
+  trend?: string;
 }
+
+/** Par de verdes validado (dataviz) para gráficos de 2 series */
+export const CHART_PAIR = ['#007c2e', '#37b38d'] as const;

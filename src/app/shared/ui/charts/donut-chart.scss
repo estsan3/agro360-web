@@ -56,6 +56,20 @@
     color: t.$color-text;
   }
 
+  &__chip {
+    font-size: ty.$font-size-2xs;
+    font-weight: ty.$font-weight-semibold;
+    padding: 1px t.$space-sm;
+    border-radius: t.$radius-full;
+    background: t.$color-success-bg;
+    color: t.$color-primary-dark;
+
+    &--bad {
+      background: t.$color-danger-bg;
+      color: t.$color-danger-text;
+    }
+  }
+
   &__percent {
     color: t.$color-text-muted;
     font-size: ty.$font-size-sm;
