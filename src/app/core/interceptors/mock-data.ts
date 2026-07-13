@@ -29,10 +29,10 @@ export const MOCK_CATALOGOS = {
   ],
   materiales: ['Soja', 'Maíz', 'Girasol', 'Trigo'],
   choferes: [
-    { id: 'ch-1', nombre: 'Carlos Ruiz', dominio: 'AA123BB' },
-    { id: 'ch-2', nombre: 'Miguel Torres', dominio: 'EF789GH' },
-    { id: 'ch-3', nombre: 'Roberto Gómez', dominio: 'BC456CD' },
-    { id: 'ch-4', nombre: 'Pedro Ramírez', dominio: 'XY789ZA' },
+    { id: 'ch-1', nombre: 'Carlos Ruiz', dominio: 'AA123BB', modelo: 'Mercedes 1114' },
+    { id: 'ch-2', nombre: 'Miguel Torres', dominio: 'EF789GH', modelo: 'Volvo FH 420' },
+    { id: 'ch-3', nombre: 'Roberto Gómez', dominio: 'BC456CD', modelo: 'Scania R450' },
+    { id: 'ch-4', nombre: 'Pedro Ramírez', dominio: 'XY789ZA', modelo: 'Iveco Tector 170' },
   ],
 };
 

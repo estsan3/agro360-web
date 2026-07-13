@@ -49,5 +49,5 @@ export interface CatalogosDto {
   administradores: { id: string; nombre: string }[];
   vendedores: { id: string; nombre: string }[];
   materiales: string[];
-  choferes: { id: string; nombre: string; dominio: string }[];
+  choferes: { id: string; nombre: string; dominio: string; modelo: string }[];
 }

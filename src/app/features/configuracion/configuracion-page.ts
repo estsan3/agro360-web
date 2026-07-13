@@ -120,6 +120,7 @@ export class ConfiguracionPage {
   protected nuevoCampo = '';
   protected nuevoChofer = '';
   protected nuevoDominio = '';
+  protected nuevoModelo = '';
   protected nuevoVendedor = '';
   protected nuevoMaterial = '';
 

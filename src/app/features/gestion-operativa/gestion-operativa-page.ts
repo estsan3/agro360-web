@@ -33,7 +33,8 @@ interface CampaniaVm {
 // con popup para el texto completo.
 const VIAJES_COLUMNS: TableColumn[] = [
   { key: 'id', label: 'ID', width: '96px' },
-  { key: 'chofer', label: 'Chofer / Patente', width: '170px' },
+  { key: 'chofer', label: 'Chofer', width: '130px' },
+  { key: 'transporte', label: 'Transporte', width: '185px' },
   { key: 'destino', label: 'Destino' },
   { key: 'toneladas', label: 'Toneladas', align: 'right', width: '90px' },
   { key: 'estado', label: 'Estado', width: '150px' },
@@ -197,8 +198,20 @@ export class GestionOperativaPage {
     });
   }
 
+  /** Dominio → modelo del transporte (alta del transporte / cédula verde) */
+  private readonly modeloPorDominio = computed(() => {
+    const mapa = new Map<string, string>();
+    for (const chofer of this.store.catalogos().data?.choferes ?? []) {
+      mapa.set(chofer.dominio, chofer.modelo);
+    }
+    return mapa;
+  });
+
   protected viajesRows(campania: CampaniaVm): Record<string, unknown>[] {
-    return campania.viajes.map((viaje) => ({ ...viaje }));
+    return campania.viajes.map((viaje) => ({
+      ...viaje,
+      modelo: this.modeloPorDominio().get(viaje.dominio) ?? '',
+    }));
   }
 
   protected progressVariant(estado: EstadoViaje): ProgressVariant {

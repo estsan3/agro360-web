@@ -160,6 +160,18 @@
                     {{ row['id'] }}
                   </span>
                 </ng-template>
+                <ng-template appTableCell="transporte" let-row>
+                  @if (row['dominio'] && row['dominio'] !== '-') {
+                    <span class="transporte">
+                      <strong>{{ row['dominio'] }}</strong>
+                      @if (row['modelo']) {
+                        <small> - {{ row['modelo'] }}</small>
+                      }
+                    </span>
+                  } @else {
+                    <span class="transporte transporte--vacio">—</span>
+                  }
+                </ng-template>
                 <ng-template appTableCell="estado" let-row>
                   @switch (row['estado']) {
                     @case ('en-viaje') {

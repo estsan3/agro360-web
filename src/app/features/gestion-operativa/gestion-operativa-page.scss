@@ -406,3 +406,18 @@
     }
   }
 }
+
+.transporte {
+  strong {
+    font-weight: ty.$font-weight-semibold;
+    color: t.$color-text;
+  }
+
+  small {
+    color: t.$color-text-muted;
+  }
+
+  &--vacio {
+    color: t.$color-text-muted;
+  }
+}
