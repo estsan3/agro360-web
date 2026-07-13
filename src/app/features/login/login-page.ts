@@ -3,7 +3,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AuthStore } from '../../core/state/auth.store';
 import { Button } from '../../shared/ui/button/button';
-import { Logo } from '../../shared/ui/logo/logo';
+import { Icon } from '../../shared/ui/icon/icon';
 import { TextInput } from '../../shared/ui/input/text-input';
 import { Toast } from '../../shared/ui/toast/toast';
 
@@ -13,7 +13,7 @@ import { Toast } from '../../shared/ui/toast/toast';
  */
 @Component({
   selector: 'app-login-page',
-  imports: [ReactiveFormsModule, Button, Logo, TextInput, Toast],
+  imports: [ReactiveFormsModule, Button, Icon, TextInput, Toast],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -3,52 +3,107 @@
 
 .login {
   display: flex;
-  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: t.$space-lg;
+  background: t.$color-background;
   font-family: ty.$font-family-base;
 
-  // Panel promocional: en Figma es la foto del camión con overlay verde.
-  // TODO: reemplazar el gradiente por el asset real cuando el MCP de
-  // Figma permita descargarlo (ver evento en calendario 1/8).
-  &__promo {
-    flex: 1.4;
-    display: flex;
-    align-items: flex-end;
-    padding: t.$space-xl;
-    margin: t.$space-md;
+  &__card {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    width: min(980px, 100%);
+    min-height: 560px;
     border-radius: t.$radius-lg;
+    overflow: hidden;
+    background: t.$color-surface;
+    border: 1px solid t.$color-border;
+    box-shadow: t.$shadow-md;
+
+    @media (max-width: t.$breakpoint-tablet) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  // --- Panel promocional: foto del camión con overlay verde ---
+  // Foto placeholder (Unsplash, licencia libre) hasta poder exportar
+  // el asset real del Figma (límite del MCP)
+  &__promo {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: t.$space-xl;
     background:
-      radial-gradient(120% 90% at 80% 10%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
-      linear-gradient(
-        160deg,
-        t.$color-primary 0%,
-        t.$color-primary-dark 55%,
-        t.$color-primary-deep 100%
-      );
+      linear-gradient(rgba(0, 166, 62, 0.78), rgba(0, 124, 46, 0.82)),
+      url('/assets/login-truck.jpg') center / cover no-repeat;
+    color: #fff;
 
     @media (max-width: t.$breakpoint-tablet) {
       display: none;
     }
   }
 
-  &__promo-text {
-    color: #fff;
+  &__promo-top {
+    p {
+      margin: t.$space-md 0 0;
+      font-size: ty.$font-size-lg;
+      opacity: 0.92;
+      max-width: 300px;
+    }
+  }
 
-    h2 {
-      margin: 0 0 t.$space-sm;
-      font-size: ty.$font-size-3xl;
-      font-weight: ty.$font-weight-bold;
-      max-width: 420px;
+  &__logo {
+    display: inline-block;
+    padding: t.$space-sm t.$space-lg;
+    border-radius: t.$radius-md;
+    background: t.$color-primary;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    font-size: ty.$font-size-2xl;
+    font-weight: ty.$font-weight-bold;
+    color: #fff;
+  }
+
+  &__features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: t.$space-md;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: t.$space-md;
     }
 
-    p {
-      margin: 0;
-      font-size: ty.$font-size-lg;
+    strong {
+      display: block;
+      font-size: ty.$font-size-md;
+      font-weight: ty.$font-weight-semibold;
+    }
+
+    small {
+      font-size: ty.$font-size-sm;
       opacity: 0.85;
     }
   }
 
+  &__feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: t.$radius-full;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  // --- Formulario ---
   &__panel {
-    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,7 +115,7 @@
     flex-direction: column;
     gap: t.$space-lg;
     width: 100%;
-    max-width: 360px;
+    max-width: 330px;
 
     form {
       display: flex;
@@ -87,7 +142,7 @@
   &__forgot {
     align-self: center;
     font-size: ty.$font-size-md;
-    color: t.$color-text-muted;
+    color: t.$color-text;
     text-decoration: none;
 
     &:hover {

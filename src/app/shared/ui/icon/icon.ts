@@ -28,7 +28,9 @@ export type IconName =
   | 'trash'
   | 'check-double'
   | 'map-pin'
-  | 'send';
+  | 'send'
+  | 'shield'
+  | 'package';
 
 /**
  * Iconografía del kit Agro360 (Figma: Componentes → íconos).
