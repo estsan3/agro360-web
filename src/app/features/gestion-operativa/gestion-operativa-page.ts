@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NotificationStore } from '../../notifications/state/notification.store';
+import { KpiCard } from '../../shared/ui/kpi-card/kpi-card';
+import { MensajeriaStore } from '../mensajeria/data-access/mensajeria.store';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -50,7 +52,17 @@ const PROGRESS_VARIANT: Record<EstadoViaje, ProgressVariant> = {
  */
 @Component({
   selector: 'app-gestion-operativa-page',
-  imports: [Badge, Button, Icon, ProgressBar, SearchBar, StateWrapper, Table, TableCellDef],
+  imports: [
+    Badge,
+    Button,
+    Icon,
+    KpiCard,
+    ProgressBar,
+    SearchBar,
+    StateWrapper,
+    Table,
+    TableCellDef,
+  ],
   templateUrl: './gestion-operativa-page.html',
   styleUrl: './gestion-operativa-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,7 +70,9 @@ const PROGRESS_VARIANT: Record<EstadoViaje, ProgressVariant> = {
 export class GestionOperativaPage {
   private readonly store = inject(DespachoStore);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly notifications = inject(NotificationStore);
+  private readonly mensajeriaStore = inject(MensajeriaStore);
 
   protected readonly viajesColumns = VIAJES_COLUMNS;
   protected readonly despachos = this.store.despachos;
@@ -97,13 +111,54 @@ export class GestionOperativaPage {
           !filtro ||
           campania.nombre.toLowerCase().includes(filtro) ||
           campania.productorCampo.toLowerCase().includes(filtro) ||
-          campania.viajes.some((viaje) => viaje.chofer.toLowerCase().includes(filtro)),
+          campania.viajes.some(
+            (viaje) =>
+              viaje.chofer.toLowerCase().includes(filtro) ||
+              viaje.id.toLowerCase().includes(filtro),
+          ),
       );
   });
+
+  // Totalizadores (los % de tendencia llegan con el backend — TODO)
+  private readonly todosLosViajes = computed(() => this.store.activos().flatMap((d) => d.viajes));
+  protected readonly enRuta = computed(
+    () => this.todosLosViajes().filter((v) => v.estado === 'en-viaje').length,
+  );
+  protected readonly pendientes = computed(
+    () => this.todosLosViajes().filter((v) => v.estado === 'pendiente').length,
+  );
+  protected readonly incidentes = computed(
+    () => this.todosLosViajes().filter((v) => v.estado === 'retrasado').length,
+  );
+  protected readonly finalizados = computed(
+    () => this.todosLosViajes().filter((v) => v.estado === 'completado').length,
+  );
 
   constructor() {
     this.store.cargarDespachos();
     this.store.cargarCatalogos();
+    this.mensajeriaStore.cargarConversaciones();
+
+    // Búsqueda profunda desde la lupa del topbar (?q=#12342)
+    this.route.queryParamMap.subscribe((params) => {
+      const q = params.get('q');
+      if (q) {
+        this.busqueda.set(q);
+        this.expandirTodas();
+      }
+    });
+  }
+
+  private expandirTodas(): void {
+    this.expandidas.set(new Set(this.store.activos().map((d) => d.id)));
+  }
+
+  /** Mensajes sin leer del chofer de un viaje (badge en el icono de chat) */
+  protected noLeidosDe(chofer: string): number {
+    return (
+      (this.mensajeriaStore.conversaciones().data ?? []).find((c) => c.chofer === chofer)
+        ?.noLeidos ?? 0
+    );
   }
 
   protected toggle(id: string): void {

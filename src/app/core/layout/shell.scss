@@ -7,9 +7,16 @@
   padding: t.$space-md;
   background: t.$color-background;
 
-  &__content {
+  &__column {
     flex: 1;
     min-width: 0; // permite que tablas internas scrolleen en vez de desbordar
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__content {
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     border-radius: t.$radius-lg;
   }

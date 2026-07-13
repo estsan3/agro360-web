@@ -1,10 +1,24 @@
 <section class="page">
-  <header class="page__header">
-    <div>
-      <h1>Gestión operativa</h1>
-      <p>Seguimiento en tiempo real de campañas y viajes</p>
-    </div>
-  </header>
+  <div class="kpis">
+    <app-kpi-card tone="orange" label="En Ruta" [value]="'' + enRuta()" trend="+12%">
+      <app-icon name="truck" />
+    </app-kpi-card>
+    <app-kpi-card tone="amber" label="Pendientes" [value]="'' + pendientes()" trend="-5%">
+      <app-icon name="clock" />
+    </app-kpi-card>
+    <app-kpi-card
+      tone="red"
+      label="Incidentes"
+      [value]="'' + incidentes()"
+      trend="+1"
+      trendTone="bad"
+    >
+      <app-icon name="alert-triangle" />
+    </app-kpi-card>
+    <app-kpi-card tone="green" label="Finalizados" [value]="'' + finalizados()" trend="+18%">
+      <app-icon name="check-circle" />
+    </app-kpi-card>
+  </div>
 
   <div class="toolbar">
     <app-search-bar
@@ -136,6 +150,9 @@
                       (click)="abrirChat($any(row)['id'], $any(row)['chofer'])"
                     >
                       <app-icon name="message" />
+                      @if (noLeidosDe($any(row)['chofer']); as pendientesChat) {
+                        <span class="acciones__no-leidos">{{ pendientesChat }}</span>
+                      }
                     </button>
                     <div class="acciones__menu-wrap">
                       <button

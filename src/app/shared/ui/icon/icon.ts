@@ -21,7 +21,8 @@ export type IconName =
   | 'chevron-down'
   | 'more-vertical'
   | 'ticket'
-  | 'file-text';
+  | 'file-text'
+  | 'clock';
 
 /**
  * Iconografía del kit Agro360 (Figma: Componentes → íconos).

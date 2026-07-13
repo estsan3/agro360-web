@@ -1,14 +1,21 @@
-<div class="kpi" [class.kpi--dark]="variant() === 'dark'">
+<div
+  class="kpi"
+  [class.kpi--dark]="variant() === 'dark'"
+  [class.kpi--orange]="tone() === 'orange'"
+  [class.kpi--amber]="tone() === 'amber'"
+  [class.kpi--red]="tone() === 'red'"
+  [class.kpi--green]="tone() === 'green'"
+>
   <span class="kpi__icon"><ng-content /></span>
   <div class="kpi__content">
-    <span class="kpi__label">{{ label() }}</span>
     <div class="kpi__row">
-      <span class="kpi__value">{{ value() }}</span>
+      <span class="kpi__label">{{ label() }}</span>
       @if (trend()) {
-        <span class="kpi__trend" [class.kpi__trend--down]="trend().startsWith('-')">
-          {{ trend() }}
+        <span class="kpi__trend" [class.kpi__trend--bad]="trendIsBad()">
+          {{ trendGlyph() }} {{ trend() }}
         </span>
       }
     </div>
+    <span class="kpi__value">{{ value() }}</span>
   </div>
 </div>

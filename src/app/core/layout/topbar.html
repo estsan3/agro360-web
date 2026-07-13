@@ -1,0 +1,75 @@
+<header class="topbar">
+  <div class="topbar__title">
+    <h1>{{ titulo() }}</h1>
+    <p>{{ fecha }}</p>
+  </div>
+
+  <div class="topbar__right">
+    <button
+      class="topbar__icon-btn"
+      type="button"
+      aria-label="Buscar viajes"
+      title="Buscar viajes"
+      (click)="abrirBusqueda()"
+    >
+      <app-icon name="search" />
+    </button>
+
+    <button
+      class="topbar__icon-btn"
+      type="button"
+      aria-label="Notificaciones"
+      title="Mensajes por responder"
+      (click)="irAMensajeria()"
+    >
+      <app-icon name="bell" />
+      @if (mensajeriaStore.totalNoLeidos() > 0) {
+        <span class="topbar__badge">{{ mensajeriaStore.totalNoLeidos() }}</span>
+      }
+    </button>
+
+    @if (authStore.user(); as user) {
+      <div class="topbar__perfil">
+        <span class="topbar__avatar"><app-icon name="user" /></span>
+        <div class="topbar__perfil-info">
+          <strong>{{ user.nombre }}</strong>
+          <small>{{ user.rol === 'administrador' ? 'Admin Officer' : 'Vendedor' }}</small>
+        </div>
+      </div>
+    }
+  </div>
+</header>
+
+@if (busquedaAbierta()) {
+  <button
+    class="buscador__backdrop"
+    type="button"
+    aria-label="Cerrar búsqueda"
+    (click)="busquedaAbierta.set(false)"
+  ></button>
+  <div class="buscador" role="dialog" aria-label="Buscar viajes">
+    <app-search-bar
+      placeholder="Buscar viaje por ID, chofer o destino..."
+      (valueChange)="terminoBusqueda.set($event)"
+    />
+    <ul class="buscador__resultados">
+      @for (viaje of resultados(); track viaje.id) {
+        <li>
+          <button type="button" (click)="irAViaje(viaje)">
+            <span class="buscador__id">{{ viaje.id }}</span>
+            <span class="buscador__detalle">
+              {{ viaje.chofer }} · {{ viaje.destino }}
+              <small>{{ viaje.campania }}</small>
+            </span>
+          </button>
+        </li>
+      } @empty {
+        @if (terminoBusqueda()) {
+          <li class="buscador__vacio">Sin resultados para "{{ terminoBusqueda() }}"</li>
+        } @else {
+          <li class="buscador__vacio">Escribí un ID de viaje, chofer o destino</li>
+        }
+      }
+    </ul>
+  </div>
+}

@@ -34,17 +34,20 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-  }
-
-  &__label {
-    font-size: ty.$font-size-sm;
-    color: t.$color-text-muted;
+    min-width: 0;
+    flex: 1;
   }
 
   &__row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: t.$space-sm;
+  }
+
+  &__label {
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
   }
 
   &__value {
@@ -55,15 +58,12 @@
 
   &__trend {
     font-size: ty.$font-size-xs;
-    font-weight: ty.$font-weight-medium;
-    padding: 1px t.$space-sm;
-    border-radius: t.$radius-full;
-    background: t.$color-success-bg;
+    font-weight: ty.$font-weight-semibold;
+    white-space: nowrap;
     color: t.$color-primary-dark;
 
-    &--down {
-      background: t.$color-danger-bg;
-      color: t.$color-danger-text;
+    &--bad {
+      color: t.$color-danger-strong;
     }
   }
 
@@ -82,5 +82,41 @@
     .kpi__value {
       color: #fff;
     }
+
+    .kpi__trend {
+      color: t.$color-accent-green;
+    }
+  }
+
+  // --- Tonos de totalizadores (Gestión operativa) ---
+  // Panel de icono tintado + valor coloreado
+  @mixin tone($tint, $color) {
+    .kpi__icon {
+      width: 56px;
+      height: 56px;
+      background: $tint;
+      color: $color;
+      font-size: 26px;
+    }
+
+    .kpi__value {
+      color: $color;
+    }
+  }
+
+  &--orange {
+    @include tone(#fdf0e3, #ea580c);
+  }
+
+  &--amber {
+    @include tone(#fdf7e3, #d97706);
+  }
+
+  &--red {
+    @include tone(#fdeaea, t.$color-danger-strong);
+  }
+
+  &--green {
+    @include tone(#e9f8ee, t.$color-primary);
   }
 }

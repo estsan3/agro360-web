@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { Sidebar, SidebarItem } from '../../shared/ui/sidebar/sidebar';
+import { Topbar } from './topbar';
 
 const NAV_ITEMS: SidebarItem[] = [
   { id: 'despachos', icon: 'truck', label: 'Despachos' },
@@ -18,7 +19,7 @@ const NAV_ITEMS: SidebarItem[] = [
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, Sidebar],
+  imports: [RouterOutlet, Sidebar, Topbar],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

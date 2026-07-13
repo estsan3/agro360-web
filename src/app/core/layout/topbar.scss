@@ -1,0 +1,181 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: t.$space-md;
+  padding: t.$space-md t.$space-lg;
+  font-family: ty.$font-family-base;
+
+  &__title {
+    h1 {
+      margin: 0;
+      font-size: ty.$font-size-2xl;
+      font-weight: ty.$font-weight-bold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-size: ty.$font-size-md;
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: t.$space-md;
+  }
+
+  &__icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: t.$radius-full;
+    background: transparent;
+    color: t.$color-text;
+    font-size: 18px;
+    cursor: pointer;
+
+    &:hover {
+      background: t.$color-background-alt;
+    }
+  }
+
+  &__badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: t.$radius-full;
+    background: t.$color-primary;
+    color: #fff;
+    font-size: 10px;
+    font-weight: ty.$font-weight-bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__perfil {
+    display: flex;
+    align-items: center;
+    gap: t.$space-sm;
+  }
+
+  &__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: t.$radius-full;
+    background: t.$color-background-alt;
+    color: t.$color-text-muted;
+    font-size: 18px;
+  }
+
+  &__perfil-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+
+    strong {
+      font-size: ty.$font-size-md;
+      color: t.$color-text;
+    }
+
+    small {
+      font-size: ty.$font-size-xs;
+      color: t.$color-text-muted;
+    }
+
+    @media (max-width: t.$breakpoint-tablet) {
+      display: none;
+    }
+  }
+}
+
+// --- Popup de búsqueda de viajes ---
+.buscador {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 101;
+  width: min(560px, calc(100vw - 32px));
+  padding: t.$space-md;
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-lg;
+  box-shadow: t.$shadow-md;
+  font-family: ty.$font-family-base;
+
+  &__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    border: none;
+    background: rgba(0, 0, 0, 0.25);
+    cursor: default;
+  }
+
+  &__resultados {
+    list-style: none;
+    margin: t.$space-sm 0 0;
+    padding: 0;
+    max-height: 320px;
+    overflow-y: auto;
+
+    li button {
+      display: flex;
+      align-items: center;
+      gap: t.$space-md;
+      width: 100%;
+      padding: t.$space-sm t.$space-md;
+      border: none;
+      border-radius: t.$radius-md;
+      background: transparent;
+      font-family: inherit;
+      font-size: ty.$font-size-md;
+      text-align: left;
+      cursor: pointer;
+
+      &:hover {
+        background: t.$color-primary-light;
+      }
+    }
+  }
+
+  &__id {
+    font-weight: ty.$font-weight-semibold;
+    color: t.$color-primary-dark;
+    white-space: nowrap;
+  }
+
+  &__detalle {
+    display: flex;
+    flex-direction: column;
+    color: t.$color-text;
+
+    small {
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__vacio {
+    padding: t.$space-md;
+    text-align: center;
+    color: t.$color-text-muted;
+    font-size: ty.$font-size-md;
+  }
+}

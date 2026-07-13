@@ -23,6 +23,12 @@
   }
 }
 
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: t.$space-md;
+}
+
 .toolbar {
   display: flex;
   align-items: center;
@@ -202,8 +208,26 @@
     }
 
     &--chat {
+      position: relative;
       color: t.$color-primary;
     }
+  }
+
+  &__no-leidos {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    border-radius: t.$radius-full;
+    background: t.$color-danger-strong;
+    color: #fff;
+    font-size: 9px;
+    font-weight: ty.$font-weight-bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   &__menu-wrap {
