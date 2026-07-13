@@ -1,0 +1,21 @@
+@use 'tokens' as t;
+
+.shell {
+  display: flex;
+  gap: t.$space-md;
+  height: 100vh;
+  padding: t.$space-md;
+  background: t.$color-background;
+
+  &__content {
+    flex: 1;
+    min-width: 0; // permite que tablas internas scrolleen en vez de desbordar
+    overflow-y: auto;
+    border-radius: t.$radius-lg;
+  }
+
+  @media (max-width: t.$breakpoint-tablet) {
+    gap: t.$space-sm;
+    padding: t.$space-sm;
+  }
+}
