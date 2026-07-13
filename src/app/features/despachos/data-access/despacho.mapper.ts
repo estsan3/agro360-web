@@ -16,6 +16,8 @@ export function toViaje(dto: ViajeDto): Viaje {
     destino: dto.destino,
     toneladas: dto.toneladas,
     estado: ESTADO_VIAJE_MAP[dto.estado],
+    progreso: dto.progreso,
+    observaciones: dto.observaciones,
   };
 }
 

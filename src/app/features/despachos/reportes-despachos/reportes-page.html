@@ -1,0 +1,48 @@
+<section class="page">
+  <header class="page__header">
+    <h1>Reportería</h1>
+    <p>Métricas de campañas y viajes activos</p>
+  </header>
+
+  <app-state-wrapper
+    [status]="despachos().status"
+    [error]="despachos().error ?? ''"
+    [skeletonRows]="4"
+  >
+    <div class="kpis">
+      <app-kpi-card
+        variant="dark"
+        label="Recaudación estimada"
+        [value]="'$' + (recaudacion() | number: '1.0-0')"
+      >
+        <app-icon name="dollar" />
+      </app-kpi-card>
+      <app-kpi-card label="En Ruta" [value]="'' + enRuta()">
+        <app-icon name="truck" />
+      </app-kpi-card>
+      <app-kpi-card label="Completados" [value]="'' + completados()">
+        <app-icon name="check-circle" />
+      </app-kpi-card>
+      <app-kpi-card
+        label="Toneladas totales"
+        [value]="(totalToneladas() | number: '1.0-1') + ' tn'"
+      >
+        <app-icon name="list" />
+      </app-kpi-card>
+    </div>
+
+    <div class="charts">
+      <article class="chart-card">
+        <h2>Viajes por tipo</h2>
+        <p>Distribución por material transportado</p>
+        <app-donut-chart [data]="viajesPorMaterial()" centerLabel="Viajes" />
+      </article>
+
+      <article class="chart-card">
+        <h2>Viajes por campos</h2>
+        <p>Cantidad de viajes originados en cada campo</p>
+        <app-bar-chart [data]="viajesPorCampo()" />
+      </article>
+    </div>
+  </app-state-wrapper>
+</section>

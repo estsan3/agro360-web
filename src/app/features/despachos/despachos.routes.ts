@@ -8,6 +8,13 @@ export const DESPACHOS_ROUTES: Routes = [
   },
 ];
 
+export const REPORTES_ROUTES: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./reportes-despachos/reportes-page').then((m) => m.ReportesPage),
+  },
+];
+
 export const BORRADORES_ROUTES: Routes = [
   {
     path: '',

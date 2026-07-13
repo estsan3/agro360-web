@@ -11,6 +11,8 @@ export interface Viaje {
   destino: string;
   toneladas: number;
   estado: EstadoViaje;
+  progreso: number; // 0-100
+  observaciones: string;
 }
 
 export interface Despacho {

@@ -9,6 +9,8 @@ export interface ViajeDto {
   destino: string;
   toneladas: number;
   estado: 'pendiente' | 'en_viaje' | 'retrasado' | 'completado';
+  progreso: number; // 0-100
+  observaciones: string;
 }
 
 export interface DespachoDto {
@@ -39,7 +41,7 @@ export interface CrearDespachoDto {
   fecha_inicio: string;
   fecha_llegada_estimada: string;
   estado: 'borrador' | 'activo';
-  viajes: Omit<ViajeDto, 'id' | 'estado'>[];
+  viajes: Omit<ViajeDto, 'id' | 'estado' | 'progreso' | 'observaciones'>[];
 }
 
 export interface CatalogosDto {

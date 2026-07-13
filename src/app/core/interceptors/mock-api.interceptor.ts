@@ -58,7 +58,10 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
 
   if (req.method === 'POST' && path === '/despachos') {
     const body = req.body as Omit<MockDespacho, 'id' | 'viajes'> & {
-      viajes: Omit<MockDespacho['viajes'][number], 'id' | 'estado'>[];
+      viajes: Omit<
+        MockDespacho['viajes'][number],
+        'id' | 'estado' | 'progreso' | 'observaciones'
+      >[];
     };
     const nuevo: MockDespacho = {
       ...body,
@@ -67,6 +70,8 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
         ...viaje,
         id: `#${12350 + index}`,
         estado: 'pendiente' as const,
+        progreso: 0,
+        observaciones: 'Pendiente asignación',
       })),
     };
     despachosDb.push(nuevo);

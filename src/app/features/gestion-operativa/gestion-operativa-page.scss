@@ -1,0 +1,139 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-lg;
+  padding: t.$space-lg;
+  font-family: ty.$font-family-base;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: t.$space-md;
+    flex-wrap: wrap;
+
+    h1 {
+      margin: 0;
+      font-size: ty.$font-size-3xl;
+      font-weight: ty.$font-weight-bold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: t.$space-xs 0 0;
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__tools {
+    display: flex;
+    gap: t.$space-sm;
+    align-items: center;
+
+    app-search-bar {
+      width: 320px;
+    }
+  }
+}
+
+.campanias {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-md;
+}
+
+.camp {
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-lg;
+  overflow: hidden;
+
+  &__header {
+    display: grid;
+    grid-template-columns: 24px 1.4fr 1.4fr 1fr 1fr auto auto auto 24px;
+    align-items: center;
+    gap: t.$space-md;
+    width: 100%;
+    padding: t.$space-md t.$space-lg;
+    border: none;
+    background: t.$color-primary-light;
+    font-family: inherit;
+    font-size: ty.$font-size-md-sm;
+    color: t.$color-text;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background: t.$color-primary-surface;
+    }
+
+    @media (max-width: t.$breakpoint-tablet) {
+      grid-template-columns: 24px 1fr auto auto 24px;
+
+      .camp__dato {
+        display: none;
+      }
+    }
+  }
+
+  &__chevron {
+    display: inline-flex;
+    font-size: 16px;
+    transition: transform 0.2s ease;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__nombre {
+    font-weight: ty.$font-weight-semibold;
+  }
+
+  &__dato {
+    color: t.$color-text-muted;
+  }
+
+  &__metric {
+    font-weight: ty.$font-weight-medium;
+    white-space: nowrap;
+  }
+
+  &__estados {
+    display: flex;
+    gap: t.$space-sm;
+  }
+
+  &__estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: ty.$font-size-sm;
+    font-weight: ty.$font-weight-medium;
+
+    &--info {
+      color: t.$color-info-text;
+    }
+
+    &--success {
+      color: t.$color-primary-dark;
+    }
+
+    &--warning {
+      color: t.$color-warning-text;
+    }
+  }
+
+  &__more {
+    display: inline-flex;
+    font-size: 16px;
+    color: t.$color-text-muted;
+  }
+
+  &__body {
+    padding: t.$space-md;
+  }
+}

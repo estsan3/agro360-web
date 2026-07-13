@@ -24,13 +24,19 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/despachos/despachos.routes').then((m) => m.BORRADORES_ROUTES),
       },
-      // Placeholders: se reemplazan por las rutas reales del feature en los pasos 10-12
       {
         path: 'gestion-operativa',
-        loadComponent: placeholder,
-        data: { title: 'Gestión operativa' },
+        loadComponent: () =>
+          import('./features/gestion-operativa/gestion-operativa-page').then(
+            (m) => m.GestionOperativaPage,
+          ),
       },
-      { path: 'reportes', loadComponent: placeholder, data: { title: 'Reportería' } },
+      {
+        path: 'reportes',
+        loadChildren: () =>
+          import('./features/despachos/despachos.routes').then((m) => m.REPORTES_ROUTES),
+      },
+      // Placeholders: se reemplazan por las rutas reales del feature en los pasos 11-12
       { path: 'mensajeria', loadComponent: placeholder, data: { title: 'Mensajería' } },
       { path: 'configuracion', loadComponent: placeholder, data: { title: 'Configuración' } },
       { path: '', redirectTo: 'despachos', pathMatch: 'full' },

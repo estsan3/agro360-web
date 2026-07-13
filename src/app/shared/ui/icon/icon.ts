@@ -17,7 +17,9 @@ export type IconName =
   | 'settings'
   | 'play'
   | 'bell'
-  | 'user';
+  | 'user'
+  | 'chevron-down'
+  | 'more-vertical';
 
 /**
  * Iconografía del kit Agro360 (Figma: Componentes → íconos).

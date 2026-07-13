@@ -1,0 +1,65 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.donut {
+  display: flex;
+  align-items: center;
+  gap: t.$space-lg;
+  font-family: ty.$font-family-base;
+
+  &__svg {
+    width: 160px;
+    height: 160px;
+    flex-shrink: 0;
+  }
+
+  &__total {
+    font-size: 28px;
+    font-weight: ty.$font-weight-bold;
+    fill: t.$color-text;
+  }
+
+  &__label {
+    font-size: 11px;
+    fill: t.$color-text-muted;
+  }
+
+  &__legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: t.$space-sm;
+
+    li {
+      display: grid;
+      grid-template-columns: 10px 1fr auto auto;
+      align-items: center;
+      gap: t.$space-sm;
+      font-size: ty.$font-size-md;
+    }
+  }
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: t.$radius-full;
+  }
+
+  &__name {
+    color: t.$color-text;
+  }
+
+  &__value {
+    font-weight: ty.$font-weight-semibold;
+    color: t.$color-text;
+  }
+
+  &__percent {
+    color: t.$color-text-muted;
+    font-size: ty.$font-size-sm;
+    min-width: 36px;
+    text-align: right;
+  }
+}

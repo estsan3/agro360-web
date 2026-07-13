@@ -1,0 +1,45 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.progress {
+  position: relative;
+  width: 120px;
+  height: 16px;
+  border-radius: t.$radius-full;
+  background: t.$color-background-alt;
+  overflow: hidden;
+  font-family: ty.$font-family-base;
+
+  &__fill {
+    height: 100%;
+    border-radius: t.$radius-full;
+    transition: width 0.3s ease;
+
+    &--success {
+      background: t.$color-teal;
+    }
+
+    &--info {
+      background: t.$color-info-border;
+    }
+
+    &--danger {
+      background: t.$color-danger-text;
+    }
+
+    &--neutral {
+      background: t.$color-border;
+    }
+  }
+
+  &__label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: ty.$font-size-2xs;
+    font-weight: ty.$font-weight-medium;
+    color: t.$color-text;
+  }
+}

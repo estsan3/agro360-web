@@ -43,6 +43,8 @@ interface MockViaje {
   destino: string;
   toneladas: number;
   estado: 'pendiente' | 'en_viaje' | 'retrasado' | 'completado';
+  progreso: number;
+  observaciones: string;
 }
 
 export interface MockDespacho {
@@ -83,6 +85,8 @@ export const MOCK_DESPACHOS: MockDespacho[] = [
         destino: 'Buenos Aires - Puerto',
         toneladas: 28,
         estado: 'en_viaje',
+        progreso: 65,
+        observaciones: 'Viaje normal',
       },
       {
         id: '#12343',
@@ -91,6 +95,8 @@ export const MOCK_DESPACHOS: MockDespacho[] = [
         destino: 'Buenos Aires - Puerto',
         toneladas: 28,
         estado: 'pendiente',
+        progreso: 0,
+        observaciones: 'Pendiente asignación',
       },
       {
         id: '#12342',
@@ -99,6 +105,8 @@ export const MOCK_DESPACHOS: MockDespacho[] = [
         destino: 'Buenos Aires - Puerto',
         toneladas: 30,
         estado: 'retrasado',
+        progreso: 42,
+        observaciones: 'Desperfecto técnico en ruta',
       },
       {
         id: '#12340',
@@ -107,6 +115,54 @@ export const MOCK_DESPACHOS: MockDespacho[] = [
         destino: 'Buenos Aires - Puerto',
         toneladas: 29,
         estado: 'completado',
+        progreso: 100,
+        observaciones: 'Entregado',
+      },
+    ],
+  },
+  {
+    id: 'd-3',
+    nombre: 'Campaña Soja 2026',
+    productor_id: 'p-1',
+    campo_id: 'c-2',
+    origen: 'Pergamino, Buenos Aires',
+    entrada_campo: 'Entrada Sur',
+    material: 'Soja',
+    administrador_id: 'a-2',
+    vendedor_id: 'v-2',
+    fecha_inicio: '2026-06-20',
+    fecha_llegada_estimada: '2026-07-15',
+    estado: 'activo',
+    viajes: [
+      {
+        id: '#12330',
+        chofer: 'Miguel Torres',
+        dominio: 'EF789GH',
+        destino: 'Rosario - Terminal',
+        toneladas: 32,
+        estado: 'completado',
+        progreso: 100,
+        observaciones: 'Entregado',
+      },
+      {
+        id: '#12331',
+        chofer: 'Roberto Gómez',
+        dominio: 'BC456CD',
+        destino: 'Rosario - Terminal',
+        toneladas: 30,
+        estado: 'en_viaje',
+        progreso: 80,
+        observaciones: 'Llegada anticipada',
+      },
+      {
+        id: '#12332',
+        chofer: 'Carlos Ruiz',
+        dominio: 'AA123BB',
+        destino: 'Puerto San Martín',
+        toneladas: 28.5,
+        estado: 'en_viaje',
+        progreso: 35,
+        observaciones: 'Viaje normal',
       },
     ],
   },

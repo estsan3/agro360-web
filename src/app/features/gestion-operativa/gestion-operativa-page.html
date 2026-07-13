@@ -1,0 +1,85 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Gestión operativa</h1>
+      <p>Seguimiento en tiempo real de campañas y viajes</p>
+    </div>
+    <div class="page__tools">
+      <app-search-bar
+        placeholder="Grupo, viaje, choferes, productores..."
+        (valueChange)="busqueda.set($event)"
+      />
+      <app-button variant="outline" size="md">
+        <app-icon name="filter" />
+        Filtros
+      </app-button>
+    </div>
+  </header>
+
+  <app-state-wrapper
+    [status]="despachos().status"
+    [error]="despachos().error ?? ''"
+    [empty]="campanias().length === 0"
+    emptyMessage="No hay campañas activas"
+    [skeletonRows]="4"
+  >
+    <div class="campanias">
+      @for (campania of campanias(); track campania.id) {
+        <article class="camp">
+          <button class="camp__header" type="button" (click)="toggle(campania.id)">
+            <span class="camp__chevron" [class.camp__chevron--open]="expandidas().has(campania.id)">
+              <app-icon name="chevron-down" />
+            </span>
+            <span class="camp__nombre">{{ campania.nombre }}</span>
+            <span class="camp__dato">{{ campania.productorCampo }}</span>
+            <span class="camp__dato">{{ campania.administrador }}</span>
+            <span class="camp__dato">{{ campania.vendedor }}</span>
+            <span class="camp__metric">{{ campania.totalViajes }} viajes</span>
+            <span class="camp__metric">{{ campania.totalToneladas }} tn</span>
+            <span class="camp__estados">
+              <span class="camp__estado camp__estado--info">
+                <app-icon name="truck" /> {{ campania.enViaje }}
+              </span>
+              <span class="camp__estado camp__estado--success">
+                <app-icon name="check-circle" /> {{ campania.completados }}
+              </span>
+              <span class="camp__estado camp__estado--warning">
+                <app-icon name="alert-triangle" /> {{ campania.conProblemas }}
+              </span>
+            </span>
+            <span class="camp__more"><app-icon name="more-vertical" /></span>
+          </button>
+
+          @if (expandidas().has(campania.id)) {
+            <div class="camp__body">
+              <app-table [columns]="viajesColumns" [rows]="viajesRows(campania)">
+                <ng-template appTableCell="estado" let-row>
+                  @switch (row['estado']) {
+                    @case ('en-viaje') {
+                      <app-badge variant="info">En viaje</app-badge>
+                    }
+                    @case ('pendiente') {
+                      <app-badge variant="warning">Pendiente</app-badge>
+                    }
+                    @case ('retrasado') {
+                      <app-badge variant="danger">Retrasado</app-badge>
+                    }
+                    @case ('completado') {
+                      <app-badge variant="success">Completado</app-badge>
+                    }
+                  }
+                </ng-template>
+                <ng-template appTableCell="progreso" let-row>
+                  <app-progress-bar
+                    [value]="$any(row)['progreso']"
+                    [variant]="progressVariant($any(row)['estado'])"
+                  />
+                </ng-template>
+              </app-table>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  </app-state-wrapper>
+</section>

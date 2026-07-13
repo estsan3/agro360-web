@@ -1,0 +1,68 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-lg;
+  padding: t.$space-lg;
+  font-family: ty.$font-family-base;
+
+  &__header {
+    h1 {
+      margin: 0;
+      font-size: ty.$font-size-3xl;
+      font-weight: ty.$font-weight-bold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: t.$space-xs 0 0;
+      color: t.$color-text-muted;
+    }
+  }
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: t.$space-md;
+
+  @media (max-width: t.$breakpoint-tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: t.$space-md;
+  margin-top: t.$space-md;
+
+  @media (max-width: t.$breakpoint-tablet) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-md;
+  padding: t.$space-lg;
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-lg;
+
+  h2 {
+    margin: 0;
+    font-size: ty.$font-size-xl;
+    font-weight: ty.$font-weight-semibold;
+    color: t.$color-text;
+  }
+
+  p {
+    margin: -#{t.$space-sm} 0 0;
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
+  }
+}
