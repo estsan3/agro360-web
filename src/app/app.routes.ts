@@ -14,9 +14,17 @@ export const routes: Routes = [
     loadComponent: () => import('./core/layout/shell').then((m) => m.Shell),
     canActivate: [authGuard],
     children: [
-      // Placeholders: cada uno se reemplaza por las rutas reales del feature
-      // (features/<dominio>/<dominio>.routes.ts) en los pasos 8-12
-      { path: 'despachos', loadComponent: placeholder, data: { title: 'Despachos' } },
+      {
+        path: 'despachos',
+        loadChildren: () =>
+          import('./features/despachos/despachos.routes').then((m) => m.DESPACHOS_ROUTES),
+      },
+      {
+        path: 'borradores',
+        loadChildren: () =>
+          import('./features/despachos/despachos.routes').then((m) => m.BORRADORES_ROUTES),
+      },
+      // Placeholders: se reemplazan por las rutas reales del feature en los pasos 10-12
       {
         path: 'gestion-operativa',
         loadComponent: placeholder,
@@ -24,7 +32,6 @@ export const routes: Routes = [
       },
       { path: 'reportes', loadComponent: placeholder, data: { title: 'Reportería' } },
       { path: 'mensajeria', loadComponent: placeholder, data: { title: 'Mensajería' } },
-      { path: 'borradores', loadComponent: placeholder, data: { title: 'Borrador despachos' } },
       { path: 'configuracion', loadComponent: placeholder, data: { title: 'Configuración' } },
       { path: '', redirectTo: 'despachos', pathMatch: 'full' },
     ],

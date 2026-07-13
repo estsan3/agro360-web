@@ -1,0 +1,72 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-lg;
+  padding: t.$space-lg;
+  font-family: ty.$font-family-base;
+
+  &__header {
+    h1 {
+      margin: 0;
+      font-size: ty.$font-size-3xl;
+      font-weight: ty.$font-weight-bold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: t.$space-xs 0 0;
+      color: t.$color-text-muted;
+    }
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-md;
+  padding: t.$space-lg;
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-lg;
+
+  h2 {
+    margin: 0;
+    font-size: ty.$font-size-xl;
+    font-weight: ty.$font-weight-semibold;
+    color: t.$color-text;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: t.$space-md;
+
+  &--full {
+    grid-template-columns: 1fr;
+  }
+
+  @media (max-width: t.$breakpoint-tablet) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.viaje-form {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr auto;
+  gap: t.$space-md;
+  align-items: end;
+
+  @media (max-width: t.$breakpoint-tablet) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: t.$space-md;
+}

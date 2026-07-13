@@ -1,0 +1,137 @@
+<section class="page">
+  <header class="page__header">
+    <h1>Crear despacho</h1>
+    <p>Definí la campaña, el origen y los viajes asignados</p>
+  </header>
+
+  @if (mensajeExito()) {
+    <app-toast
+      variant="success"
+      title="¡Operación exitosa!"
+      [message]="mensajeExito()"
+      (closed)="mensajeExito.set('')"
+    />
+  }
+
+  <app-state-wrapper
+    [status]="catalogos().status"
+    [error]="catalogos().error ?? ''"
+    [skeletonRows]="5"
+  >
+    <form class="card" [formGroup]="form">
+      <div class="grid grid--full">
+        <app-text-input
+          label="Nombre de Campaña / Despacho *"
+          placeholder="Campaña Soja 2026"
+          formControlName="nombre"
+          [error]="fieldError('nombre')"
+        />
+      </div>
+      <div class="grid">
+        <app-select-input
+          label="Productor *"
+          [options]="productorOptions()"
+          formControlName="productorId"
+          [error]="fieldError('productorId')"
+        />
+        <app-select-input
+          label="Campo *"
+          placeholder="Elegí primero un productor"
+          [options]="campoOptions()"
+          formControlName="campoId"
+          [error]="fieldError('campoId')"
+        />
+        <app-text-input
+          label="Origen *"
+          placeholder="Rosario, Santa Fe"
+          formControlName="origen"
+          [error]="fieldError('origen')"
+        />
+        <app-text-input
+          label="Entrada Campo"
+          placeholder="Entrada Norte (Lat, Lng)"
+          formControlName="entradaCampo"
+        />
+        <app-select-input
+          label="Tipo de Material a Transportar *"
+          [options]="materialOptions()"
+          formControlName="material"
+          [error]="fieldError('material')"
+        />
+        <app-select-input
+          label="Administrador *"
+          [options]="administradorOptions()"
+          formControlName="administradorId"
+          [error]="fieldError('administradorId')"
+        />
+        <app-select-input
+          label="Vendedor *"
+          [options]="vendedorOptions()"
+          formControlName="vendedorId"
+          [error]="fieldError('vendedorId')"
+        />
+        <app-text-input
+          label="Fecha de inicio *"
+          type="date"
+          formControlName="fechaInicio"
+          [error]="fieldError('fechaInicio')"
+        />
+        <app-text-input
+          label="Fecha de llegada estimada"
+          type="date"
+          formControlName="fechaLlegadaEstimada"
+        />
+      </div>
+    </form>
+
+    <div class="card">
+      <h2>Viajes asignados</h2>
+      <form class="viaje-form" [formGroup]="viajeForm" (ngSubmit)="agregarViaje()">
+        <app-select-input label="Chofer" [options]="choferOptions()" formControlName="choferId" />
+        <app-text-input
+          label="Destino"
+          placeholder="Buenos Aires - Puerto"
+          formControlName="destino"
+        />
+        <app-text-input
+          label="Toneladas"
+          type="number"
+          placeholder="28.5"
+          formControlName="toneladas"
+        />
+        <app-button type="submit" variant="outline" size="md">
+          <app-icon name="plus" />
+          Agregar viaje
+        </app-button>
+      </form>
+
+      <app-table [columns]="viajesColumns" [rows]="viajesRows()">
+        <ng-template appTableCell="acciones" let-row>
+          <app-button variant="danger" size="sm" (clicked)="quitarViaje(viajesRows().indexOf(row))">
+            Quitar
+          </app-button>
+        </ng-template>
+      </app-table>
+    </div>
+
+    <footer class="actions">
+      <app-button
+        variant="outline"
+        size="md"
+        [disabled]="guardando()"
+        (clicked)="guardar('borrador')"
+      >
+        Guardar borrador
+      </app-button>
+      <app-button
+        variant="primary"
+        size="md"
+        [disabled]="guardando()"
+        (clicked)="guardar('activo')"
+      >
+        <app-icon name="plus" />
+        {{ guardando() ? 'Enviando…' : 'Enviar Despacho' }}
+      </app-button>
+    </footer>
+  </app-state-wrapper>
+</section>

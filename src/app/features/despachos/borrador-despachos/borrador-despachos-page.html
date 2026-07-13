@@ -1,0 +1,31 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Borrador despachos</h1>
+      <p>Campañas guardadas sin enviar</p>
+    </div>
+    <app-button variant="primary" size="md" (clicked)="crearNuevo()">
+      <app-icon name="plus" />
+      Crear despacho
+    </app-button>
+  </header>
+
+  <app-state-wrapper
+    [status]="despachos().status"
+    [error]="despachos().error ?? ''"
+    [empty]="rows().length === 0"
+    emptyMessage="No tenés borradores guardados"
+    [skeletonRows]="4"
+  >
+    <app-table [columns]="columns" [rows]="rows()">
+      <ng-template appTableCell="estado">
+        <app-badge variant="warning">Borrador</app-badge>
+      </ng-template>
+      <ng-template appTableCell="acciones" let-row>
+        <app-button variant="danger" size="sm" (clicked)="eliminar($any(row)['id'])">
+          Eliminar
+        </app-button>
+      </ng-template>
+    </app-table>
+  </app-state-wrapper>
+</section>

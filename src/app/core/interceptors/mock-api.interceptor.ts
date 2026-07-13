@@ -2,6 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/com
 import { delay, of, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user';
+import { MOCK_CATALOGOS, MOCK_DESPACHOS, MockDespacho } from './mock-data';
 
 const MOCK_USER: User = {
   id: 'u-1',
@@ -12,6 +13,10 @@ const MOCK_USER: User = {
 
 // Simula la cookie de sesión del backend (en memoria)
 let sessionActive = false;
+
+// "Base de datos" de despachos en memoria
+const despachosDb: MockDespacho[] = [...MOCK_DESPACHOS];
+let nextDespachoId = despachosDb.length + 1;
 
 /**
  * API fake para desarrollar sin backend. Se desactiva completo con
@@ -40,6 +45,41 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
 
   if (req.method === 'POST' && path === '/auth/logout') {
     sessionActive = false;
+    return ok(null);
+  }
+
+  if (req.method === 'GET' && path === '/catalogos') {
+    return ok(MOCK_CATALOGOS);
+  }
+
+  if (req.method === 'GET' && path === '/despachos') {
+    return ok(despachosDb);
+  }
+
+  if (req.method === 'POST' && path === '/despachos') {
+    const body = req.body as Omit<MockDespacho, 'id' | 'viajes'> & {
+      viajes: Omit<MockDespacho['viajes'][number], 'id' | 'estado'>[];
+    };
+    const nuevo: MockDespacho = {
+      ...body,
+      id: `d-${nextDespachoId++}`,
+      viajes: body.viajes.map((viaje, index) => ({
+        ...viaje,
+        id: `#${12350 + index}`,
+        estado: 'pendiente' as const,
+      })),
+    };
+    despachosDb.push(nuevo);
+    return ok(nuevo);
+  }
+
+  const deleteMatch = /^\/despachos\/(.+)$/.exec(path);
+  if (req.method === 'DELETE' && deleteMatch) {
+    const index = despachosDb.findIndex((despacho) => despacho.id === deleteMatch[1]);
+    if (index === -1) {
+      return fail(404);
+    }
+    despachosDb.splice(index, 1);
     return ok(null);
   }
 
