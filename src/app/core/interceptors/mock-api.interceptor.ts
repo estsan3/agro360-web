@@ -25,8 +25,9 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
   const path = req.url.slice(environment.apiBaseUrl.length);
 
   if (req.method === 'POST' && path === '/auth/login') {
+    // Simula credenciales inválidas con contraseñas de menos de 8 caracteres
     const { email, password } = req.body as { email?: string; password?: string };
-    if (email && password && password.length >= 4) {
+    if (email && password && password.length >= 8) {
       sessionActive = true;
       return ok({ ...MOCK_USER, email });
     }

@@ -1,0 +1,51 @@
+<div class="login">
+  <aside class="login__promo">
+    <div class="login__promo-text">
+      <h2>Gestión logística de despachos</h2>
+      <p>Coordiná campañas, viajes y choferes en tiempo real</p>
+    </div>
+  </aside>
+
+  <section class="login__panel">
+    <div class="login__box">
+      <app-logo />
+      <div class="login__heading">
+        <h1>Iniciar sesión</h1>
+        <p>Ingresá con tu cuenta de empresa</p>
+      </div>
+
+      @if (loginError()) {
+        <app-toast
+          variant="error"
+          title="No pudimos iniciar sesión"
+          [message]="loginError()"
+          [dismissible]="false"
+        />
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <app-text-input
+          label="Correo electrónico"
+          type="email"
+          placeholder="tu@empresa.com"
+          formControlName="email"
+          [error]="fieldError('email')"
+        />
+        <app-text-input
+          label="Contraseña"
+          type="password"
+          placeholder="••••••••"
+          formControlName="password"
+          [error]="fieldError('password')"
+        />
+        <app-button type="submit" size="xl" [fullWidth]="true" [disabled]="loading()">
+          {{ loading() ? 'Ingresando…' : 'Iniciar sesión' }}
+        </app-button>
+      </form>
+
+      <a class="login__forgot" href="#" (click)="$event.preventDefault()">
+        ¿Olvidaste tu contraseña?
+      </a>
+    </div>
+  </section>
+</div>

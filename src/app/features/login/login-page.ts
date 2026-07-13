@@ -1,59 +1,67 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthStore } from '../../core/state/auth.store';
 import { Button } from '../../shared/ui/button/button';
 import { Logo } from '../../shared/ui/logo/logo';
+import { TextInput } from '../../shared/ui/input/text-input';
+import { Toast } from '../../shared/ui/toast/toast';
 
 /**
- * Placeholder de login — el formulario real (Figma: Login) llega en el Paso 8.
- * Permite entrar con el usuario mock para navegar el shell.
+ * Pantalla de login (Figma: Login 173:1629): panel promocional verde
+ * a la izquierda, formulario a la derecha.
  */
 @Component({
   selector: 'app-login-page',
-  imports: [Button, Logo],
-  template: `
-    <div class="login">
-      <app-logo />
-      <p>Pantalla de login en construcción (Paso 8)</p>
-      <app-button size="xl" [disabled]="loading()" (clicked)="enter()">
-        Entrar con usuario demo
-      </app-button>
-    </div>
-  `,
-  styles: [
-    `
-      @use 'tokens' as t;
-      @use 'typography' as ty;
-
-      .login {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: t.$space-lg;
-        height: 100vh;
-        font-family: ty.$font-family-base;
-
-        p {
-          margin: 0;
-          color: t.$color-text-muted;
-        }
-      }
-    `,
-  ],
+  imports: [ReactiveFormsModule, Button, Logo, TextInput, Toast],
+  templateUrl: './login-page.html',
+  styleUrl: './login-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginPage {
+  private readonly fb = inject(NonNullableFormBuilder);
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
 
   protected readonly loading = signal(false);
+  protected readonly loginError = signal('');
 
-  protected enter(): void {
+  protected readonly form = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(4)]],
+  });
+
+  protected fieldError(field: 'email' | 'password'): string {
+    const control = this.form.controls[field];
+    if (!control.touched || control.valid) {
+      return '';
+    }
+    if (control.hasError('required')) {
+      return 'Este campo es obligatorio';
+    }
+    if (control.hasError('email')) {
+      return 'El correo no es válido';
+    }
+    if (control.hasError('minlength')) {
+      return 'Mínimo 4 caracteres';
+    }
+    return '';
+  }
+
+  protected submit(): void {
+    this.loginError.set('');
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
     this.loading.set(true);
-    this.authStore.login({ email: 'admin@agro360.com', password: 'demo1234' }).subscribe({
+    this.authStore.login(this.form.getRawValue()).subscribe({
       next: () => this.router.navigate(['/despachos']),
-      error: () => this.loading.set(false),
+      error: (error: Error) => {
+        this.loading.set(false);
+        this.loginError.set(error.message);
+      },
     });
   }
 }

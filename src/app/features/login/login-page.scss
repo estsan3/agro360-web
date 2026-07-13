@@ -1,0 +1,98 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.login {
+  display: flex;
+  height: 100vh;
+  font-family: ty.$font-family-base;
+
+  // Panel promocional: en Figma es la foto del camión con overlay verde.
+  // TODO: reemplazar el gradiente por el asset real cuando el MCP de
+  // Figma permita descargarlo (ver evento en calendario 1/8).
+  &__promo {
+    flex: 1.4;
+    display: flex;
+    align-items: flex-end;
+    padding: t.$space-xl;
+    margin: t.$space-md;
+    border-radius: t.$radius-lg;
+    background:
+      radial-gradient(120% 90% at 80% 10%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+      linear-gradient(
+        160deg,
+        t.$color-primary 0%,
+        t.$color-primary-dark 55%,
+        t.$color-primary-deep 100%
+      );
+
+    @media (max-width: t.$breakpoint-tablet) {
+      display: none;
+    }
+  }
+
+  &__promo-text {
+    color: #fff;
+
+    h2 {
+      margin: 0 0 t.$space-sm;
+      font-size: ty.$font-size-3xl;
+      font-weight: ty.$font-weight-bold;
+      max-width: 420px;
+    }
+
+    p {
+      margin: 0;
+      font-size: ty.$font-size-lg;
+      opacity: 0.85;
+    }
+  }
+
+  &__panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: t.$space-xl;
+  }
+
+  &__box {
+    display: flex;
+    flex-direction: column;
+    gap: t.$space-lg;
+    width: 100%;
+    max-width: 360px;
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: t.$space-md;
+    }
+  }
+
+  &__heading {
+    h1 {
+      margin: 0;
+      font-size: ty.$font-size-2xl;
+      font-weight: ty.$font-weight-bold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: t.$space-xs 0 0;
+      font-size: ty.$font-size-md;
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__forgot {
+    align-self: center;
+    font-size: ty.$font-size-md;
+    color: t.$color-text-muted;
+    text-decoration: none;
+
+    &:hover {
+      color: t.$color-primary-dark;
+      text-decoration: underline;
+    }
+  }
+}
