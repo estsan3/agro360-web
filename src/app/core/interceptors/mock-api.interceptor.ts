@@ -2,7 +2,13 @@ import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/com
 import { delay, of, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user';
-import { MOCK_CATALOGOS, MOCK_DESPACHOS, MockDespacho } from './mock-data';
+import {
+  MOCK_CATALOGOS,
+  MOCK_CONVERSACIONES,
+  MOCK_DESPACHOS,
+  MockConversacion,
+  MockDespacho,
+} from './mock-data';
 
 const MOCK_USER: User = {
   id: 'u-1',
@@ -17,6 +23,10 @@ let sessionActive = false;
 // "Base de datos" de despachos en memoria
 const despachosDb: MockDespacho[] = [...MOCK_DESPACHOS];
 let nextDespachoId = despachosDb.length + 1;
+
+// Conversaciones en memoria (deep copy para poder mutar mensajes)
+const conversacionesDb: MockConversacion[] = structuredClone(MOCK_CONVERSACIONES);
+let nextMensajeId = 100;
 
 /**
  * API fake para desarrollar sin backend. Se desactiva completo con
@@ -76,6 +86,27 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
     };
     despachosDb.push(nuevo);
     return ok(nuevo);
+  }
+
+  if (req.method === 'GET' && path === '/conversaciones') {
+    return ok(conversacionesDb);
+  }
+
+  const mensajeMatch = /^\/conversaciones\/([^/]+)\/mensajes$/.exec(path);
+  if (req.method === 'POST' && mensajeMatch) {
+    const conversacion = conversacionesDb.find((c) => c.id === mensajeMatch[1]);
+    if (!conversacion) {
+      return fail(404);
+    }
+    const { texto } = req.body as { texto: string };
+    const mensaje = {
+      id: `m-${nextMensajeId++}`,
+      autor: 'admin' as const,
+      texto,
+      fecha: new Date().toISOString(),
+    };
+    conversacion.mensajes.push(mensaje);
+    return ok(mensaje);
   }
 
   const deleteMatch = /^\/despachos\/(.+)$/.exec(path);

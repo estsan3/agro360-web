@@ -1,16 +1,22 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
+import { NotificationStore } from '../../notifications/state/notification.store';
 
 /**
  * Captura global de errores HTTP: traduce el error técnico a un mensaje
- * amigable. Cuando exista el módulo notifications/ (Paso 11), acá se
- * disparará el toast — ningún componente maneja errores HTTP a mano.
+ * amigable y dispara un toast — ningún componente maneja errores a mano.
+ * Los errores de /auth/ se excluyen: el login los muestra inline.
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  const notifications = inject(NotificationStore);
+
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       const message = friendlyMessage(error);
-      // TODO(paso 11): inject(NotificationStore).notifyError(message)
+      if (!req.url.includes('/auth/')) {
+        notifications.error('Algo salió mal', message);
+      }
       return throwError(() => new Error(message));
     }),
   );

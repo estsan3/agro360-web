@@ -36,6 +36,77 @@ export const MOCK_CATALOGOS = {
   ],
 };
 
+export interface MockConversacion {
+  id: string;
+  chofer: string;
+  dominio: string;
+  no_leidos: number;
+  mensajes: { id: string; autor: 'admin' | 'chofer'; texto: string; fecha: string }[];
+}
+
+export const MOCK_CONVERSACIONES: MockConversacion[] = [
+  {
+    id: 'conv-1',
+    chofer: 'Carlos Ruiz',
+    dominio: 'AA123BB',
+    no_leidos: 2,
+    mensajes: [
+      {
+        id: 'm-1',
+        autor: 'admin',
+        texto: 'Hola Carlos, ¿cómo va el viaje?',
+        fecha: '2026-07-13T08:15:00',
+      },
+      {
+        id: 'm-2',
+        autor: 'chofer',
+        texto: 'Todo bien, la carga va segura. Llego al puerto en 2 horas.',
+        fecha: '2026-07-13T08:22:00',
+      },
+      {
+        id: 'm-3',
+        autor: 'chofer',
+        texto: 'Ya estoy en la fila de descarga.',
+        fecha: '2026-07-13T10:05:00',
+      },
+    ],
+  },
+  {
+    id: 'conv-2',
+    chofer: 'Pedro Ramírez',
+    dominio: 'XY789ZA',
+    no_leidos: 1,
+    mensajes: [
+      {
+        id: 'm-4',
+        autor: 'chofer',
+        texto: 'Tengo un desperfecto técnico en ruta, voy a demorar.',
+        fecha: '2026-07-13T09:40:00',
+      },
+    ],
+  },
+  {
+    id: 'conv-3',
+    chofer: 'Miguel Torres',
+    dominio: 'EF789GH',
+    no_leidos: 0,
+    mensajes: [
+      {
+        id: 'm-5',
+        autor: 'admin',
+        texto: 'Miguel, mañana salís con la carga de soja a Rosario.',
+        fecha: '2026-07-12T18:00:00',
+      },
+      {
+        id: 'm-6',
+        autor: 'chofer',
+        texto: 'Perfecto, ¿a qué hora paso a cargar?',
+        fecha: '2026-07-12T18:12:00',
+      },
+    ],
+  },
+];
+
 interface MockViaje {
   id: string;
   chofer: string;

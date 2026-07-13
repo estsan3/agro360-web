@@ -37,7 +37,11 @@ export const routes: Routes = [
           import('./features/despachos/despachos.routes').then((m) => m.REPORTES_ROUTES),
       },
       // Placeholders: se reemplazan por las rutas reales del feature en los pasos 11-12
-      { path: 'mensajeria', loadComponent: placeholder, data: { title: 'Mensajería' } },
+      {
+        path: 'mensajeria',
+        loadComponent: () =>
+          import('./features/mensajeria/mensajeria-page').then((m) => m.MensajeriaPage),
+      },
       { path: 'configuracion', loadComponent: placeholder, data: { title: 'Configuración' } },
       { path: '', redirectTo: 'despachos', pathMatch: 'full' },
     ],

@@ -1,0 +1,80 @@
+<section class="page">
+  <header class="page__header">
+    <h1>Mensajería</h1>
+    <p>Comunicación directa con los choferes en ruta</p>
+  </header>
+
+  <app-state-wrapper
+    [status]="store.conversaciones().status"
+    [error]="store.conversaciones().error ?? ''"
+    [skeletonRows]="5"
+  >
+    <div class="chat">
+      <aside class="chat__list">
+        <app-search-bar placeholder="Buscar chofer..." (valueChange)="busqueda.set($event)" />
+        <ul>
+          @for (conversacion of filtradas(); track conversacion.id) {
+            <li>
+              <button
+                type="button"
+                class="conv"
+                [class.conv--active]="conversacion.id === store.seleccionadaId()"
+                (click)="store.seleccionar(conversacion.id)"
+              >
+                <span class="conv__avatar">{{ iniciales(conversacion.chofer) }}</span>
+                <span class="conv__info">
+                  <span class="conv__nombre">
+                    {{ conversacion.chofer }}
+                    <small>· {{ conversacion.dominio }}</small>
+                  </span>
+                  <span class="conv__preview">
+                    {{ conversacion.mensajes.at(-1)?.texto ?? 'Sin mensajes' }}
+                  </span>
+                </span>
+                @if (conversacion.noLeidos > 0) {
+                  <span class="conv__badge">{{ conversacion.noLeidos }}</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      </aside>
+
+      <div class="chat__panel">
+        @if (store.seleccionada(); as conversacion) {
+          <header class="chat__header">
+            <span class="conv__avatar">{{ iniciales(conversacion.chofer) }}</span>
+            <div>
+              <strong>{{ conversacion.chofer }}</strong>
+              <small>{{ conversacion.dominio }}</small>
+            </div>
+          </header>
+
+          <div class="chat__mensajes" #mensajesPanel>
+            @for (mensaje of conversacion.mensajes; track mensaje.id) {
+              <div class="burbuja" [class.burbuja--propia]="mensaje.autor === 'admin'">
+                <p>{{ mensaje.texto }}</p>
+                <time>{{ mensaje.fecha | date: 'HH:mm' }}</time>
+              </div>
+            }
+          </div>
+
+          <form class="chat__input" (submit)="enviar(); $event.preventDefault()">
+            <input
+              type="text"
+              placeholder="Escribí un mensaje..."
+              [(ngModel)]="borrador"
+              name="mensaje"
+              autocomplete="off"
+            />
+            <button type="submit" aria-label="Enviar mensaje">
+              <app-icon name="play" />
+            </button>
+          </form>
+        } @else {
+          <div class="chat__empty">Seleccioná una conversación</div>
+        }
+      </div>
+    </div>
+  </app-state-wrapper>
+</section>
