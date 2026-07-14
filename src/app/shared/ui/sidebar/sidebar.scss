@@ -103,7 +103,7 @@
   }
 
   &__label {
-    font-size: 1.25rem; // 20px, como la referencia
+    font-size: 20px; // fijo: no escala con la raíz (quedaba muy grande)
     font-weight: ty.$font-weight-medium;
   }
 }
