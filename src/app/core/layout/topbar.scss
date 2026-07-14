@@ -169,6 +169,10 @@
       color: t.$color-text-muted;
     }
 
+    .topbar__fecha {
+      color: t.$color-primary-dark;
+    }
+
     @media (max-width: t.$breakpoint-tablet) {
       display: none;
     }

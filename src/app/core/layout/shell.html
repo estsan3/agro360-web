@@ -1,10 +1,5 @@
 <div class="shell">
-  <app-sidebar
-    [items]="items"
-    [activeId]="activeId()"
-    [subtitle]="fecha"
-    (itemSelected)="navigate($event)"
-  />
+  <app-sidebar [items]="items" [activeId]="activeId()" (itemSelected)="navigate($event)" />
   <div class="shell__column">
     <app-topbar />
     <main class="shell__content">

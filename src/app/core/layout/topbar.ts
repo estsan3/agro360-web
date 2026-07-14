@@ -35,6 +35,27 @@ export class Topbar {
   protected readonly terminoBusqueda = signal('');
   protected readonly menuPerfilAbierto = signal(false);
 
+  protected readonly fecha = (() => {
+    const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const MESES = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+    const hoy = new Date();
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    return `${DIAS[hoy.getDay()]}, ${dia} de ${MESES[hoy.getMonth()]} del ${hoy.getFullYear()}`;
+  })();
+
   protected readonly resultados = computed<ResultadoViaje[]>(() => {
     const termino = this.terminoBusqueda().toLowerCase().trim();
     if (!termino) {

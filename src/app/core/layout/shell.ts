@@ -14,22 +14,6 @@ const TITULOS: Record<string, string> = {
   configuracion: 'Configuración',
 };
 
-const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const MESES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-];
-
 const NAV_ITEMS: SidebarItem[] = [
   { id: 'gestion-operativa', icon: 'truck', label: 'Gestión operativa' },
   { id: 'despachos', icon: 'plus', label: 'Crear despacho' },
@@ -63,12 +47,6 @@ export class Shell {
   );
 
   protected readonly titulo = computed(() => TITULOS[this.activeId() ?? ''] ?? 'Agro360');
-
-  protected readonly fecha = (() => {
-    const hoy = new Date();
-    const dia = String(hoy.getDate()).padStart(2, '0');
-    return `${DIAS[hoy.getDay()]}, ${dia} de ${MESES[hoy.getMonth()]} del ${hoy.getFullYear()}`;
-  })();
 
   protected navigate(id: string): void {
     this.router.navigate(['/', id]);
