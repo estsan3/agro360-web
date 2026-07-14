@@ -75,6 +75,17 @@
 .draft {
   border-top: 1px solid t.$color-border;
 
+  // Bandas alternadas por borrador (misma legibilidad que Gestión)
+  &--alt {
+    .draft__row {
+      background: #f3f8f2;
+    }
+
+    .viajes {
+      background: #f3f8f2;
+    }
+  }
+
   &__row {
     background: t.$color-surface;
     font-size: ty.$font-size-md-sm;
@@ -174,10 +185,16 @@
 
 // --- Tabla interna de viajes en borrador ---
 .viajes {
-  margin: 0 t.$space-md t.$space-md;
-  border: 1px solid t.$color-border;
-  border-radius: t.$radius-md;
-  overflow-x: auto;
+  margin: 0;
+  padding: 0 t.$space-md t.$space-md;
+  background: t.$color-surface;
+
+  &__tabla {
+    border: 1px solid t.$color-border;
+    border-radius: t.$radius-md;
+    overflow-x: auto;
+    background: t.$color-surface;
+  }
 
   &__row {
     display: grid;

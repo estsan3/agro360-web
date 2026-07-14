@@ -36,7 +36,7 @@
       </div>
 
       @for (borrador of borradores(); track borrador.id) {
-        <article class="draft">
+        <article class="draft" [class.draft--alt]="$index % 2 === 1">
           <div class="draft-cols draft__row">
             <div class="draft__campania">
               <div class="draft__nombre">
@@ -92,55 +92,57 @@
 
           @if (expandidos().has(borrador.id)) {
             <div class="viajes">
-              <div class="viajes__row viajes__row--head">
-                <span>Nombre</span>
-                <span>Patente</span>
-                <span>Desde</span>
-                <span>Hasta</span>
-                <span class="viajes__num">Toneladas</span>
-                <span class="viajes__num">Acciones</span>
-              </div>
-              @for (viaje of borrador.viajes; track viaje.id) {
-                <div class="viajes__row">
-                  <span>{{ viaje.chofer }}</span>
-                  <span>{{ viaje.dominio }}</span>
-                  <span class="viajes__desde">{{ borrador.desde }}</span>
-                  <span>{{ viaje.destino }}</span>
-                  <span class="viajes__num"
-                    ><strong>{{ viaje.toneladas }} tn</strong></span
-                  >
-                  <div class="viajes__acciones">
-                    <app-button
-                      variant="primary"
-                      size="sm"
-                      (clicked)="iniciarViaje(borrador.id, viaje)"
-                    >
-                      <app-icon name="play" />
-                      Iniciar Viaje
-                    </app-button>
-                    <button
-                      class="draft__icono"
-                      type="button"
-                      title="Duplicar viaje"
-                      aria-label="Duplicar viaje"
-                      (click)="duplicarViaje(borrador.id, viaje.id)"
-                    >
-                      <app-icon name="copy" />
-                    </button>
-                    <button
-                      class="draft__icono draft__icono--rojo"
-                      type="button"
-                      title="Eliminar viaje"
-                      aria-label="Eliminar viaje"
-                      (click)="eliminarViaje(borrador.id, viaje.id)"
-                    >
-                      <app-icon name="trash" />
-                    </button>
-                  </div>
+              <div class="viajes__tabla">
+                <div class="viajes__row viajes__row--head">
+                  <span>Nombre</span>
+                  <span>Patente</span>
+                  <span>Desde</span>
+                  <span>Hasta</span>
+                  <span class="viajes__num">Toneladas</span>
+                  <span class="viajes__num">Acciones</span>
                 </div>
-              } @empty {
-                <div class="viajes__vacio">Este borrador no tiene viajes pendientes</div>
-              }
+                @for (viaje of borrador.viajes; track viaje.id) {
+                  <div class="viajes__row">
+                    <span>{{ viaje.chofer }}</span>
+                    <span>{{ viaje.dominio }}</span>
+                    <span class="viajes__desde">{{ borrador.desde }}</span>
+                    <span>{{ viaje.destino }}</span>
+                    <span class="viajes__num"
+                      ><strong>{{ viaje.toneladas }} tn</strong></span
+                    >
+                    <div class="viajes__acciones">
+                      <app-button
+                        variant="primary"
+                        size="sm"
+                        (clicked)="iniciarViaje(borrador.id, viaje)"
+                      >
+                        <app-icon name="play" />
+                        Iniciar Viaje
+                      </app-button>
+                      <button
+                        class="draft__icono"
+                        type="button"
+                        title="Duplicar viaje"
+                        aria-label="Duplicar viaje"
+                        (click)="duplicarViaje(borrador.id, viaje.id)"
+                      >
+                        <app-icon name="copy" />
+                      </button>
+                      <button
+                        class="draft__icono draft__icono--rojo"
+                        type="button"
+                        title="Eliminar viaje"
+                        aria-label="Eliminar viaje"
+                        (click)="eliminarViaje(borrador.id, viaje.id)"
+                      >
+                        <app-icon name="trash" />
+                      </button>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="viajes__vacio">Este borrador no tiene viajes pendientes</div>
+                }
+              </div>
             </div>
           }
         </article>
