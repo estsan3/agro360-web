@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { Icon, IconName } from '../icon/icon';
 import { Logo } from '../logo/logo';
 
@@ -26,6 +26,9 @@ export class Sidebar {
   readonly activeId = input('');
 
   readonly itemSelected = output<string>();
+
+  /** Hamburguesa: expandida muestra iconos + títulos; colapsada solo iconos */
+  protected readonly expandida = signal(false);
 
   protected itemsIn(section: 'top' | 'bottom'): SidebarItem[] {
     return this.items().filter((item) => (item.section ?? 'top') === section);

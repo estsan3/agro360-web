@@ -31,7 +31,8 @@ export type IconName =
   | 'send'
   | 'shield'
   | 'package'
-  | 'log-out';
+  | 'log-out'
+  | 'menu';
 
 /**
  * Iconografía del kit Agro360 (Figma: Componentes → íconos).

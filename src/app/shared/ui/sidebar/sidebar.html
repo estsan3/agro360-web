@@ -1,6 +1,16 @@
-<nav class="sidebar">
+<nav class="sidebar" [class.sidebar--expandida]="expandida()">
+  <button
+    class="sidebar__hamburguesa"
+    type="button"
+    aria-label="Expandir o colapsar menú"
+    [attr.aria-expanded]="expandida()"
+    (click)="expandida.set(!expandida())"
+  >
+    <app-icon name="menu" />
+  </button>
+
   <div class="sidebar__logo">
-    <app-logo size="sm" [compact]="true" />
+    <app-logo size="sm" [compact]="!expandida()" />
   </div>
 
   <div class="sidebar__section">
@@ -10,10 +20,13 @@
         type="button"
         [class.sidebar__item--active]="item.id === activeId()"
         [attr.aria-label]="item.label"
-        [attr.title]="item.label"
+        [attr.title]="expandida() ? null : item.label"
         (click)="itemSelected.emit(item.id)"
       >
         <app-icon [name]="item.icon" />
+        @if (expandida()) {
+          <span class="sidebar__label">{{ item.label }}</span>
+        }
       </button>
     }
   </div>
@@ -25,10 +38,13 @@
         type="button"
         [class.sidebar__item--active]="item.id === activeId()"
         [attr.aria-label]="item.label"
-        [attr.title]="item.label"
+        [attr.title]="expandida() ? null : item.label"
         (click)="itemSelected.emit(item.id)"
       >
         <app-icon [name]="item.icon" />
+        @if (expandida()) {
+          <span class="sidebar__label">{{ item.label }}</span>
+        }
       </button>
     }
   </div>
