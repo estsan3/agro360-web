@@ -160,7 +160,7 @@
     line-height: 1.2;
 
     strong {
-      font-size: ty.$font-size-xl; // 18px (+4pt)
+      font-size: 18px; // fijo (+4pt, no escala con la raíz)
       color: t.$color-text;
     }
 
