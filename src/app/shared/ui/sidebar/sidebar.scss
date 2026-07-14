@@ -19,11 +19,6 @@
     align-items: stretch;
     padding: t.$space-md;
 
-    .sidebar__hamburguesa,
-    .sidebar__logo {
-      align-self: flex-start;
-    }
-
     .sidebar__section {
       align-items: stretch;
     }
@@ -34,29 +29,6 @@
       gap: t.$space-sm;
       padding: 0 t.$space-md;
     }
-  }
-
-  &__hamburguesa {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    margin-bottom: t.$space-sm;
-    border: none;
-    border-radius: t.$radius-md;
-    background: transparent;
-    color: t.$color-text;
-    font-size: 20px;
-    cursor: pointer;
-
-    &:hover {
-      background: rgba(0, 166, 62, 0.12);
-    }
-  }
-
-  &__logo {
-    margin-bottom: t.$space-lg;
   }
 
   &__section {

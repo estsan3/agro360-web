@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Icon, IconName } from '../icon/icon';
-import { Logo } from '../logo/logo';
 
 export interface SidebarItem {
   id: string;
@@ -11,12 +10,12 @@ export interface SidebarItem {
 
 /**
  * Sidebar de navegación del kit Agro360 (Figma: UI Kit Gestión → Bars).
- * 80px de ancho, fondo verde suave, item activo en verde de marca.
- * Presentacional: el shell decide las rutas; acá solo se emite el id.
+ * Colapsada muestra solo iconos; expandida (controlado por el topbar
+ * vía la hamburguesa) suma los títulos.
  */
 @Component({
   selector: 'app-sidebar',
-  imports: [Icon, Logo],
+  imports: [Icon],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,11 +23,9 @@ export interface SidebarItem {
 export class Sidebar {
   readonly items = input.required<SidebarItem[]>();
   readonly activeId = input('');
+  readonly expanded = input(false);
 
   readonly itemSelected = output<string>();
-
-  /** Hamburguesa: expandida muestra iconos + títulos; colapsada solo iconos */
-  protected readonly expandida = signal(false);
 
   protected itemsIn(section: 'top' | 'bottom'): SidebarItem[] {
     return this.items().filter((item) => (item.section ?? 'top') === section);

@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { output } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { MensajeriaStore } from '../../features/mensajeria/data-access/mensajeria.store';
 import { DespachoStore } from '../../features/despachos/data-access/despacho.store';
 import { Icon } from '../../shared/ui/icon/icon';
+import { Logo } from '../../shared/ui/logo/logo';
 import { SearchBar } from '../../shared/ui/search-bar/search-bar';
 import { AuthStore } from '../state/auth.store';
 
@@ -46,7 +48,7 @@ interface ResultadoViaje {
  */
 @Component({
   selector: 'app-topbar',
-  imports: [Icon, SearchBar],
+  imports: [Icon, Logo, SearchBar],
   templateUrl: './topbar.html',
   styleUrl: './topbar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,6 +63,9 @@ export class Topbar {
   protected readonly busquedaAbierta = signal(false);
   protected readonly terminoBusqueda = signal('');
   protected readonly menuPerfilAbierto = signal(false);
+
+  /** Toggle de la sidebar (hamburguesa) — lo maneja el shell */
+  readonly menuToggled = output<void>();
 
   protected readonly titulo = toSignal(
     this.router.events.pipe(

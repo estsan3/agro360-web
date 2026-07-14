@@ -1,7 +1,18 @@
 <header class="topbar">
-  <div class="topbar__title">
-    <h1>{{ titulo() }}</h1>
-    <p>{{ fecha }}</p>
+  <div class="topbar__left">
+    <button
+      class="topbar__hamburguesa"
+      type="button"
+      aria-label="Expandir o colapsar menú"
+      (click)="menuToggled.emit()"
+    >
+      <app-icon name="menu" />
+    </button>
+    <app-logo size="sm" />
+    <div class="topbar__title">
+      <h1>{{ titulo() }}</h1>
+      <p>{{ fecha }}</p>
+    </div>
   </div>
 
   <div class="topbar__right">
