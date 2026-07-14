@@ -42,7 +42,7 @@ const VIAJES_COLUMNS: TableColumn[] = [
   { key: 'estado', label: 'Estado', width: '170px' },
   { key: 'progreso', label: 'Progreso', width: '260px' },
   { key: 'observaciones', label: 'Observaciones' },
-  { key: 'acciones', label: 'Acciones', align: 'right', width: '140px' },
+  { key: 'acciones', label: 'Acciones', align: 'center', width: '140px' },
 ];
 
 const PROGRESS_VARIANT: Record<EstadoViaje, ProgressVariant> = {

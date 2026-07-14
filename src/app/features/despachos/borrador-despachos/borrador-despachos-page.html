@@ -32,7 +32,7 @@
         <span>Vendedor</span>
         <span class="grid-container__num">Total Viajes</span>
         <span class="grid-container__num">Total Toneladas</span>
-        <span>Acciones</span>
+        <span class="grid-container__num">Acciones</span>
       </div>
 
       @for (borrador of borradores(); track borrador.id) {
@@ -98,7 +98,7 @@
                 <span>Desde</span>
                 <span>Hasta</span>
                 <span class="viajes__num">Toneladas</span>
-                <span>Acciones</span>
+                <span class="viajes__num">Acciones</span>
               </div>
               @for (viaje of borrador.viajes; track viaje.id) {
                 <div class="viajes__row">
