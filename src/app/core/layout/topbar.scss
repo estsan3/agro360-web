@@ -10,30 +10,6 @@
   padding: t.$space-md t.$space-lg;
   font-family: ty.$font-family-base;
 
-  &__left {
-    display: flex;
-    align-items: center;
-    gap: t.$space-md;
-  }
-
-  &__hamburguesa {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border: none;
-    border-radius: t.$radius-md;
-    background: transparent;
-    color: t.$color-text;
-    font-size: 22px;
-    cursor: pointer;
-
-    &:hover {
-      background: rgba(0, 166, 62, 0.12);
-    }
-  }
-
   &__title {
     h1 {
       margin: 0;

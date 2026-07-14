@@ -1,12 +1,7 @@
 <div class="shell">
-  <app-sidebar
-    [items]="items"
-    [activeId]="activeId()"
-    [expanded]="menuExpandido()"
-    (itemSelected)="navigate($event)"
-  />
+  <app-sidebar [items]="items" [activeId]="activeId()" (itemSelected)="navigate($event)" />
   <div class="shell__column">
-    <app-topbar (menuToggled)="menuExpandido.set(!menuExpandido())" />
+    <app-topbar />
     <main class="shell__content">
       <router-outlet />
     </main>
