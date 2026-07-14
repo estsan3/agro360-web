@@ -260,3 +260,15 @@
   justify-content: flex-end;
   gap: t.$space-md;
 }
+
+.editando {
+  display: flex;
+  align-items: center;
+  gap: t.$space-sm;
+  padding: t.$space-sm t.$space-md;
+  border-radius: t.$radius-md;
+  background: t.$color-warning-bg;
+  color: t.$color-warning-text;
+  font-size: ty.$font-size-md;
+  align-self: flex-start;
+}

@@ -1,5 +1,12 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -8,7 +15,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NotificationStore } from '../../../notifications/state/notification.store';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -16,7 +23,7 @@ import { SelectInput, SelectOption } from '../../../shared/ui/select/select-inpu
 import { StateWrapper } from '../../../shared/ui/state-wrapper/state-wrapper';
 import { TextInput } from '../../../shared/ui/input/text-input';
 import { Toast } from '../../../shared/ui/toast/toast';
-import { EstadoDespacho } from '../data-access/despacho.model';
+import { Despacho, EstadoDespacho } from '../data-access/despacho.model';
 import { DespachoStore } from '../data-access/despacho.store';
 
 // TODO(backend): las entradas deberían venir por campo desde el catálogo
@@ -62,12 +69,25 @@ export class CrearDespachoPage {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly store = inject(DespachoStore);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly notifications = inject(NotificationStore);
 
   protected readonly catalogos = this.store.catalogos;
   protected readonly guardando = signal(false);
   protected readonly mensajeExito = signal('');
-  protected readonly entradaOptions = ENTRADAS_CAMPO;
+  // Une las entradas conocidas con la del borrador cargado (si difiere)
+  private readonly entradaExtra = signal<string | null>(null);
+  protected readonly entradaOptions = computed<SelectOption[]>(() => {
+    const extra = this.entradaExtra();
+    if (extra && !ENTRADAS_CAMPO.some((opcion) => opcion.value === extra)) {
+      return [{ value: extra, label: extra }, ...ENTRADAS_CAMPO];
+    }
+    return ENTRADAS_CAMPO;
+  });
+
+  /** Modo edición de borrador (?borrador=<id>) */
+  protected readonly editando = signal<{ id: string; nombre: string } | null>(null);
+  private precargado = false;
 
   /** Tab activa de Información General (contenido de la 2 aún sin definir) */
   protected readonly tab = signal<1 | 2>(1);
@@ -123,6 +143,7 @@ export class CrearDespachoPage {
 
   constructor() {
     this.store.cargarCatalogos();
+    this.store.cargarDespachos();
 
     this.form.controls.productorId.valueChanges.subscribe(() => {
       const campo = this.form.controls.campoId;
@@ -131,6 +152,65 @@ export class CrearDespachoPage {
     });
 
     this.agregarViaje();
+
+    // Precarga del borrador a editar cuando llegan despachos + catálogos
+    effect(() => {
+      const borradorId = this.route.snapshot.queryParamMap.get('borrador');
+      const despachos = this.store.despachos().data;
+      const catalogos = this.catalogos().data;
+      if (this.precargado || !borradorId || !despachos || !catalogos) {
+        return;
+      }
+      const despacho = despachos.find((d) => d.id === borradorId);
+      if (!despacho) {
+        return;
+      }
+      this.precargado = true;
+      this.precargarBorrador(despacho);
+    });
+  }
+
+  private precargarBorrador(despacho: Despacho): void {
+    this.editando.set({ id: despacho.id, nombre: despacho.nombre });
+    this.entradaExtra.set(despacho.entradaCampo || null);
+
+    const fecha = (valor: Date) =>
+      `${valor.getFullYear()}-${String(valor.getMonth() + 1).padStart(2, '0')}-${String(valor.getDate()).padStart(2, '0')}`;
+
+    // productorId dispara el reset/enable de campoId: setear campo después
+    this.form.patchValue({
+      nombre: despacho.nombre,
+      productorId: despacho.productorId,
+      origen: despacho.origen,
+      entradaCampo: despacho.entradaCampo,
+      material: despacho.material,
+      administradorId: despacho.administradorId,
+      vendedorId: despacho.vendedorId,
+      fechaInicio: fecha(despacho.fechaInicio),
+      fechaLlegadaEstimada: despacho.fechaLlegadaEstimada
+        ? fecha(despacho.fechaLlegadaEstimada)
+        : '',
+    });
+    this.form.controls.campoId.setValue(despacho.campoId);
+
+    const choferes = this.catalogos().data?.choferes ?? [];
+    this.viajes.clear();
+    for (const viaje of despacho.viajes.filter((v) => v.estado === 'borrador')) {
+      const chofer =
+        choferes.find((ch) => ch.dominio === viaje.dominio) ??
+        choferes.find((ch) => ch.nombre === viaje.chofer);
+      this.viajes.push(
+        this.crearFila({
+          choferId: chofer?.id ?? '',
+          dominio: viaje.dominio,
+          destino: viaje.destino,
+          toneladas: String(viaje.toneladas),
+        }),
+      );
+    }
+    if (this.viajes.length === 0) {
+      this.agregarViaje();
+    }
   }
 
   protected fieldError(field: keyof typeof this.form.controls): string {
@@ -239,9 +319,25 @@ export class CrearDespachoPage {
       }));
 
     this.guardando.set(true);
-    this.store.crearDespacho({ ...this.form.getRawValue(), estado, viajes }).subscribe({
+    const payload = { ...this.form.getRawValue(), estado, viajes };
+    const editando = this.editando();
+    const peticion = editando
+      ? this.store.actualizarDespacho(editando.id, payload)
+      : this.store.crearDespacho(payload);
+
+    peticion.subscribe({
       next: (despacho) => {
         this.guardando.set(false);
+        if (editando) {
+          if (estado === 'borrador') {
+            this.notifications.success('Borrador actualizado', despacho.nombre);
+            this.router.navigate(['/borradores']);
+          } else {
+            this.notifications.success('Despacho enviado', despacho.nombre);
+            this.router.navigate(['/gestion-operativa']);
+          }
+          return;
+        }
         if (estado === 'borrador') {
           this.router.navigate(['/borradores']);
           return;

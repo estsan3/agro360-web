@@ -19,6 +19,12 @@ export class DespachoService {
     return this.http.post<DespachoDto>(this.base, toCrearDespachoDto(input)).pipe(map(toDespacho));
   }
 
+  actualizarDespacho(id: string, input: NuevoDespacho): Observable<Despacho> {
+    return this.http
+      .put<DespachoDto>(`${this.base}/${id}`, toCrearDespachoDto(input))
+      .pipe(map(toDespacho));
+  }
+
   eliminarDespacho(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }

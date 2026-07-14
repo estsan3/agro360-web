@@ -125,8 +125,8 @@ export class BorradorDespachosPage {
     });
   }
 
-  protected editar(): void {
-    this.notifications.warning('Editar borrador', 'Disponible próximamente');
+  protected editar(id: string): void {
+    this.router.navigate(['/despachos'], { queryParams: { borrador: id } });
   }
 
   protected masOpciones(): void {

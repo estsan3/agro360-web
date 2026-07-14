@@ -13,6 +13,12 @@
     [error]="catalogos().error ?? ''"
     [skeletonRows]="5"
   >
+    @if (editando(); as edicion) {
+      <div class="editando">
+        <app-icon name="file-text" />
+        Editando borrador: <strong>{{ edicion.nombre }}</strong>
+      </div>
+    }
     <!-- ============ MASTER: Información General ============ -->
     <div class="card">
       <h2 class="card__title">Información General del Despacho</h2>
@@ -71,7 +77,7 @@
           />
           <app-select-input
             label="Entrada Campo *"
-            [options]="entradaOptions"
+            [options]="entradaOptions()"
             formControlName="entradaCampo"
             [error]="fieldError('entradaCampo')"
           />

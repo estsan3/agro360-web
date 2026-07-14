@@ -83,6 +83,12 @@ export class DespachoStore {
     );
   }
 
+  actualizarDespacho(id: string, input: NuevoDespacho): Observable<Despacho> {
+    return this.api
+      .actualizarDespacho(id, input)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
   iniciarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
     return this.api
       .iniciarViaje(despachoId, viajeId)

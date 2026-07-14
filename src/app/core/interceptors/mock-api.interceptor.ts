@@ -219,6 +219,37 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
     return ok(mensaje);
   }
 
+  const putDespacho = /^\/despachos\/([^/]+)$/.exec(path);
+  if (req.method === 'PUT' && putDespacho) {
+    const index = despachosDb.findIndex((d) => d.id === putDespacho[1]);
+    if (index === -1) {
+      return fail(404);
+    }
+    const body = req.body as Omit<MockDespacho, 'id' | 'viajes'> & {
+      viajes: Omit<
+        MockDespacho['viajes'][number],
+        'id' | 'estado' | 'progreso' | 'observaciones'
+      >[];
+    };
+    // Los viajes ya iniciados se preservan; los borrador se reemplazan
+    const iniciados = despachosDb[index].viajes.filter((v) => v.estado !== 'borrador');
+    despachosDb[index] = {
+      ...body,
+      id: putDespacho[1],
+      viajes: [
+        ...iniciados,
+        ...body.viajes.map((viaje) => ({
+          ...viaje,
+          id: `#${12350 + nextViajeId++}`,
+          estado: body.estado === 'borrador' ? ('borrador' as const) : ('pendiente' as const),
+          progreso: 0,
+          observaciones: body.estado === 'borrador' ? '' : 'Pendiente asignación',
+        })),
+      ],
+    };
+    return ok(despachosDb[index]);
+  }
+
   const viajeAccion = /^\/despachos\/([^/]+)\/viajes\/([^/]+)(?:\/(iniciar|duplicar))?$/.exec(path);
   if (viajeAccion) {
     const despacho = despachosDb.find((d) => d.id === viajeAccion[1]);
