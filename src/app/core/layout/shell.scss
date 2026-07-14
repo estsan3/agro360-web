@@ -32,9 +32,10 @@
 
   &__titulo {
     margin: 24px 0 0;
-    text-align: center;
+    padding: 0 24px; // alineado con el contenido de las secciones
+    text-align: left;
     font-size: 25px;
     font-weight: 700;
-    color: t.$color-text;
+    color: t.$color-primary-dark; // verde oscuro de la paleta
   }
 }
