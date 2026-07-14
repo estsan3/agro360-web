@@ -11,9 +11,9 @@
         tone="orange"
         label="En Ruta"
         [value]="'' + enRuta()"
-        trend="+12%"
-        [detail]="'sobre ' + totalViajesOperativos() + ' viajes totales'"
-        [sparkline]="sparkEnRuta"
+        [trend]="pct(enRuta())"
+        trendTone="neutral"
+        [detail]="tnEnMovimiento() + ' tn en movimiento'"
       >
         <app-icon name="truck" />
       </app-kpi-card>
@@ -29,9 +29,9 @@
         tone="amber"
         label="Pendientes"
         [value]="'' + pendientes()"
-        trend="-5%"
-        detail="esperando asignación"
-        [sparkline]="sparkPendientes"
+        [trend]="pct(pendientes())"
+        trendTone="neutral"
+        [detail]="sinAsignar() + ' sin chofer asignado'"
       >
         <app-icon name="clock" />
       </app-kpi-card>
@@ -47,10 +47,9 @@
         tone="red"
         label="Incidentes"
         [value]="'' + incidentes()"
-        trend="+1"
-        trendTone="bad"
-        detail="requieren atención ahora"
-        [sparkline]="sparkIncidentes"
+        [trend]="pct(incidentes())"
+        trendTone="neutral"
+        [detail]="tnAfectadas() + ' tn afectadas'"
       >
         <app-icon name="alert-triangle" />
       </app-kpi-card>
@@ -66,9 +65,9 @@
         tone="green"
         label="Finalizados"
         [value]="'' + finalizados()"
-        trend="+18%"
-        detail="entregados esta temporada"
-        [sparkline]="sparkFinalizados"
+        [trend]="pct(finalizados())"
+        trendTone="neutral"
+        [detail]="tnEntregadas() + ' tn entregadas'"
       >
         <app-icon name="check-circle" />
       </app-kpi-card>

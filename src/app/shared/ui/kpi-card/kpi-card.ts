@@ -24,32 +24,15 @@ export class KpiCard {
   readonly value = input.required<string>();
   /** Chip de tendencia, ej. "+12%" */
   readonly trend = input('');
-  /** Semántica de la tendencia: en Incidentes, "+1" es malo aunque sea positivo */
-  readonly trendTone = input<'auto' | 'good' | 'bad'>('auto');
-  /** Serie de los últimos días para el sparkline (opcional) */
-  readonly sparkline = input<number[]>([]);
-  /** Línea de contexto bajo el valor, ej. "sobre 27 viajes totales" */
+  /** Semántica del chip: neutral = dato informativo (sin flecha, gris) */
+  readonly trendTone = input<'auto' | 'good' | 'bad' | 'neutral'>('auto');
+  /** Línea de contexto bajo el valor, ej. "182 tn en movimiento" */
   readonly detail = input('');
 
-  /** Puntos del sparkline normalizados a un viewBox de 100x30 */
-  protected readonly sparkPoints = computed(() => {
-    const serie = this.sparkline();
-    if (serie.length < 2) {
-      return '';
-    }
-    const max = Math.max(...serie);
-    const min = Math.min(...serie);
-    const rango = Math.max(max - min, 1);
-    return serie
-      .map((valor, i) => {
-        const x = (i / (serie.length - 1)) * 100;
-        const y = 27 - ((valor - min) / rango) * 22;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(' ');
-  });
-
   protected readonly trendIsBad = computed(() => {
+    if (this.trendTone() === 'neutral') {
+      return false;
+    }
     if (this.trendTone() !== 'auto') {
       return this.trendTone() === 'bad';
     }

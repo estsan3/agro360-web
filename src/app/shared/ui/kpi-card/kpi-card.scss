@@ -107,10 +107,6 @@
       background: $color;
     }
 
-    .kpi__spark polyline {
-      stroke: $color;
-      opacity: 0.55;
-    }
     box-shadow: t.$shadow-md;
     transition:
       transform 0.12s ease,
@@ -152,6 +148,11 @@
         background: t.$color-danger-bg;
         color: t.$color-danger-text;
       }
+
+      &--neutral {
+        background: t.$color-background-alt;
+        color: t.$color-text-muted;
+      }
     }
 
     .kpi__detail {
@@ -159,14 +160,6 @@
       color: t.$color-text-muted;
       margin-top: 2px;
     }
-  }
-
-  &__spark {
-    position: absolute;
-    right: t.$space-lg;
-    bottom: t.$space-md;
-    width: 96px;
-    height: 30px;
   }
 
   &__detail {

@@ -12,8 +12,15 @@
     <div class="kpi__row">
       <span class="kpi__label">{{ label() }}</span>
       @if (trend()) {
-        <span class="kpi__trend" [class.kpi__trend--bad]="trendIsBad()">
-          {{ trendGlyph() }} {{ trend() }}
+        <span
+          class="kpi__trend"
+          [class.kpi__trend--bad]="trendIsBad()"
+          [class.kpi__trend--neutral]="trendTone() === 'neutral'"
+        >
+          @if (trendTone() !== 'neutral') {
+            {{ trendGlyph() }}
+          }
+          {{ trend() }}
         </span>
       }
     </div>
@@ -22,15 +29,4 @@
       <span class="kpi__detail">{{ detail() }}</span>
     }
   </div>
-  @if (sparkPoints()) {
-    <svg class="kpi__spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
-      <polyline
-        [attr.points]="sparkPoints()"
-        fill="none"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </svg>
-  }
 </div>

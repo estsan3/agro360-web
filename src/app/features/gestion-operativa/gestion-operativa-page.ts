@@ -135,14 +135,36 @@ export class GestionOperativaPage {
       );
   });
 
-  // Series de 7 días para sparklines (TODO backend: histórico real)
-  protected readonly sparkEnRuta = [3, 5, 4, 6, 5, 7, 6];
-  protected readonly sparkPendientes = [6, 5, 5, 4, 5, 4, 4];
-  protected readonly sparkIncidentes = [0, 1, 0, 2, 1, 1, 2];
-  protected readonly sparkFinalizados = [8, 9, 11, 10, 12, 14, 15];
-
   protected readonly totalViajesOperativos = computed(
     () => this.enRuta() + this.pendientes() + this.incidentes() + this.finalizados(),
+  );
+
+  /** Participación real de cada estado sobre el total operativo */
+  protected pct(cantidad: number): string {
+    const total = Math.max(this.totalViajesOperativos(), 1);
+    return `${Math.round((cantidad / total) * 100)}% del total`;
+  }
+
+  // Métricas operativas reales por estado
+  protected readonly tnEnMovimiento = computed(() =>
+    this.todosLosViajes()
+      .filter((v) => v.estado === 'en-viaje')
+      .reduce((sum, v) => sum + v.toneladas, 0),
+  );
+  protected readonly sinAsignar = computed(
+    () =>
+      this.todosLosViajes().filter((v) => v.estado === 'pendiente' && v.chofer === 'Sin asignar')
+        .length,
+  );
+  protected readonly tnAfectadas = computed(() =>
+    this.todosLosViajes()
+      .filter((v) => v.estado === 'retrasado')
+      .reduce((sum, v) => sum + v.toneladas, 0),
+  );
+  protected readonly tnEntregadas = computed(() =>
+    this.todosLosViajes()
+      .filter((v) => v.estado === 'completado')
+      .reduce((sum, v) => sum + v.toneladas, 0),
   );
 
   // Totalizadores (los % de tendencia llegan con el backend — TODO)
