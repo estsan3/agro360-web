@@ -149,6 +149,21 @@
 .camp {
   border-top: 1px solid t.$color-border;
 
+  // Bandas alternadas por campaña (legibilidad con todo expandido)
+  &--alt {
+    .camp__header {
+      background: #f3f8f2;
+
+      &:hover {
+        background: #eaf3e8;
+      }
+    }
+
+    .camp__body {
+      background: #f3f8f2;
+    }
+  }
+
   &__header {
     border: none;
     background: t.$color-surface;
@@ -222,6 +237,7 @@
 
   &__body {
     padding: 0 t.$space-md t.$space-md;
+    background: t.$color-surface;
   }
 }
 

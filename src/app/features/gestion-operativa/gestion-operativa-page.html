@@ -117,7 +117,7 @@
       </div>
 
       @for (campania of campanias(); track campania.id) {
-        <article class="camp">
+        <article class="camp" [class.camp--alt]="$index % 2 === 1">
           <button class="camp-cols camp__header" type="button" (click)="toggle(campania.id)">
             <span class="camp__chevron" [class.camp__chevron--open]="expandidas().has(campania.id)">
               <app-icon name="chevron-down" />
