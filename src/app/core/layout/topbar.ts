@@ -1,37 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router } from '@angular/router';
-import { filter, map } from 'rxjs';
+import { Router } from '@angular/router';
 import { MensajeriaStore } from '../../features/mensajeria/data-access/mensajeria.store';
 import { DespachoStore } from '../../features/despachos/data-access/despacho.store';
 import { Icon } from '../../shared/ui/icon/icon';
 import { SearchBar } from '../../shared/ui/search-bar/search-bar';
 import { AuthStore } from '../state/auth.store';
-
-const TITULOS: Record<string, string> = {
-  despachos: 'Despachos',
-  borradores: 'Borrador despachos',
-  'gestion-operativa': 'Gestión Operativa',
-  reportes: 'Reportería',
-  mensajeria: 'Mensajería',
-  configuracion: 'Configuración',
-};
-
-const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const MESES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-];
 
 interface ResultadoViaje {
   id: string;
@@ -61,20 +34,6 @@ export class Topbar {
   protected readonly busquedaAbierta = signal(false);
   protected readonly terminoBusqueda = signal('');
   protected readonly menuPerfilAbierto = signal(false);
-
-  protected readonly titulo = toSignal(
-    this.router.events.pipe(
-      filter((event) => event instanceof NavigationEnd),
-      map(() => this.tituloActual()),
-    ),
-    { initialValue: this.tituloActual() },
-  );
-
-  protected readonly fecha = (() => {
-    const hoy = new Date();
-    const dia = String(hoy.getDate()).padStart(2, '0');
-    return `${DIAS[hoy.getDay()]}, ${dia} de ${MESES[hoy.getMonth()]} del ${hoy.getFullYear()}`;
-  })();
 
   protected readonly resultados = computed<ResultadoViaje[]>(() => {
     const termino = this.terminoBusqueda().toLowerCase().trim();
@@ -133,10 +92,5 @@ export class Topbar {
   protected cerrarSesion(): void {
     this.menuPerfilAbierto.set(false);
     this.authStore.logout().subscribe(() => this.router.navigate(['/login']));
-  }
-
-  private tituloActual(): string {
-    const seccion = this.router.url.split('/')[1]?.split('?')[0] ?? '';
-    return TITULOS[seccion] ?? 'Agro360';
   }
 }

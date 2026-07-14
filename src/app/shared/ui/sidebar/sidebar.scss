@@ -64,6 +64,13 @@
     font-size: 28px;
   }
 
+  &__subtitle {
+    margin: -#{t.$space-sm} 0 t.$space-md;
+    padding-left: 4px;
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
+  }
+
   &__section {
     display: flex;
     flex-direction: column;

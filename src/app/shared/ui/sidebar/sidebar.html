@@ -13,6 +13,9 @@
       <app-logo class="sidebar__marca" />
     }
   </div>
+  @if (expandida() && subtitle()) {
+    <p class="sidebar__subtitle">{{ subtitle() }}</p>
+  }
 
   <div class="sidebar__section">
     @for (item of itemsIn('top'); track item.id) {

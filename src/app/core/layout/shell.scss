@@ -29,4 +29,12 @@
     background: t.$color-background;
     border-top-left-radius: t.$radius-lg; // curva interna de la L
   }
+
+  &__titulo {
+    margin: 24px 0 0;
+    text-align: center;
+    font-size: 25px;
+    font-weight: 700;
+    color: t.$color-text;
+  }
 }

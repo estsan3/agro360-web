@@ -24,6 +24,8 @@ export interface SidebarItem {
 export class Sidebar {
   readonly items = input.required<SidebarItem[]>();
   readonly activeId = input('');
+  /** Línea secundaria bajo el logo (ej. la fecha) — solo visible expandida */
+  readonly subtitle = input('');
 
   readonly itemSelected = output<string>();
 
