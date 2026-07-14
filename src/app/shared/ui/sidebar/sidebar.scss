@@ -98,7 +98,7 @@
   }
 
   &__label {
-    font-size: ty.$font-size-md;
+    font-size: ty.$font-size-lg; // 16px (subido 2pt para legibilidad del menú)
     font-weight: ty.$font-weight-medium;
   }
 }
