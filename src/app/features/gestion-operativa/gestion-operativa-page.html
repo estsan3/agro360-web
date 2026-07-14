@@ -7,7 +7,14 @@
       [attr.aria-pressed]="filtroEstado() === 'en-viaje'"
       (click)="toggleFiltroEstado('en-viaje')"
     >
-      <app-kpi-card tone="orange" label="En Ruta" [value]="'' + enRuta()" trend="+12%">
+      <app-kpi-card
+        tone="orange"
+        label="En Ruta"
+        [value]="'' + enRuta()"
+        trend="+12%"
+        [detail]="'sobre ' + totalViajesOperativos() + ' viajes totales'"
+        [sparkline]="sparkEnRuta"
+      >
         <app-icon name="truck" />
       </app-kpi-card>
     </button>
@@ -18,7 +25,14 @@
       [attr.aria-pressed]="filtroEstado() === 'pendiente'"
       (click)="toggleFiltroEstado('pendiente')"
     >
-      <app-kpi-card tone="amber" label="Pendientes" [value]="'' + pendientes()" trend="-5%">
+      <app-kpi-card
+        tone="amber"
+        label="Pendientes"
+        [value]="'' + pendientes()"
+        trend="-5%"
+        detail="esperando asignación"
+        [sparkline]="sparkPendientes"
+      >
         <app-icon name="clock" />
       </app-kpi-card>
     </button>
@@ -35,6 +49,8 @@
         [value]="'' + incidentes()"
         trend="+1"
         trendTone="bad"
+        detail="requieren atención ahora"
+        [sparkline]="sparkIncidentes"
       >
         <app-icon name="alert-triangle" />
       </app-kpi-card>
@@ -46,7 +62,14 @@
       [attr.aria-pressed]="filtroEstado() === 'completado'"
       (click)="toggleFiltroEstado('completado')"
     >
-      <app-kpi-card tone="green" label="Finalizados" [value]="'' + finalizados()" trend="+18%">
+      <app-kpi-card
+        tone="green"
+        label="Finalizados"
+        [value]="'' + finalizados()"
+        trend="+18%"
+        detail="entregados esta temporada"
+        [sparkline]="sparkFinalizados"
+      >
         <app-icon name="check-circle" />
       </app-kpi-card>
     </button>

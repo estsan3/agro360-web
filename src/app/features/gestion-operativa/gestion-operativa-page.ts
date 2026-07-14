@@ -135,6 +135,16 @@ export class GestionOperativaPage {
       );
   });
 
+  // Series de 7 días para sparklines (TODO backend: histórico real)
+  protected readonly sparkEnRuta = [3, 5, 4, 6, 5, 7, 6];
+  protected readonly sparkPendientes = [6, 5, 5, 4, 5, 4, 4];
+  protected readonly sparkIncidentes = [0, 1, 0, 2, 1, 1, 2];
+  protected readonly sparkFinalizados = [8, 9, 11, 10, 12, 14, 15];
+
+  protected readonly totalViajesOperativos = computed(
+    () => this.enRuta() + this.pendientes() + this.incidentes() + this.finalizados(),
+  );
+
   // Totalizadores (los % de tendencia llegan con el backend — TODO)
   private readonly todosLosViajes = computed(() =>
     this.store.enOperacion().flatMap((d) => d.viajes),

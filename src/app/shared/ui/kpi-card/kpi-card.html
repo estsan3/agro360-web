@@ -18,5 +18,19 @@
       }
     </div>
     <span class="kpi__value">{{ value() }}</span>
+    @if (detail()) {
+      <span class="kpi__detail">{{ detail() }}</span>
+    }
   </div>
+  @if (sparkPoints()) {
+    <svg class="kpi__spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
+      <polyline
+        [attr.points]="sparkPoints()"
+        fill="none"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  }
 </div>
