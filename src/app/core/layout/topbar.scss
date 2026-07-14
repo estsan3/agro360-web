@@ -28,7 +28,7 @@
   &__right {
     display: flex;
     align-items: center;
-    gap: t.$space-md;
+    gap: t.$space-lg; // aire entre lupa, campana y perfil
   }
 
   &__icon-btn {
@@ -36,17 +36,17 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border: none;
     border-radius: t.$radius-full;
     background: transparent;
-    color: t.$color-text;
-    font-size: 18px;
+    color: t.$color-primary-dark;
+    font-size: 19px;
     cursor: pointer;
 
     &:hover {
-      background: t.$color-background-alt;
+      background: rgba(0, 166, 62, 0.12);
     }
   }
 
@@ -74,7 +74,7 @@
   &__perfil {
     display: flex;
     align-items: center;
-    gap: t.$space-sm;
+    gap: t.$space-md;
     padding: t.$space-xs t.$space-sm;
     border: none;
     border-radius: t.$radius-md;
@@ -146,18 +146,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 46px;
+    height: 46px;
     border-radius: t.$radius-full;
-    background: t.$color-background-alt;
-    color: t.$color-text-muted;
-    font-size: 18px;
+    background: t.$color-primary-light;
+    color: t.$color-primary-dark;
+    font-size: 22px;
+    flex-shrink: 0;
   }
 
   &__perfil-info {
     display: flex;
     flex-direction: column;
-    line-height: 1.2;
+    gap: 2px;
+    line-height: 1.25;
 
     strong {
       font-size: 18px; // fijo (+4pt, no escala con la raíz)
