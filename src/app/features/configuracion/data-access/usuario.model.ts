@@ -7,4 +7,4 @@ export interface Usuario {
   rol: 'administrador' | 'vendedor';
 }
 
-export type NuevoUsuario = Omit<Usuario, 'id'>;
+export type NuevoUsuario = Omit<Usuario, 'id'> & { password: string };

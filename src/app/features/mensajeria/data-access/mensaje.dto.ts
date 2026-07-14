@@ -1,7 +1,7 @@
 /** Contrato del backend Python (snake_case) */
 export interface MensajeDto {
   id: string;
-  autor: 'admin' | 'chofer';
+  autor: 'admin' | 'chofer' | 'sistema';
   texto: string;
   fecha: string; // ISO datetime
   leido: boolean;

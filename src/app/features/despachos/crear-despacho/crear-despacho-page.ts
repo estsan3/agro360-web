@@ -23,7 +23,7 @@ import { SelectInput, SelectOption } from '../../../shared/ui/select/select-inpu
 import { StateWrapper } from '../../../shared/ui/state-wrapper/state-wrapper';
 import { TextInput } from '../../../shared/ui/input/text-input';
 import { Toast } from '../../../shared/ui/toast/toast';
-import { Despacho, EstadoDespacho } from '../data-access/despacho.model';
+import { Despacho, EstadoDespacho, NuevoDespacho } from '../data-access/despacho.model';
 import { DespachoStore } from '../data-access/despacho.store';
 
 // TODO(backend): las entradas deberían venir por campo desde el catálogo
@@ -196,12 +196,14 @@ export class CrearDespachoPage {
     const choferes = this.catalogos().data?.choferes ?? [];
     this.viajes.clear();
     for (const viaje of despacho.viajes.filter((v) => v.estado === 'borrador')) {
-      const chofer =
-        choferes.find((ch) => ch.dominio === viaje.dominio) ??
-        choferes.find((ch) => ch.nombre === viaje.chofer);
+      const choferId =
+        viaje.choferId ??
+        choferes.find((ch) => ch.dominio === viaje.dominio)?.id ??
+        choferes.find((ch) => ch.nombre === viaje.chofer)?.id ??
+        '';
       this.viajes.push(
         this.crearFila({
-          choferId: chofer?.id ?? '',
+          choferId,
           dominio: viaje.dominio,
           destino: viaje.destino,
           toneladas: String(viaje.toneladas),
@@ -243,11 +245,11 @@ export class CrearDespachoPage {
     this.seleccionados.set(new Set());
   }
 
-  protected choferElegido(index: number): void {
+  protected choferElegido(index: number, event: Event): void {
+    const choferId = (event.target as HTMLSelectElement).value;
     const grupo = this.viajes.at(index);
-    const chofer = this.catalogos().data?.choferes.find(
-      (ch) => ch.id === grupo.controls.choferId.value,
-    );
+    grupo.controls.choferId.setValue(choferId, { emitEvent: false });
+    const chofer = this.catalogos().data?.choferes.find((ch) => ch.id === choferId);
     if (chofer) {
       grupo.controls.dominio.setValue(chofer.dominio);
     }
@@ -307,19 +309,45 @@ export class CrearDespachoPage {
       return;
     }
 
-    const choferes = this.catalogos().data?.choferes ?? [];
     const viajes = this.viajes.controls
       .map((grupo) => grupo.getRawValue())
-      .filter((viaje) => viaje.choferId && viaje.destino && Number(viaje.toneladas) > 0)
+      .filter((viaje) => viaje.destino && Number(viaje.toneladas) > 0)
       .map((viaje) => ({
-        chofer: choferes.find((ch) => ch.id === viaje.choferId)?.nombre ?? viaje.choferId,
-        dominio: viaje.dominio,
+        choferId: viaje.choferId,
+        dominio: viaje.dominio.trim().toUpperCase(),
         destino: viaje.destino,
         toneladas: Number(viaje.toneladas),
       }));
 
+    if (viajes.length === 0) {
+      this.notifications.warning('Sin viajes', 'Agregá al menos un viaje con destino y toneladas');
+      this.tab.set(2);
+      return;
+    }
+
+    const sinChofer = viajes.some((viaje) => !viaje.choferId);
+    if (sinChofer) {
+      this.notifications.warning('Chofer requerido', 'Debe seleccionar un chofer');
+      this.tab.set(2);
+      return;
+    }
+
     this.guardando.set(true);
-    const payload = { ...this.form.getRawValue(), estado, viajes };
+    const form = this.form.getRawValue();
+    const payload: NuevoDespacho = {
+      nombre: form.nombre,
+      productorId: form.productorId,
+      campoId: form.campoId,
+      origen: form.origen,
+      entradaCampo: form.entradaCampo,
+      material: form.material,
+      administradorId: form.administradorId,
+      vendedorId: form.vendedorId,
+      fechaInicio: form.fechaInicio,
+      fechaLlegadaEstimada: form.fechaLlegadaEstimada,
+      estado,
+      viajes,
+    };
     const editando = this.editando();
     const peticion = editando
       ? this.store.actualizarDespacho(editando.id, payload)

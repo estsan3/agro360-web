@@ -6,6 +6,7 @@ export type EstadoDespacho = 'borrador' | 'activo';
 
 export interface Viaje {
   id: string;
+  choferId: string | null;
   chofer: string;
   dominio: string;
   destino: string;
@@ -32,7 +33,7 @@ export interface Despacho {
 }
 
 export interface NuevoViaje {
-  chofer: string;
+  choferId: string;
   dominio: string;
   destino: string;
   toneladas: number;

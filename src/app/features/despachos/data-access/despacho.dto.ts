@@ -4,7 +4,11 @@
  */
 export interface ViajeDto {
   id: string;
-  chofer: string;
+  /** Nombre del chofer (wire del backend). */
+  chofer_nombre?: string;
+  /** Alias legacy del mock; preferir chofer_nombre. */
+  chofer?: string;
+  chofer_id?: string | null;
   dominio: string;
   destino: string;
   toneladas: number;
@@ -41,7 +45,12 @@ export interface CrearDespachoDto {
   fecha_inicio: string;
   fecha_llegada_estimada: string;
   estado: 'borrador' | 'activo';
-  viajes: Omit<ViajeDto, 'id' | 'estado' | 'progreso' | 'observaciones'>[];
+  viajes: {
+    chofer_id: string;
+    dominio?: string;
+    destino: string;
+    toneladas: number;
+  }[];
 }
 
 export interface CatalogosDto {

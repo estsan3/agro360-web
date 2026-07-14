@@ -12,7 +12,8 @@ const ESTADO_VIAJE_MAP: Record<ViajeDto['estado'], EstadoViaje> = {
 export function toViaje(dto: ViajeDto): Viaje {
   return {
     id: dto.id,
-    chofer: dto.chofer,
+    choferId: dto.chofer_id ?? null,
+    chofer: dto.chofer_nombre ?? dto.chofer ?? '',
     dominio: dto.dominio,
     destino: dto.destino,
     toneladas: dto.toneladas,
@@ -59,8 +60,8 @@ export function toCrearDespachoDto(input: NuevoDespacho): CrearDespachoDto {
     fecha_llegada_estimada: input.fechaLlegadaEstimada,
     estado: input.estado,
     viajes: input.viajes.map((viaje) => ({
-      chofer: viaje.chofer,
-      dominio: viaje.dominio,
+      chofer_id: viaje.choferId,
+      ...(viaje.dominio ? { dominio: viaje.dominio.trim().toUpperCase() } : {}),
       destino: viaje.destino,
       toneladas: viaje.toneladas,
     })),

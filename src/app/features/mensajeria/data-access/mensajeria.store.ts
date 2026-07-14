@@ -6,6 +6,7 @@ import {
   asyncLoading,
   asyncSuccess,
 } from '../../../core/models/async-state';
+import { environment } from '../../../../environments/environment';
 import { NotificationStore } from '../../../notifications/state/notification.store';
 import { PreferenciasStore } from '../../../notifications/state/preferencias.store';
 import { Conversacion, Mensaje } from './mensaje.model';
@@ -66,7 +67,9 @@ export class MensajeriaStore {
     this.api.enviarMensaje(conversacion.id, texto.trim()).subscribe({
       next: (mensaje) => {
         this.agregarMensaje(conversacion.id, mensaje);
-        this.simularRespuestaChofer(conversacion.id, conversacion.chofer);
+        if (environment.mockApi) {
+          this.simularRespuestaChofer(conversacion.id, conversacion.chofer);
+        }
       },
     });
   }

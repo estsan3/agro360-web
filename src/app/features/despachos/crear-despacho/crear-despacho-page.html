@@ -199,7 +199,7 @@
               class="vtable__input"
               [attr.aria-label]="'Chofer del viaje ' + (i + 1)"
               [formControl]="grupo.controls.choferId"
-              (change)="choferElegido(i)"
+              (change)="choferElegido(i, $event)"
             >
               <option value="">Chofer…</option>
               @for (chofer of catalogos().data?.choferes ?? []; track chofer.id) {

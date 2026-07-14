@@ -45,9 +45,13 @@ describe('despacho.mapper', () => {
       expect(despacho.fechaInicio.getMonth()).toBe(7); // agosto
     });
 
-    it('mapea el estado en_viaje del backend a en-viaje', () => {
-      const despacho = toDespacho(DTO_BASE);
-      expect(despacho.viajes[0].estado).toBe('en-viaje');
+    it('mapea chofer_id del backend al modelo de la UI', () => {
+      const dto: DespachoDto = {
+        ...DTO_BASE,
+        viajes: [{ ...DTO_BASE.viajes[0], chofer_id: 'ch-1', chofer_nombre: 'Ana López' }],
+      };
+      expect(toDespacho(dto).viajes[0].choferId).toBe('ch-1');
+      expect(toDespacho(dto).viajes[0].chofer).toBe('Ana López');
     });
   });
 
@@ -64,7 +68,7 @@ describe('despacho.mapper', () => {
       fechaInicio: '2026-09-01',
       fechaLlegadaEstimada: '',
       estado: 'borrador',
-      viajes: [{ chofer: 'Miguel Torres', dominio: 'EF789GH', destino: 'Rosario', toneladas: 30 }],
+      viajes: [{ choferId: 'ch-2', dominio: 'EF789GH', destino: 'Rosario', toneladas: 30 }],
     };
 
     it('convierte camelCase del front a snake_case del backend', () => {
@@ -72,7 +76,7 @@ describe('despacho.mapper', () => {
       expect(dto.productor_id).toBe('p-2');
       expect(dto.fecha_inicio).toBe('2026-09-01');
       expect(dto.viajes[0]).toEqual({
-        chofer: 'Miguel Torres',
+        chofer_id: 'ch-2',
         dominio: 'EF789GH',
         destino: 'Rosario',
         toneladas: 30,

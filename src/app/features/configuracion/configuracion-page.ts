@@ -102,6 +102,7 @@ export class ConfiguracionPage {
     nombre: ['', Validators.required],
     dni: ['', [Validators.required, Validators.pattern(/^\d{7,9}$/)]],
     email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
     rol: ['vendedor', Validators.required],
   });
 

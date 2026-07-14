@@ -2,7 +2,7 @@ export type EstadoViajeChat = 'pendiente' | 'en-transito' | 'detenido' | 'entreg
 
 export interface Mensaje {
   id: string;
-  autor: 'admin' | 'chofer';
+  autor: 'admin' | 'chofer' | 'sistema';
   texto: string;
   fecha: Date;
   leido: boolean;

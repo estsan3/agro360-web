@@ -37,6 +37,12 @@
             placeholder="juan@empresa.com"
             formControlName="email"
           />
+          <app-text-input
+            label="Contraseña *"
+            type="password"
+            placeholder="Mínimo 8 caracteres"
+            formControlName="password"
+          />
           <app-select-input label="Rol *" [options]="rolOptions" formControlName="rol" />
           <div class="grid__actions">
             <app-button variant="primary" size="md" (clicked)="crearUsuario()">

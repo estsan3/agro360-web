@@ -26,7 +26,7 @@ export class AuthStore {
     return this.api.logout().pipe(tap(() => this._user.set(null)));
   }
 
-  /** Reconstruye la sesión desde la cookie al recargar la página */
+  /** Reconstruye la sesión desde el token guardado al recargar la página */
   restoreSession(): void {
     this._restoring.set(true);
     this.api.me().subscribe({
