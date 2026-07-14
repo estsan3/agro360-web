@@ -57,7 +57,7 @@ export class LoginPage {
 
     this.loading.set(true);
     this.authStore.login(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigate(['/despachos']),
+      next: () => this.router.navigate(['/gestion-operativa']),
       error: (error: Error) => {
         this.loading.set(false);
         this.loginError.set(error.message);
