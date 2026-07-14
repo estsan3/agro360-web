@@ -31,15 +31,17 @@ interface CampaniaVm {
 // Anchos fijos: todas las tablas expandidas comparten la misma grilla.
 // Visual management: Estado y Progreso dominan; Observaciones compacta
 // con popup para el texto completo.
+// Destino y Observaciones son flexibles: se reparten el sobrante en
+// pantallas anchas (sin espacio muerto); el resto con anchos generosos
 const VIAJES_COLUMNS: TableColumn[] = [
   { key: 'id', label: 'ID', width: '96px' },
-  { key: 'chofer', label: 'Chofer', width: '130px' },
-  { key: 'transporte', label: 'Transporte', width: '185px' },
+  { key: 'chofer', label: 'Chofer', width: '140px' },
+  { key: 'transporte', label: 'Transporte', width: '190px' },
   { key: 'destino', label: 'Destino' },
-  { key: 'toneladas', label: 'Toneladas', align: 'right', width: '90px' },
-  { key: 'estado', label: 'Estado', width: '150px' },
-  { key: 'progreso', label: 'Progreso', width: '230px' },
-  { key: 'observaciones', label: 'Obs.', width: '150px' },
+  { key: 'toneladas', label: 'Toneladas', align: 'right', width: '110px' },
+  { key: 'estado', label: 'Estado', width: '170px' },
+  { key: 'progreso', label: 'Progreso', width: '260px' },
+  { key: 'observaciones', label: 'Observaciones' },
   { key: 'acciones', label: 'Acciones', align: 'right', width: '140px' },
 ];
 
