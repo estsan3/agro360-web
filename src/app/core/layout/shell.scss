@@ -1,11 +1,19 @@
 @use 'tokens' as t;
 
+// Experimento visual: header + menú unidos en "L invertida" con el
+// color del menú (revertible con git revert)
 .shell {
   display: flex;
-  gap: t.$space-md;
+  gap: 0;
   height: 100vh;
-  padding: t.$space-md;
-  background: t.$color-background;
+  padding: 0;
+  background: t.$color-primary-surface;
+
+  // La sidebar pierde el redondeo: es la pata vertical de la L
+  ::ng-deep app-sidebar .sidebar {
+    border-radius: 0;
+    height: 100%;
+  }
 
   &__column {
     flex: 1;
@@ -18,11 +26,7 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    border-radius: t.$radius-lg;
-  }
-
-  @media (max-width: t.$breakpoint-tablet) {
-    gap: t.$space-sm;
-    padding: t.$space-sm;
+    background: t.$color-background;
+    border-top-left-radius: t.$radius-lg; // curva interna de la L
   }
 }
