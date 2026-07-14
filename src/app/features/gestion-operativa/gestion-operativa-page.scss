@@ -103,7 +103,7 @@
 // Grilla compartida entre el header de columnas y las filas de campaña
 .camp-cols {
   display: grid;
-  grid-template-columns: 24px 1.3fr 1.4fr 1fr 1fr 110px 130px 130px 90px;
+  grid-template-columns: 24px 1.3fr 1.4fr 1fr 1fr 110px 130px 190px 90px;
   align-items: center;
   gap: t.$space-md;
   width: 100%;
@@ -204,27 +204,42 @@
 
   &__estados {
     display: flex;
-    gap: t.$space-sm;
+    gap: t.$space-xs;
     justify-content: center;
   }
 
+  // Chips semáforo: tintados por estado; en cero se apagan
   &__estado {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    font-size: ty.$font-size-sm;
-    font-weight: ty.$font-weight-semibold;
+    gap: 4px;
+    padding: 4px 9px;
+    border-radius: t.$radius-full;
+    font-size: 13px;
+    font-weight: ty.$font-weight-bold;
+
+    app-icon {
+      font-size: 15px;
+    }
 
     &--info {
+      background: #fdf0e3;
       color: #d97706; // camión naranja (diseño Figma)
     }
 
     &--success {
-      color: t.$color-primary;
+      background: t.$color-success-bg;
+      color: t.$color-primary-dark;
     }
 
     &--warning {
+      background: t.$color-danger-bg;
       color: t.$color-danger-strong;
+    }
+
+    &--cero {
+      background: t.$color-background-alt;
+      color: #b7bcc4;
     }
   }
 

@@ -151,13 +151,25 @@
             <span class="camp__metric">{{ campania.totalViajes }}</span>
             <span class="camp__metric">{{ campania.totalToneladas }} tn</span>
             <span class="camp__estados">
-              <span class="camp__estado camp__estado--info">
+              <span
+                class="camp__estado camp__estado--info"
+                [class.camp__estado--cero]="campania.enViaje === 0"
+                [attr.title]="campania.enViaje + ' en viaje'"
+              >
                 <app-icon name="truck" /> {{ campania.enViaje }}
               </span>
-              <span class="camp__estado camp__estado--success">
+              <span
+                class="camp__estado camp__estado--success"
+                [class.camp__estado--cero]="campania.completados === 0"
+                [attr.title]="campania.completados + ' completados'"
+              >
                 <app-icon name="check-circle" /> {{ campania.completados }}
               </span>
-              <span class="camp__estado camp__estado--warning">
+              <span
+                class="camp__estado camp__estado--warning"
+                [class.camp__estado--cero]="campania.conProblemas === 0"
+                [attr.title]="campania.conProblemas + ' con problemas'"
+              >
                 <app-icon name="alert-triangle" /> {{ campania.conProblemas }}
               </span>
             </span>
