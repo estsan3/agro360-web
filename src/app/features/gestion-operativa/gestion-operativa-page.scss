@@ -119,6 +119,39 @@
   }
 }
 
+// Leyenda de los chips de estado (qué mide cada icono)
+.leyenda {
+  display: flex;
+  justify-content: flex-end;
+  gap: t.$space-md;
+  margin-bottom: t.$space-sm;
+  padding-right: 110px; // apunta a la columna Estado
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
+
+    app-icon {
+      font-size: 15px;
+    }
+
+    &--info app-icon {
+      color: #d97706;
+    }
+
+    &--success app-icon {
+      color: t.$color-primary-dark;
+    }
+
+    &--warning app-icon {
+      color: t.$color-danger-strong;
+    }
+  }
+}
+
 // Contenedor único de todas las campañas (diseño Figma)
 .grid-container {
   background: t.$color-surface;

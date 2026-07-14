@@ -125,6 +125,18 @@
     emptyMessage="No hay campañas activas"
     [skeletonRows]="4"
   >
+    <div class="leyenda">
+      <span class="leyenda__item leyenda__item--info"><app-icon name="truck" /> En viaje</span>
+      <span class="leyenda__item leyenda__item--success">
+        <app-icon name="check-circle" />
+        Completados
+      </span>
+      <span class="leyenda__item leyenda__item--warning">
+        <app-icon name="alert-triangle" />
+        Con problemas
+      </span>
+    </div>
+
     <div class="grid-container">
       <div class="camp-cols grid-container__head">
         <span></span>
