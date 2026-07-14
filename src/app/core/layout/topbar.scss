@@ -13,7 +13,7 @@
   &__title {
     h1 {
       margin: 0;
-      font-size: ty.$font-size-2xl;
+      font-size: 25px; // +5pt para jerarquía del título de sección
       font-weight: ty.$font-weight-bold;
       color: t.$color-text;
     }
@@ -160,7 +160,7 @@
     line-height: 1.2;
 
     strong {
-      font-size: ty.$font-size-md;
+      font-size: ty.$font-size-xl; // 18px (+4pt)
       color: t.$color-text;
     }
 
