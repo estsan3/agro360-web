@@ -66,10 +66,79 @@
     justify-content: center;
   }
 
+  &__perfil-wrap {
+    position: relative;
+  }
+
   &__perfil {
     display: flex;
     align-items: center;
     gap: t.$space-sm;
+    padding: t.$space-xs t.$space-sm;
+    border: none;
+    border-radius: t.$radius-md;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background: t.$color-background-alt;
+    }
+  }
+
+  &__menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    border: none;
+    background: transparent;
+    cursor: default;
+  }
+
+  &__menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 101;
+    min-width: 200px;
+    padding: t.$space-xs;
+    background: t.$color-surface;
+    border: 1px solid t.$color-border;
+    border-radius: t.$radius-md;
+    box-shadow: t.$shadow-md;
+    display: flex;
+    flex-direction: column;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: t.$space-sm;
+      padding: t.$space-sm t.$space-md;
+      border: none;
+      border-radius: t.$radius-sm;
+      background: transparent;
+      font-family: inherit;
+      font-size: ty.$font-size-md;
+      color: t.$color-text;
+      text-align: left;
+      cursor: pointer;
+
+      app-icon {
+        color: t.$color-primary;
+        font-size: 17px;
+      }
+
+      &:hover {
+        background: t.$color-background;
+      }
+    }
+  }
+
+  &__menu-salir {
+    border-top: 1px solid t.$color-border !important;
+    border-radius: 0 0 t.$radius-sm t.$radius-sm !important;
+    margin-top: t.$space-xs;
   }
 
   &__avatar {

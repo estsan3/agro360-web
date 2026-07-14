@@ -60,6 +60,7 @@ export class Topbar {
 
   protected readonly busquedaAbierta = signal(false);
   protected readonly terminoBusqueda = signal('');
+  protected readonly menuPerfilAbierto = signal(false);
 
   protected readonly titulo = toSignal(
     this.router.events.pipe(
@@ -117,6 +118,21 @@ export class Topbar {
 
   protected irAMensajeria(): void {
     this.router.navigate(['/mensajeria']);
+  }
+
+  protected irAMiPerfil(): void {
+    this.menuPerfilAbierto.set(false);
+    this.router.navigate(['/configuracion'], { queryParams: { tab: 'cuenta' } });
+  }
+
+  protected irAConfiguracion(): void {
+    this.menuPerfilAbierto.set(false);
+    this.router.navigate(['/configuracion']);
+  }
+
+  protected cerrarSesion(): void {
+    this.menuPerfilAbierto.set(false);
+    this.authStore.logout().subscribe(() => this.router.navigate(['/login']));
   }
 
   private tituloActual(): string {

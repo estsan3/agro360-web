@@ -5,7 +5,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthStore } from '../../core/state/auth.store';
 import { ParametrosStore } from '../../core/state/parametros.store';
 import { NotificationStore } from '../../notifications/state/notification.store';
@@ -65,6 +65,7 @@ const USUARIOS_COLUMNS: TableColumn[] = [
 export class ConfiguracionPage {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly configService = inject(ConfiguracionService);
   private readonly notifications = inject(NotificationStore);
 
@@ -125,6 +126,11 @@ export class ConfiguracionPage {
   protected nuevoMaterial = '';
 
   constructor() {
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab && SECCIONES.some((seccion) => seccion.id === tab)) {
+      this.seccion.set(tab as Seccion);
+    }
+
     this.usuariosStore.cargar();
     this.despachoStore.cargarCatalogos();
     this.preferenciasStore.cargar();
