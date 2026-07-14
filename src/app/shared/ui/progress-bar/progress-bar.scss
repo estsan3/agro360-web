@@ -5,7 +5,7 @@
   position: relative;
   width: 100%;
   min-width: 120px;
-  height: 18px;
+  height: 22px; // +20% de alto
   border-radius: t.$radius-full;
   background: t.$color-background-alt;
   overflow: hidden;
@@ -39,8 +39,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: ty.$font-size-2xs;
-    font-weight: ty.$font-weight-medium;
+    font-size: 12px; // +20% aprox
+    font-weight: ty.$font-weight-semibold;
     color: t.$color-text;
   }
 }
