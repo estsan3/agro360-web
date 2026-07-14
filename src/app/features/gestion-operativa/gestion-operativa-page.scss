@@ -103,7 +103,7 @@
 // Grilla compartida entre el header de columnas y las filas de campaña
 .camp-cols {
   display: grid;
-  grid-template-columns: 24px 1.3fr 1.4fr 1fr 1fr 90px 110px auto 40px;
+  grid-template-columns: 24px 1.3fr 1.4fr 1fr 1fr 110px 130px 130px 90px;
   align-items: center;
   gap: t.$space-md;
   width: 100%;
@@ -190,6 +190,7 @@
   &__estados {
     display: flex;
     gap: t.$space-sm;
+    justify-content: center;
   }
 
   &__estado {
@@ -214,6 +215,7 @@
 
   &__more {
     display: inline-flex;
+    justify-content: center;
     font-size: 16px;
     color: t.$color-text-muted;
   }
