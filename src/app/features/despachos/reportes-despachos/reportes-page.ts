@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ParametrosStore } from '../../../core/state/parametros.store';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
+import { BarChart } from '../../../shared/ui/charts/bar-chart';
 import { BubbleChart } from '../../../shared/ui/charts/bubble-chart';
 import { ChartDatum } from '../../../shared/ui/charts/chart-colors';
 import { DonutChart } from '../../../shared/ui/charts/donut-chart';
@@ -59,6 +60,22 @@ interface FilaReporte {
   fecha: Date;
 }
 
+interface RankingCampania {
+  campania: string;
+  viajes: number;
+  toneladas: number;
+  completados: number;
+  enViaje: number;
+  alertas: number;
+}
+
+interface RankingChofer {
+  chofer: string;
+  viajes: number;
+  toneladas: number;
+  completados: number;
+}
+
 const REPORTE_COLUMNS: TableColumn[] = [
   { key: 'id', label: 'ID' },
   { key: 'campania', label: 'Campaña' },
@@ -71,10 +88,25 @@ const REPORTE_COLUMNS: TableColumn[] = [
   { key: 'fechaTexto', label: 'Fecha' },
 ];
 
+const RANKING_CAMPANIA_COLUMNS: TableColumn[] = [
+  { key: 'campania', label: 'Campaña' },
+  { key: 'viajes', label: 'Viajes', align: 'right' },
+  { key: 'toneladas', label: 'Toneladas', align: 'right' },
+  { key: 'completados', label: 'Completados', align: 'right' },
+  { key: 'enViaje', label: 'En ruta', align: 'right' },
+  { key: 'alertas', label: 'Alertas', align: 'right' },
+];
+
+const RANKING_CHOFER_COLUMNS: TableColumn[] = [
+  { key: 'chofer', label: 'Chofer' },
+  { key: 'viajes', label: 'Viajes', align: 'right' },
+  { key: 'toneladas', label: 'Toneladas', align: 'right' },
+  { key: 'completados', label: 'Completados', align: 'right' },
+];
+
 /**
- * Reportería en dos secciones independientes:
- * - Dashboard: KPIs y gráficos (Figma).
- * - Generador de reportes: filtros → tabla → exportar PDF/Excel/CSV.
+ * Reportería estilo Power BI: filtros globales (slicers), KPIs dinámicos,
+ * gráficos interactivos y tablas de ranking para la toma de decisiones.
  */
 @Component({
   selector: 'app-reportes-page',
@@ -82,6 +114,7 @@ const REPORTE_COLUMNS: TableColumn[] = [
     DecimalPipe,
     ReactiveFormsModule,
     Badge,
+    BarChart,
     BubbleChart,
     Button,
     DonutChart,
@@ -110,94 +143,9 @@ export class ReportesPage {
   protected readonly despachos = this.store.despachos;
   protected readonly seccion = signal<'dashboard' | 'generador'>('dashboard');
   protected readonly reporteColumns = REPORTE_COLUMNS;
+  protected readonly rankingCampaniaColumns = RANKING_CAMPANIA_COLUMNS;
+  protected readonly rankingChoferColumns = RANKING_CHOFER_COLUMNS;
 
-  // ============ DASHBOARD ============
-  private readonly viajes = computed(() => this.store.enOperacion().flatMap((d) => d.viajes));
-
-  protected readonly totalViajes = computed(() => this.viajes().length);
-  protected readonly completados = computed(
-    () => this.viajes().filter((v) => v.estado === 'completado').length,
-  );
-  protected readonly totalToneladas = computed(() =>
-    this.viajes().reduce((sum, v) => sum + v.toneladas, 0),
-  );
-  protected readonly recaudacion = computed(
-    () =>
-      this.viajes()
-        .filter((v) => v.estado === 'completado')
-        .reduce((sum, v) => sum + v.toneladas, 0) *
-      this.parametrosStore.parametros().precioPorTonelada,
-  );
-
-  protected readonly viajesPorMaterial = computed<ChartDatum[]>(() => {
-    const counts = new Map<string, number>();
-    for (const despacho of this.store.enOperacion()) {
-      counts.set(despacho.material, (counts.get(despacho.material) ?? 0) + despacho.viajes.length);
-    }
-    // Tendencias mock hasta que el backend calcule históricos
-    const trends = ['+8%', '+5%', '-3%', '+2%'];
-    return [...counts.entries()]
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
-      .map((datum, index) => ({ ...datum, trend: trends[index] }));
-  });
-
-  protected readonly camposSeries = computed<[string, string]>(() => {
-    const totales = new Map<string, number>();
-    for (const despacho of this.store.enOperacion()) {
-      const campo = this.nombreCampo(despacho.productorId, despacho.campoId);
-      totales.set(campo, (totales.get(campo) ?? 0) + despacho.viajes.length);
-    }
-    const top = [...totales.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2);
-    return [top[0]?.[0] ?? '—', top[1]?.[0] ?? '—'];
-  });
-
-  protected readonly viajesPorCampoMes = computed<GroupedBarDatum[]>(() => {
-    const [serie1, serie2] = this.camposSeries();
-    const meses = new Map<string, GroupedBarDatum>();
-
-    for (const despacho of this.store.enOperacion()) {
-      const campo = this.nombreCampo(despacho.productorId, despacho.campoId);
-      if (campo !== serie1 && campo !== serie2) {
-        continue;
-      }
-      const clave = `${despacho.fechaInicio.getFullYear()}-${String(despacho.fechaInicio.getMonth()).padStart(2, '0')}`;
-      if (!meses.has(clave)) {
-        meses.set(clave, {
-          label: MESES_CORTOS[despacho.fechaInicio.getMonth()],
-          values: [0, 0],
-        });
-      }
-      const entrada = meses.get(clave)!;
-      entrada.values[campo === serie1 ? 0 : 1] += despacho.viajes.length;
-    }
-    return [...meses.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([, valor]) => valor);
-  });
-
-  protected readonly viajesPorDestino = computed<ChartDatum[]>(() => {
-    const counts = new Map<string, number>();
-    for (const viaje of this.viajes()) {
-      counts.set(viaje.destino, (counts.get(viaje.destino) ?? 0) + 1);
-    }
-    return [...counts.entries()]
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value);
-  });
-
-  protected readonly totalDestinos = computed(() =>
-    this.viajesPorDestino().reduce((sum, d) => sum + d.value, 0),
-  );
-
-  protected porcentajeDestino(valor: number): number {
-    return Math.round((valor / Math.max(this.totalDestinos(), 1)) * 100);
-  }
-
-  private nombreCampo(productorId: string, campoId: string): string {
-    const productor = this.store.catalogos().data?.productores.find((p) => p.id === productorId);
-    return productor?.campos.find((c) => c.id === campoId)?.nombre ?? '—';
-  }
-
-  // ============ GENERADOR DE REPORTES ============
   protected readonly filtrosForm = this.fb.group({
     fechaDesde: [''],
     fechaHasta: [''],
@@ -221,29 +169,36 @@ export class ReportesPage {
       label: p.nombre,
     })),
   );
+
   protected readonly campaniaOptions = computed<SelectOption[]>(() =>
-    this.store.activos().map((despacho) => ({
-      value: despacho.id,
-      label: despacho.nombre,
-    })),
+    (this.store.despachos().data ?? [])
+      .filter((despacho) => despacho.estado !== 'borrador')
+      .map((despacho) => ({
+        value: despacho.id,
+        label: despacho.nombre,
+      })),
   );
+
   protected readonly materialOptions = computed<SelectOption[]>(() =>
     (this.store.catalogos().data?.materiales ?? []).map((m) => ({ value: m, label: m })),
   );
+
   protected readonly choferOptions = computed<SelectOption[]>(() => {
     const nombres = new Set<string>();
     for (const despacho of this.store.despachos().data ?? []) {
       for (const viaje of despacho.viajes) {
-        nombres.add(viaje.chofer);
+        if (viaje.chofer && viaje.chofer !== 'Sin asignar') {
+          nombres.add(viaje.chofer);
+        }
       }
     }
     return [...nombres].sort().map((nombre) => ({ value: nombre, label: nombre }));
   });
-  protected readonly estadoOptions: SelectOption[] = Object.entries(ESTADO_LABEL).map(
-    ([value, label]) => ({ value, label }),
-  );
 
-  /** Todos los viajes del sistema aplanados (incluye borradores) */
+  protected readonly estadoOptions: SelectOption[] = Object.entries(ESTADO_LABEL)
+    .filter(([value]) => value !== 'borrador')
+    .map(([value, label]) => ({ value, label }));
+
   private readonly todasLasFilas = computed<FilaReporte[]>(() => {
     const catalogos = this.store.catalogos().data;
     return (this.store.despachos().data ?? []).flatMap((despacho) => {
@@ -280,6 +235,7 @@ export class ReportesPage {
 
     return this.todasLasFilas().filter(
       (fila) =>
+        fila.estado !== 'borrador' &&
         (!desde || fila.fecha >= desde) &&
         (!hasta || fila.fecha <= hasta) &&
         (!filtros.campaniaId || fila.campaniaId === filtros.campaniaId) &&
@@ -288,10 +244,223 @@ export class ReportesPage {
         (!filtros.estado || fila.estado === filtros.estado) &&
         (!filtros.chofer || fila.chofer === filtros.chofer) &&
         (!destino || fila.destino.toLowerCase().includes(destino)) &&
-        (tnMin === null || fila.toneladas >= tnMin) &&
-        (tnMax === null || fila.toneladas <= tnMax),
+        (tnMin === null || Number.isNaN(tnMin) || fila.toneladas >= tnMin) &&
+        (tnMax === null || Number.isNaN(tnMax) || fila.toneladas <= tnMax),
     );
   });
+
+  protected readonly hayFiltrosActivos = computed(() => {
+    const f = this.filtros();
+    return !!(
+      f.fechaDesde ||
+      f.fechaHasta ||
+      f.campaniaId ||
+      f.productorId ||
+      f.material ||
+      f.estado ||
+      f.chofer ||
+      f.destino ||
+      f.tnMin ||
+      f.tnMax
+    );
+  });
+
+  protected readonly etiquetasFiltrosActivos = computed(() => {
+    const f = this.filtros();
+    const catalogos = this.store.catalogos().data;
+    const chips: string[] = [];
+    if (f.fechaDesde) {
+      chips.push(`Desde ${f.fechaDesde}`);
+    }
+    if (f.fechaHasta) {
+      chips.push(`Hasta ${f.fechaHasta}`);
+    }
+    if (f.campaniaId) {
+      const nombre =
+        this.store.despachos().data?.find((d) => d.id === f.campaniaId)?.nombre ?? f.campaniaId;
+      chips.push(`Campaña: ${nombre}`);
+    }
+    if (f.productorId) {
+      const nombre = catalogos?.productores.find((p) => p.id === f.productorId)?.nombre;
+      chips.push(`Productor: ${nombre ?? f.productorId}`);
+    }
+    if (f.material) {
+      chips.push(`Material: ${f.material}`);
+    }
+    if (f.estado) {
+      chips.push(`Estado: ${ESTADO_LABEL[f.estado as EstadoViaje]}`);
+    }
+    if (f.chofer) {
+      chips.push(`Chofer: ${f.chofer}`);
+    }
+    if (f.destino) {
+      chips.push(`Destino: ${f.destino}`);
+    }
+    if (f.tnMin) {
+      chips.push(`Tn ≥ ${f.tnMin}`);
+    }
+    if (f.tnMax) {
+      chips.push(`Tn ≤ ${f.tnMax}`);
+    }
+    return chips;
+  });
+
+  protected readonly rangoFiltroTexto = computed(() => {
+    const f = this.filtros();
+    if (f.fechaDesde && f.fechaHasta) {
+      return `${f.fechaDesde} → ${f.fechaHasta}`;
+    }
+    if (f.fechaDesde) {
+      return `Desde ${f.fechaDesde}`;
+    }
+    if (f.fechaHasta) {
+      return `Hasta ${f.fechaHasta}`;
+    }
+    return 'Todo el período';
+  });
+
+  // ============ DASHBOARD (derivado de filtros globales) ============
+
+  protected readonly totalViajes = computed(() => this.filasFiltradas().length);
+
+  protected readonly completados = computed(
+    () => this.filasFiltradas().filter((fila) => fila.estado === 'completado').length,
+  );
+
+  protected readonly enViaje = computed(
+    () => this.filasFiltradas().filter((fila) => fila.estado === 'en-viaje').length,
+  );
+
+  protected readonly pendientes = computed(
+    () => this.filasFiltradas().filter((fila) => fila.estado === 'pendiente').length,
+  );
+
+  protected readonly retrasados = computed(
+    () => this.filasFiltradas().filter((fila) => fila.estado === 'retrasado').length,
+  );
+
+  protected readonly totalToneladas = computed(() =>
+    this.filasFiltradas().reduce((sum, fila) => sum + fila.toneladas, 0),
+  );
+
+  protected readonly toneladasCompletadas = computed(() =>
+    this.filasFiltradas()
+      .filter((fila) => fila.estado === 'completado')
+      .reduce((sum, fila) => sum + fila.toneladas, 0),
+  );
+
+  protected readonly recaudacion = computed(
+    () => this.toneladasCompletadas() * this.parametrosStore.parametros().precioPorTonelada,
+  );
+
+  protected readonly avancePorcentaje = computed(() =>
+    Math.round((this.completados() / Math.max(this.totalViajes(), 1)) * 100),
+  );
+
+  protected readonly campaniasUnicas = computed(
+    () => new Set(this.filasFiltradas().map((fila) => fila.campaniaId)).size,
+  );
+
+  protected readonly promedioToneladas = computed(() =>
+    (this.totalToneladas() / Math.max(this.totalViajes(), 1)).toFixed(1),
+  );
+
+  protected readonly viajesPorMaterial = computed<ChartDatum[]>(() => {
+    const counts = new Map<string, number>();
+    for (const fila of this.filasFiltradas()) {
+      counts.set(fila.material, (counts.get(fila.material) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value);
+  });
+
+  protected readonly viajesPorEstado = computed<ChartDatum[]>(() => {
+    const counts = new Map<string, number>();
+    for (const fila of this.filasFiltradas()) {
+      const label = ESTADO_LABEL[fila.estado];
+      counts.set(label, (counts.get(label) ?? 0) + 1);
+    }
+    const orden = ['Completado', 'En viaje', 'Pendiente', 'Retrasado'];
+    return [...counts.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => orden.indexOf(a.label) - orden.indexOf(b.label));
+  });
+
+  protected readonly camposSeries = computed<[string, string]>(() => {
+    const totales = new Map<string, number>();
+    for (const fila of this.filasFiltradas()) {
+      totales.set(fila.campo, (totales.get(fila.campo) ?? 0) + fila.toneladas);
+    }
+    const top = [...totales.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2);
+    return [top[0]?.[0] ?? '—', top[1]?.[0] ?? '—'];
+  });
+
+  protected readonly viajesPorCampoMes = computed<GroupedBarDatum[]>(() => {
+    const [serie1, serie2] = this.camposSeries();
+    const meses = new Map<string, GroupedBarDatum>();
+
+    for (const fila of this.filasFiltradas()) {
+      if (fila.campo !== serie1 && fila.campo !== serie2) {
+        continue;
+      }
+      const clave = `${fila.fecha.getFullYear()}-${String(fila.fecha.getMonth()).padStart(2, '0')}`;
+      if (!meses.has(clave)) {
+        meses.set(clave, {
+          label: MESES_CORTOS[fila.fecha.getMonth()],
+          values: [0, 0],
+        });
+      }
+      const entrada = meses.get(clave)!;
+      entrada.values[fila.campo === serie1 ? 0 : 1] += fila.toneladas;
+    }
+    return [...meses.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([, valor]) => valor);
+  });
+
+  protected readonly topCamposToneladas = computed<ChartDatum[]>(() => {
+    const totals = new Map<string, number>();
+    for (const fila of this.filasFiltradas()) {
+      totals.set(fila.campo, (totals.get(fila.campo) ?? 0) + fila.toneladas);
+    }
+    return [...totals.entries()]
+      .map(([label, value]) => ({ label, value: Math.round(value * 10) / 10 }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  });
+
+  protected readonly viajesPorDestino = computed<ChartDatum[]>(() => {
+    const counts = new Map<string, number>();
+    for (const fila of this.filasFiltradas()) {
+      counts.set(fila.destino, (counts.get(fila.destino) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value);
+  });
+
+  protected readonly totalDestinos = computed(() =>
+    this.viajesPorDestino().reduce((sum, dato) => sum + dato.value, 0),
+  );
+
+  protected readonly rankingCampanias = computed(() =>
+    this.agruparRankingCampanias()
+      .sort((a, b) => b.toneladas - a.toneladas)
+      .slice(0, 8)
+      .map((fila) => ({ ...fila }) as unknown as Record<string, unknown>),
+  );
+
+  protected readonly rankingChoferes = computed(() =>
+    this.agruparRankingChoferes()
+      .sort((a, b) => b.toneladas - a.toneladas)
+      .slice(0, 8)
+      .map((fila) => ({ ...fila }) as unknown as Record<string, unknown>),
+  );
+
+  protected porcentajeDestino(valor: number): number {
+    return Math.round((valor / Math.max(this.totalDestinos(), 1)) * 100);
+  }
+
+  // ============ GENERADOR ============
 
   protected readonly filasTabla = computed(() =>
     this.filasFiltradas().map(
@@ -323,6 +492,46 @@ export class ReportesPage {
 
   protected limpiarFiltros(): void {
     this.filtrosForm.reset();
+  }
+
+  protected aplicarFiltroGrafico(
+    campo: 'material' | 'estado' | 'destino' | 'campo',
+    valor: string,
+  ): void {
+    if (campo === 'material') {
+      const actual = this.filtrosForm.get('material')?.value;
+      this.filtrosForm.patchValue({ material: actual === valor ? '' : valor });
+      return;
+    }
+    if (campo === 'estado') {
+      const clave = Object.entries(ESTADO_LABEL).find(([, label]) => label === valor)?.[0] ?? '';
+      const actual = this.filtrosForm.get('estado')?.value;
+      this.filtrosForm.patchValue({ estado: actual === clave ? '' : clave });
+      return;
+    }
+    if (campo === 'destino') {
+      const actual = this.filtrosForm.get('destino')?.value;
+      this.filtrosForm.patchValue({ destino: actual === valor ? '' : valor });
+      return;
+    }
+    const catalogos = this.store.catalogos().data;
+    const campoEncontrado = catalogos?.productores
+      .flatMap((productor) => productor.campos)
+      .find((c) => c.nombre === valor);
+    if (!campoEncontrado) {
+      return;
+    }
+    const productor = catalogos?.productores.find((p) =>
+      p.campos.some((c) => c.id === campoEncontrado.id),
+    );
+    const actualProductor = this.filtrosForm.get('productorId')?.value;
+    this.filtrosForm.patchValue({
+      productorId: actualProductor === productor?.id ? '' : (productor?.id ?? ''),
+    });
+  }
+
+  protected verDetalleTabla(): void {
+    this.seccion.set('generador');
   }
 
   protected exportar(formato: 'pdf' | 'excel' | 'csv'): void {
@@ -362,5 +571,60 @@ export class ReportesPage {
     } else {
       this.exportService.exportPdf(reporte);
     }
+  }
+
+  private agruparRankingCampanias(): RankingCampania[] {
+    const mapa = new Map<string, RankingCampania>();
+    for (const fila of this.filasFiltradas()) {
+      const actual = mapa.get(fila.campania) ?? {
+        campania: fila.campania,
+        viajes: 0,
+        toneladas: 0,
+        completados: 0,
+        enViaje: 0,
+        alertas: 0,
+      };
+      actual.viajes += 1;
+      actual.toneladas += fila.toneladas;
+      if (fila.estado === 'completado') {
+        actual.completados += 1;
+      }
+      if (fila.estado === 'en-viaje') {
+        actual.enViaje += 1;
+      }
+      if (fila.estado === 'retrasado' || fila.estado === 'pendiente') {
+        actual.alertas += 1;
+      }
+      mapa.set(fila.campania, actual);
+    }
+    return [...mapa.values()].map((fila) => ({
+      ...fila,
+      toneladas: Math.round(fila.toneladas * 10) / 10,
+    }));
+  }
+
+  private agruparRankingChoferes(): RankingChofer[] {
+    const mapa = new Map<string, RankingChofer>();
+    for (const fila of this.filasFiltradas()) {
+      if (!fila.chofer || fila.chofer === 'Sin asignar') {
+        continue;
+      }
+      const actual = mapa.get(fila.chofer) ?? {
+        chofer: fila.chofer,
+        viajes: 0,
+        toneladas: 0,
+        completados: 0,
+      };
+      actual.viajes += 1;
+      actual.toneladas += fila.toneladas;
+      if (fila.estado === 'completado') {
+        actual.completados += 1;
+      }
+      mapa.set(fila.chofer, actual);
+    }
+    return [...mapa.values()].map((fila) => ({
+      ...fila,
+      toneladas: Math.round(fila.toneladas * 10) / 10,
+    }));
   }
 }

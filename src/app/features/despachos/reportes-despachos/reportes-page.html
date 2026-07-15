@@ -27,169 +27,268 @@
     [error]="despachos().error ?? ''"
     [skeletonRows]="4"
   >
+    <!-- Slicers globales (Power BI) -->
+    <div class="card slicers">
+      <div class="card__head">
+        <div>
+          <h2>Filtros de análisis</h2>
+          <p>Los slicers actualizan el dashboard y el generador en vivo</p>
+        </div>
+        <app-button variant="outline" size="md" (clicked)="limpiarFiltros()">
+          Limpiar filtros
+        </app-button>
+      </div>
+      <form class="filtros" [formGroup]="filtrosForm">
+        <app-text-input label="Desde" type="date" formControlName="fechaDesde" />
+        <app-text-input label="Hasta" type="date" formControlName="fechaHasta" />
+        <app-select-input
+          label="Campaña"
+          placeholder="Todas"
+          [options]="campaniaOptions()"
+          formControlName="campaniaId"
+        />
+        <app-select-input
+          label="Productor"
+          placeholder="Todos"
+          [options]="productorOptions()"
+          formControlName="productorId"
+        />
+        <app-select-input
+          label="Material"
+          placeholder="Todos"
+          [options]="materialOptions()"
+          formControlName="material"
+        />
+        <app-select-input
+          label="Estado del viaje"
+          placeholder="Todos"
+          [options]="estadoOptions"
+          formControlName="estado"
+        />
+        <app-select-input
+          label="Chofer"
+          placeholder="Todos"
+          [options]="choferOptions()"
+          formControlName="chofer"
+        />
+        <app-text-input label="Destino contiene" placeholder="Puerto…" formControlName="destino" />
+        <app-text-input
+          label="Toneladas mín."
+          type="number"
+          placeholder="0"
+          formControlName="tnMin"
+        />
+        <app-text-input
+          label="Toneladas máx."
+          type="number"
+          placeholder="50"
+          formControlName="tnMax"
+        />
+      </form>
+    </div>
+
+    @if (hayFiltrosActivos()) {
+      <div class="filtros-activos">
+        <span class="filtros-activos__label">Filtros activos:</span>
+        @for (chip of etiquetasFiltrosActivos(); track chip) {
+          <span class="filtros-activos__chip">{{ chip }}</span>
+        }
+      </div>
+    }
+
     @if (seccion() === 'dashboard') {
-      <!-- ============ DASHBOARD (Figma) ============ -->
       <div class="dash">
-        <div class="dash__main">
-          <div class="dash__kpis">
-            <app-kpi-card
-              variant="dark"
-              layout="stat"
-              label="Recaudación 2026"
-              [value]="'$' + (recaudacion() | number: '1.0-0')"
-              trend="+22.5%"
-            >
-              <app-icon name="dollar" />
-            </app-kpi-card>
-            <app-kpi-card
-              layout="stat"
-              label="Cantidad de viajes ordenados"
-              [value]="'' + totalViajes()"
-              trend="+25.5%"
-            >
-              <app-icon name="truck" />
-            </app-kpi-card>
-            <app-kpi-card
-              layout="stat"
-              label="Toneladas transportadas"
-              [value]="(totalToneladas() | number: '1.0-2') + ''"
-              trend="-12.5%"
-            >
-              <app-icon name="list" />
-            </app-kpi-card>
-            <app-kpi-card
-              layout="stat"
-              label="Cantidad de viajes completados"
-              [value]="'' + completados()"
-              trend="+18.5%"
-            >
-              <app-icon name="check-circle" />
-            </app-kpi-card>
-          </div>
+        <div class="dash__kpis">
+          <app-kpi-card
+            variant="dark"
+            layout="stat"
+            label="Valor transportado"
+            [value]="'$' + (recaudacion() | number: '1.0-0')"
+            [trend]="avancePorcentaje() + '% avance'"
+            trendTone="neutral"
+            [detail]="(toneladasCompletadas() | number: '1.0-1') + ' tn completadas'"
+          >
+            <app-icon name="dollar" />
+          </app-kpi-card>
+          <app-kpi-card
+            layout="stat"
+            label="Viajes analizados"
+            [value]="'' + totalViajes()"
+            [trend]="campaniasUnicas() + ' campañas'"
+            trendTone="neutral"
+            [detail]="'Prom. ' + promedioToneladas() + ' tn/viaje'"
+          >
+            <app-icon name="truck" />
+          </app-kpi-card>
+          <app-kpi-card
+            layout="stat"
+            label="Toneladas totales"
+            [value]="(totalToneladas() | number: '1.0-1') + ' tn'"
+            [trend]="rangoFiltroTexto()"
+            trendTone="neutral"
+          >
+            <app-icon name="list" />
+          </app-kpi-card>
+          <app-kpi-card
+            layout="stat"
+            tone="green"
+            label="Completados"
+            [value]="'' + completados()"
+            [trend]="avancePorcentaje() + '%'"
+            trendTone="neutral"
+          >
+            <app-icon name="check-circle" />
+          </app-kpi-card>
+          <app-kpi-card
+            layout="stat"
+            tone="orange"
+            label="En ruta"
+            [value]="'' + enViaje()"
+            [trend]="pendientes() + ' pendientes'"
+            trendTone="neutral"
+          >
+            <app-icon name="truck" />
+          </app-kpi-card>
+          <app-kpi-card
+            layout="stat"
+            tone="red"
+            label="Retrasados"
+            [value]="'' + retrasados()"
+            trend="Requieren acción"
+            trendTone="bad"
+          >
+            <app-icon name="alert-triangle" />
+          </app-kpi-card>
+        </div>
+
+        <div class="dash__grid">
+          <article class="chart-card chart-card--wide">
+            <header class="chart-card__head">
+              <div>
+                <h2>Evolución de toneladas por campo</h2>
+                <p>Comparativa mensual de los dos campos con mayor volumen</p>
+              </div>
+              <span class="chart-card__rango">{{ rangoFiltroTexto() }}</span>
+            </header>
+            <app-grouped-bar-chart [data]="viajesPorCampoMes()" [series]="camposSeries()" />
+            <p class="chart-card__hint">
+              Clic en leyenda de material o estado para filtrar el tablero
+            </p>
+          </article>
+
+          <article class="chart-card chart-card--gris">
+            <header class="chart-card__head">
+              <div>
+                <h2>Estado operativo</h2>
+                <p>Distribución de viajes según filtros</p>
+              </div>
+            </header>
+            <app-donut-chart
+              [data]="viajesPorEstado()"
+              centerLabel="Viajes"
+              (segmentClick)="aplicarFiltroGrafico('estado', $event)"
+            />
+          </article>
+
+          <article class="chart-card chart-card--gris">
+            <header class="chart-card__head">
+              <div>
+                <h2>Material transportado</h2>
+                <p>Clic en segmento para filtrar</p>
+              </div>
+            </header>
+            <app-donut-chart
+              [data]="viajesPorMaterial()"
+              centerLabel="Viajes"
+              (segmentClick)="aplicarFiltroGrafico('material', $event)"
+            />
+          </article>
 
           <article class="chart-card">
             <header class="chart-card__head">
               <div>
-                <h2>Viajes por campos</h2>
-                <p>Viajes mensuales de los dos campos principales</p>
+                <h2>Top campos por toneladas</h2>
+                <p>Ranking de volumen en el período</p>
               </div>
-              <span class="chart-card__rango">Este año</span>
             </header>
-            <app-grouped-bar-chart [data]="viajesPorCampoMes()" [series]="camposSeries()" />
-          </article>
-        </div>
-
-        <div class="dash__side">
-          <article class="chart-card chart-card--gris">
-            <header class="chart-card__head">
-              <div>
-                <h2>Viajes por tipo</h2>
-                <p>Distribución por material</p>
-              </div>
-              <span class="chart-card__rango">Hoy</span>
-            </header>
-            <app-donut-chart [data]="viajesPorMaterial()" centerLabel="Viajes" />
+            <app-bar-chart [data]="topCamposToneladas()" />
           </article>
 
           <article class="chart-card chart-card--gris">
             <header class="chart-card__head">
               <div>
-                <h2>Viajes por destino</h2>
-                <p>Participación sobre el total</p>
+                <h2>Destinos principales</h2>
+                <p>Participación sobre el total filtrado</p>
               </div>
-              <span class="chart-card__rango">Hoy</span>
             </header>
             <div class="destinos">
               <app-bubble-chart [data]="viajesPorDestino()" />
               <ul class="destinos__lista">
-                @for (destino of viajesPorDestino().slice(0, 4); track destino.label) {
+                @for (destino of viajesPorDestino().slice(0, 5); track destino.label) {
                   <li>
-                    <div class="destinos__fila">
-                      <span>{{ destino.label }}</span>
-                      <strong>{{ porcentajeDestino(destino.value) }}%</strong>
-                    </div>
-                    <div class="destinos__barra">
-                      <div
-                        class="destinos__fill"
-                        [style.width.%]="porcentajeDestino(destino.value)"
-                      ></div>
-                    </div>
+                    <button
+                      type="button"
+                      class="destinos__btn"
+                      (click)="aplicarFiltroGrafico('destino', destino.label)"
+                    >
+                      <div class="destinos__fila">
+                        <span>{{ destino.label }}</span>
+                        <strong>{{ porcentajeDestino(destino.value) }}%</strong>
+                      </div>
+                      <div class="destinos__barra">
+                        <div
+                          class="destinos__fill"
+                          [style.width.%]="porcentajeDestino(destino.value)"
+                        ></div>
+                      </div>
+                    </button>
                   </li>
                 }
               </ul>
             </div>
           </article>
         </div>
+
+        <div class="dash__tablas">
+          <article class="card">
+            <div class="card__head">
+              <div>
+                <h2>Ranking de campañas</h2>
+                <p>Priorizá seguimiento por volumen y alertas</p>
+              </div>
+              <app-button variant="outline" size="md" (clicked)="verDetalleTabla()">
+                Ver detalle
+              </app-button>
+            </div>
+            <app-table
+              [columns]="rankingCampaniaColumns"
+              [rows]="rankingCampanias()"
+              headerVariant="soft"
+              layout="fixed"
+            />
+          </article>
+
+          <article class="card">
+            <div class="card__head">
+              <div>
+                <h2>Top choferes</h2>
+                <p>Desempeño por toneladas transportadas</p>
+              </div>
+            </div>
+            <app-table
+              [columns]="rankingChoferColumns"
+              [rows]="rankingChoferes()"
+              headerVariant="soft"
+              layout="fixed"
+            />
+          </article>
+        </div>
       </div>
     } @else {
-      <!-- ============ GENERADOR DE REPORTES ============ -->
       <div class="card">
         <div class="card__head">
           <div>
-            <h2>Filtros del reporte</h2>
-            <p>Combiná los criterios; la tabla se actualiza en vivo</p>
-          </div>
-          <app-button variant="outline" size="md" (clicked)="limpiarFiltros()">
-            Limpiar filtros
-          </app-button>
-        </div>
-        <form class="filtros" [formGroup]="filtrosForm">
-          <app-text-input label="Desde" type="date" formControlName="fechaDesde" />
-          <app-text-input label="Hasta" type="date" formControlName="fechaHasta" />
-          <app-select-input
-            label="Campaña"
-            placeholder="Todas"
-            [options]="campaniaOptions()"
-            formControlName="campaniaId"
-          />
-          <app-select-input
-            label="Productor"
-            placeholder="Todos"
-            [options]="productorOptions()"
-            formControlName="productorId"
-          />
-          <app-select-input
-            label="Material"
-            placeholder="Todos"
-            [options]="materialOptions()"
-            formControlName="material"
-          />
-          <app-select-input
-            label="Estado del viaje"
-            placeholder="Todos"
-            [options]="estadoOptions"
-            formControlName="estado"
-          />
-          <app-select-input
-            label="Chofer"
-            placeholder="Todos"
-            [options]="choferOptions()"
-            formControlName="chofer"
-          />
-          <app-text-input
-            label="Destino contiene"
-            placeholder="Puerto…"
-            formControlName="destino"
-          />
-          <app-text-input
-            label="Toneladas mín."
-            type="number"
-            placeholder="0"
-            formControlName="tnMin"
-          />
-          <app-text-input
-            label="Toneladas máx."
-            type="number"
-            placeholder="50"
-            formControlName="tnMax"
-          />
-        </form>
-      </div>
-
-      <div class="card">
-        <div class="card__head">
-          <div>
-            <h2>Resultados</h2>
+            <h2>Resultados detallados</h2>
             <p>
               {{ filasFiltradas().length }} viajes · {{ toneladasFiltradas() | number: '1.0-2' }} tn
             </p>

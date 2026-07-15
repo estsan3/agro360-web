@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { CHART_COLORS, ChartDatum } from './chart-colors';
 
 interface DonutSegment {
@@ -30,6 +30,7 @@ const GAP = 3; // px de separación entre segmentos (spacer sobre superficie)
 export class DonutChart {
   readonly data = input.required<ChartDatum[]>();
   readonly centerLabel = input('Total');
+  readonly segmentClick = output<string>();
 
   protected readonly radius = RADIUS;
 

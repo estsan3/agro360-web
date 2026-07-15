@@ -33,11 +33,28 @@
     gap: t.$space-sm;
 
     li {
-      display: grid;
-      grid-template-columns: 10px 1fr auto auto;
-      align-items: center;
-      gap: t.$space-sm;
-      font-size: ty.$font-size-md;
+      display: block;
+    }
+  }
+
+  &__legend-btn {
+    display: grid;
+    grid-template-columns: 10px 1fr auto auto;
+    align-items: center;
+    gap: t.$space-sm;
+    width: 100%;
+    padding: t.$space-xs t.$space-sm;
+    border: none;
+    border-radius: t.$radius-sm;
+    background: transparent;
+    font-family: inherit;
+    font-size: ty.$font-size-md;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+
+    &:hover {
+      background: t.$color-background;
     }
   }
 
