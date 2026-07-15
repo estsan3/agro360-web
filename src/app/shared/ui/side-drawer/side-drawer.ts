@@ -15,7 +15,7 @@ import { Icon } from '../icon/icon';
 export class SideDrawer {
   readonly abierto = input(false);
   readonly titulo = input('');
-  readonly ancho = input('520px');
+  readonly ancho = input('600px');
 
   readonly cerrar = output<void>();
 

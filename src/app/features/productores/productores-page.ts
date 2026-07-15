@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
 import { NotificationStore } from '../../notifications/state/notification.store';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
@@ -112,6 +113,7 @@ export class ProductoresPage {
   private readonly api = inject(ProductoresService);
   private readonly store = inject(ProductoresStore);
   private readonly notifications = inject(NotificationStore);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly productoresColumns = PRODUCTORES_COLUMNS;
   protected readonly responsablesColumns = RESPONSABLES_COLUMNS;
@@ -365,9 +367,9 @@ export class ProductoresPage {
     });
   }
 
-  protected cerrarConfigModal(): void {
+  protected async cerrarConfigModal(): Promise<void> {
     if (this.masterDirty()) {
-      const confirmar = window.confirm('Hay cambios sin guardar. ¿Desea cerrar igualmente?');
+      const confirmar = await this.confirmDialog.confirmarCierreSinGuardar();
       if (!confirmar) {
         return;
       }
@@ -413,9 +415,9 @@ export class ProductoresPage {
     this.drawerAbierto.set(true);
   }
 
-  protected cerrarDrawer(): void {
+  protected async cerrarDrawer(): Promise<void> {
     if (this.formDirty() && this.drawerModo() !== 'ver') {
-      const confirmar = window.confirm('Hay cambios sin guardar. ¿Desea cerrar igualmente?');
+      const confirmar = await this.confirmDialog.confirmarCierreSinGuardar();
       if (!confirmar) {
         return;
       }
@@ -454,8 +456,14 @@ export class ProductoresPage {
     });
   }
 
-  protected eliminarProductor(productor: Productor): void {
-    if (!window.confirm(`¿Eliminar ${productor.nombreFantasia || productor.razonSocial}?`)) {
+  protected async eliminarProductor(productor: Productor): Promise<void> {
+    const confirmar = await this.confirmDialog.abrir({
+      titulo: 'Eliminar productor',
+      mensaje: `¿Eliminar ${productor.nombreFantasia || productor.razonSocial}?`,
+      textoConfirmar: 'Eliminar',
+      variant: 'danger',
+    });
+    if (!confirmar) {
       return;
     }
     this.api.eliminar(productor.id).subscribe(() => {
@@ -479,12 +487,18 @@ export class ProductoresPage {
       });
   }
 
-  protected eliminarResponsable(responsable: ResponsableProductor): void {
+  protected async eliminarResponsable(responsable: ResponsableProductor): Promise<void> {
     const productorId = this.seleccionadoId();
-    if (
-      !productorId ||
-      !window.confirm(`¿Eliminar a ${responsable.nombre} ${responsable.apellido}?`)
-    ) {
+    if (!productorId) {
+      return;
+    }
+    const confirmar = await this.confirmDialog.abrir({
+      titulo: 'Eliminar responsable',
+      mensaje: `¿Eliminar a ${responsable.nombre} ${responsable.apellido}?`,
+      textoConfirmar: 'Eliminar',
+      variant: 'danger',
+    });
+    if (!confirmar) {
       return;
     }
     this.api.eliminarResponsable(productorId, responsable.id).subscribe(() => {
@@ -502,9 +516,18 @@ export class ProductoresPage {
     });
   }
 
-  protected eliminarCampo(campo: CampoProductor): void {
+  protected async eliminarCampo(campo: CampoProductor): Promise<void> {
     const productorId = this.seleccionadoId();
-    if (!productorId || !window.confirm(`¿Eliminar campo ${campo.nombre}?`)) {
+    if (!productorId) {
+      return;
+    }
+    const confirmar = await this.confirmDialog.abrir({
+      titulo: 'Eliminar campo',
+      mensaje: `¿Eliminar campo ${campo.nombre}?`,
+      textoConfirmar: 'Eliminar',
+      variant: 'danger',
+    });
+    if (!confirmar) {
       return;
     }
     this.api.eliminarCampo(productorId, campo.id).subscribe(() => {

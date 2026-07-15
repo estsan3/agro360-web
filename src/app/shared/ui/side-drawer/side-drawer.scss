@@ -28,14 +28,15 @@
     align-items: center;
     justify-content: space-between;
     gap: t.$space-md;
-    padding: t.$space-lg;
-    border-bottom: 1px solid t.$color-border;
+    padding: t.$space-md t.$space-lg;
+    background: #f0faec;
+    border-bottom: 1px solid rgba(0, 124, 46, 0.12);
 
     h2 {
       margin: 0;
       font-size: ty.$font-size-xl;
-      font-weight: ty.$font-weight-semibold;
-      color: t.$color-text;
+      font-weight: ty.$font-weight-bold;
+      color: t.$color-primary-dark;
     }
   }
 
@@ -43,5 +44,6 @@
     flex: 1;
     overflow: auto;
     padding: t.$space-lg;
+    background: t.$color-background;
   }
 }

@@ -1,6 +1,7 @@
 // Estilos globales — la lógica de estilos por componente vive en cada .scss
 @use './styles/tokens' as t;
 @use './styles/typography' as ty;
+@use './styles/form-drawer';
 
 * {
   box-sizing: border-box;

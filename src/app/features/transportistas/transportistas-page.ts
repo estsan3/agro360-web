@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
 import { NotificationStore } from '../../notifications/state/notification.store';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
@@ -108,6 +109,7 @@ export class TransportistasPage {
   private readonly api = inject(TransportistasService);
   private readonly store = inject(TransportistasStore);
   private readonly notifications = inject(NotificationStore);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly empresasColumns = EMPRESAS_COLUMNS;
   protected readonly camionesColumns = CAMIONES_COLUMNS;
@@ -371,9 +373,9 @@ export class TransportistasPage {
     });
   }
 
-  protected cerrarConfigModal(): void {
+  protected async cerrarConfigModal(): Promise<void> {
     if (this.masterDirty()) {
-      const confirmar = window.confirm('Hay cambios sin guardar. ¿Desea cerrar igualmente?');
+      const confirmar = await this.confirmDialog.confirmarCierreSinGuardar();
       if (!confirmar) {
         return;
       }
@@ -421,9 +423,9 @@ export class TransportistasPage {
     this.drawerAbierto.set(true);
   }
 
-  protected cerrarDrawer(): void {
+  protected async cerrarDrawer(): Promise<void> {
     if (this.formDirty() && this.drawerModo() !== 'ver') {
-      const confirmar = window.confirm('Hay cambios sin guardar. ¿Desea cerrar igualmente?');
+      const confirmar = await this.confirmDialog.confirmarCierreSinGuardar();
       if (!confirmar) {
         return;
       }
@@ -463,8 +465,14 @@ export class TransportistasPage {
     });
   }
 
-  protected eliminarEmpresa(empresa: Transportista): void {
-    if (!window.confirm(`¿Eliminar ${empresa.nombreFantasia || empresa.razonSocial}?`)) {
+  protected async eliminarEmpresa(empresa: Transportista): Promise<void> {
+    const confirmar = await this.confirmDialog.abrir({
+      titulo: 'Eliminar empresa',
+      mensaje: `¿Eliminar ${empresa.nombreFantasia || empresa.razonSocial}?`,
+      textoConfirmar: 'Eliminar',
+      variant: 'danger',
+    });
+    if (!confirmar) {
       return;
     }
     this.api.eliminar(empresa.id).subscribe(() => {
@@ -486,9 +494,18 @@ export class TransportistasPage {
     });
   }
 
-  protected eliminarChofer(chofer: ChoferTransportista): void {
+  protected async eliminarChofer(chofer: ChoferTransportista): Promise<void> {
     const transportistaId = this.seleccionadoId();
-    if (!transportistaId || !window.confirm(`¿Eliminar a ${chofer.nombre} ${chofer.apellido}?`)) {
+    if (!transportistaId) {
+      return;
+    }
+    const confirmar = await this.confirmDialog.abrir({
+      titulo: 'Eliminar chofer',
+      mensaje: `¿Eliminar a ${chofer.nombre} ${chofer.apellido}?`,
+      textoConfirmar: 'Eliminar',
+      variant: 'danger',
+    });
+    if (!confirmar) {
       return;
     }
     this.api.eliminarChofer(transportistaId, chofer.id).subscribe(() => {
@@ -506,9 +523,18 @@ export class TransportistasPage {
     });
   }
 
-  protected eliminarCamion(camion: CamionTransportista): void {
+  protected async eliminarCamion(camion: CamionTransportista): Promise<void> {
     const transportistaId = this.seleccionadoId();
-    if (!transportistaId || !window.confirm(`¿Eliminar patente ${camion.dominio}?`)) {
+    if (!transportistaId) {
+      return;
+    }
+    const confirmar = await this.confirmDialog.abrir({
+      titulo: 'Eliminar camión',
+      mensaje: `¿Eliminar patente ${camion.dominio}?`,
+      textoConfirmar: 'Eliminar',
+      variant: 'danger',
+    });
+    if (!confirmar) {
       return;
     }
     this.api.eliminarCamion(transportistaId, camion.id).subscribe(() => {

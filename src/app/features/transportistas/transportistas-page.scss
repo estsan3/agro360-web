@@ -232,18 +232,3 @@
     }
   }
 }
-
-.form-drawer {
-  display: flex;
-  flex-direction: column;
-  gap: t.$space-md;
-
-  &__footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: t.$space-sm;
-    margin-top: t.$space-lg;
-    padding-top: t.$space-lg;
-    border-top: 1px solid t.$color-border;
-  }
-}

@@ -331,145 +331,205 @@
 <app-side-drawer [abierto]="drawerAbierto()" [titulo]="drawerTitulo()" (cerrar)="cerrarDrawer()">
   @switch (drawerEntidad()) {
     @case ('productor') {
-      <form class="form-drawer" [formGroup]="productorForm">
-        <app-text-input label="Nombre fantasía" formControlName="nombreFantasia" />
-        <app-text-input label="Razón social" formControlName="razonSocial" />
-        <app-text-input
-          label="CUIT"
-          formControlName="cuit"
-          placeholder="30-12345678-9"
-          [error]="errorProductor('cuit')"
-        />
-        <app-text-input label="Dirección fiscal" formControlName="direccionFiscal" />
-        <app-text-input label="Email" type="email" formControlName="email" />
-        <app-text-input label="Teléfono" formControlName="telefono" />
-        <app-select-input
-          label="Vendedor asignado"
-          [options]="vendedorOptions()"
-          formControlName="vendedorId"
-        />
-        <app-text-input label="Notas" formControlName="notas" />
-      </form>
+      <div class="form-drawer">
+        <form [formGroup]="productorForm">
+          <section class="form-section">
+            <header class="form-section__head">
+              <h4>Identificación</h4>
+            </header>
+            <div class="form-section__body">
+              <app-text-input label="Nombre fantasía" formControlName="nombreFantasia" />
+              <app-text-input label="Razón social" formControlName="razonSocial" />
+              <app-text-input
+                label="CUIT"
+                formControlName="cuit"
+                placeholder="30-12345678-9"
+                [error]="errorProductor('cuit')"
+              />
+              <app-select-input
+                label="Vendedor asignado"
+                [options]="vendedorOptions()"
+                formControlName="vendedorId"
+              />
+            </div>
+          </section>
+          <section class="form-section">
+            <header class="form-section__head">
+              <h4>Contacto y notas</h4>
+            </header>
+            <div class="form-section__body">
+              <app-text-input label="Dirección fiscal" formControlName="direccionFiscal" />
+              <div class="form-section__grid-2">
+                <app-text-input label="Email" type="email" formControlName="email" />
+                <app-text-input label="Teléfono" formControlName="telefono" />
+              </div>
+              <app-text-input label="Notas" formControlName="notas" />
+            </div>
+          </section>
+        </form>
+      </div>
     }
     @case ('responsable') {
-      <form class="form-drawer" [formGroup]="responsableForm">
-        <app-text-input label="Nombre" formControlName="nombre" />
-        <app-text-input label="Apellido" formControlName="apellido" />
-        <app-text-input label="Nº documento" formControlName="documento" />
-        <app-text-input label="Teléfono" formControlName="telefono" />
-      </form>
+      <div class="form-drawer">
+        <form [formGroup]="responsableForm">
+          <section class="form-section">
+            <header class="form-section__head">
+              <h4>Datos del responsable</h4>
+            </header>
+            <div class="form-section__body">
+              <div class="form-section__grid-2">
+                <app-text-input label="Nombre" formControlName="nombre" />
+                <app-text-input label="Apellido" formControlName="apellido" />
+              </div>
+              <div class="form-section__grid-2">
+                <app-text-input label="Nº documento" formControlName="documento" />
+                <app-text-input label="Teléfono" formControlName="telefono" />
+              </div>
+            </div>
+          </section>
+        </form>
+      </div>
     }
     @case ('campo') {
-      <form class="form-drawer" [formGroup]="campoForm">
-        <app-text-input label="Nombre" formControlName="nombre" />
-        <app-text-input label="Código interno" formControlName="codigo" />
-        <app-text-input label="Superficie (ha)" type="number" formControlName="superficieHa" />
-        <app-text-input label="Localidad" formControlName="localidad" />
-        <app-text-input label="Provincia" formControlName="provincia" />
-        <app-text-input label="Partido" formControlName="partido" />
-        <app-text-input label="Dirección" formControlName="direccion" />
-        <app-text-input label="Contacto en campo" formControlName="contactoNombre" />
-        <app-text-input label="Teléfono contacto" formControlName="contactoTelefono" />
+      <div class="form-drawer">
+        <form [formGroup]="campoForm">
+          <section class="form-section">
+            <header class="form-section__head">
+              <h4>Datos generales</h4>
+            </header>
+            <div class="form-section__body">
+              <div class="form-section__grid-2">
+                <app-text-input label="Nombre" formControlName="nombre" />
+                <app-text-input label="Código interno" formControlName="codigo" />
+              </div>
+              <app-text-input
+                label="Superficie (ha)"
+                type="number"
+                formControlName="superficieHa"
+              />
+              <div class="form-section__grid-2">
+                <app-text-input label="Localidad" formControlName="localidad" />
+                <app-text-input label="Provincia" formControlName="provincia" />
+              </div>
+              <app-text-input label="Partido" formControlName="partido" />
+              <app-text-input label="Dirección" formControlName="direccion" />
+              <div class="form-section__grid-2">
+                <app-text-input label="Contacto en campo" formControlName="contactoNombre" />
+                <app-text-input label="Teléfono contacto" formControlName="contactoTelefono" />
+              </div>
+            </div>
+          </section>
 
-        <section class="ubicacion-campo">
-          <h4>Ubicación del campo</h4>
-          <div class="ubicacion-campo__grid">
-            <app-text-input label="Latitud" type="number" formControlName="latitud" />
-            <app-text-input label="Longitud" type="number" formControlName="longitud" />
+          <section class="form-section">
+            <header class="form-section__head">
+              <div>
+                <h4>Ubicación del campo</h4>
+                <p>Coordenadas del centro del lote</p>
+              </div>
+            </header>
+            <div class="form-section__body">
+              <div class="form-section__grid-2">
+                <app-text-input label="Latitud" type="number" formControlName="latitud" />
+                <app-text-input label="Longitud" type="number" formControlName="longitud" />
+              </div>
+              <div class="form-section__actions">
+                @if (!soloLectura()) {
+                  <app-button variant="outline" size="sm" (clicked)="abrirMapaModal('campo')">
+                    <app-icon name="search" />
+                    Elegir en mapa
+                  </app-button>
+                } @else if (campoForm.controls.latitud.value && campoForm.controls.longitud.value) {
+                  <button
+                    type="button"
+                    class="link-maps"
+                    (click)="
+                      abrirGoogleMaps(
+                        campoForm.controls.latitud.value!,
+                        campoForm.controls.longitud.value!
+                      )
+                    "
+                  >
+                    Ver en Google Maps
+                  </button>
+                }
+              </div>
+            </div>
+          </section>
+        </form>
+
+        <section class="form-section">
+          <header class="form-section__head">
+            <div>
+              <h4>Puntos de entrada</h4>
+              <p>Referencias para que el chofer llegue al acceso correcto del campo.</p>
+            </div>
+            @if (!soloLectura()) {
+              <app-button variant="outline" size="sm" (clicked)="agregarPuntoEntrada()">
+                <app-icon name="plus" />
+                Agregar
+              </app-button>
+            }
+          </header>
+          <div class="form-section__body form-section-list">
+            @if (puntosDraft().length === 0) {
+              <p class="puntos-entrada__empty">Sin puntos de entrada cargados.</p>
+            }
+
+            @for (punto of puntosDraft(); track $index) {
+              <article class="punto-card">
+                <div class="punto-card__head">
+                  <strong>Entrada {{ $index + 1 }}</strong>
+                  @if (!soloLectura()) {
+                    <button
+                      type="button"
+                      class="punto-card__remove"
+                      title="Quitar entrada"
+                      (click)="quitarPuntoEntrada($index)"
+                    >
+                      <app-icon name="trash" />
+                    </button>
+                  }
+                </div>
+                <div class="punto-card__body">
+                  <div class="form-section__grid-2">
+                    <app-text-input
+                      label="Latitud"
+                      type="number"
+                      [ngModel]="punto.latitud"
+                      (ngModelChange)="actualizarPunto($index, 'latitud', +$event)"
+                    />
+                    <app-text-input
+                      label="Longitud"
+                      type="number"
+                      [ngModel]="punto.longitud"
+                      (ngModelChange)="actualizarPunto($index, 'longitud', +$event)"
+                    />
+                  </div>
+                  <app-text-input
+                    label="Observación"
+                    [ngModel]="punto.observacion"
+                    (ngModelChange)="actualizarPunto($index, 'observacion', $event)"
+                  />
+                  <div class="form-section__actions">
+                    @if (!soloLectura()) {
+                      <app-button variant="outline" size="sm" (clicked)="abrirMapaModal($index)">
+                        Elegir en mapa
+                      </app-button>
+                    }
+                    <button
+                      type="button"
+                      class="link-maps"
+                      (click)="abrirGoogleMaps(punto.latitud, punto.longitud)"
+                    >
+                      Ver en Google Maps
+                    </button>
+                  </div>
+                </div>
+              </article>
+            }
           </div>
-          @if (!soloLectura()) {
-            <app-button variant="outline" size="sm" (clicked)="abrirMapaModal('campo')">
-              <app-icon name="search" />
-              Elegir en mapa
-            </app-button>
-          } @else if (campoForm.controls.latitud.value && campoForm.controls.longitud.value) {
-            <button
-              type="button"
-              class="link-maps"
-              (click)="
-                abrirGoogleMaps(
-                  campoForm.controls.latitud.value!,
-                  campoForm.controls.longitud.value!
-                )
-              "
-            >
-              Ver en Google Maps
-            </button>
-          }
         </section>
-      </form>
-
-      <section class="puntos-entrada">
-        <div class="puntos-entrada__head">
-          <div>
-            <h4>Puntos de entrada</h4>
-            <p class="puntos-entrada__desc">
-              Referencias para que el chofer llegue al acceso correcto del campo.
-            </p>
-          </div>
-          @if (!soloLectura()) {
-            <app-button variant="outline" size="sm" (clicked)="agregarPuntoEntrada()">
-              <app-icon name="plus" />
-              Agregar entrada
-            </app-button>
-          }
-        </div>
-
-        @if (puntosDraft().length === 0) {
-          <p class="puntos-entrada__empty">Sin puntos de entrada cargados.</p>
-        }
-
-        @for (punto of puntosDraft(); track $index) {
-          <article class="punto-card">
-            <div class="punto-card__head">
-              <strong>Entrada {{ $index + 1 }}</strong>
-              @if (!soloLectura()) {
-                <button
-                  type="button"
-                  class="punto-card__remove"
-                  title="Quitar entrada"
-                  (click)="quitarPuntoEntrada($index)"
-                >
-                  <app-icon name="trash" />
-                </button>
-              }
-            </div>
-            <div class="punto-card__grid">
-              <app-text-input
-                label="Latitud"
-                type="number"
-                [ngModel]="punto.latitud"
-                (ngModelChange)="actualizarPunto($index, 'latitud', +$event)"
-              />
-              <app-text-input
-                label="Longitud"
-                type="number"
-                [ngModel]="punto.longitud"
-                (ngModelChange)="actualizarPunto($index, 'longitud', +$event)"
-              />
-            </div>
-            <app-text-input
-              label="Observación"
-              [ngModel]="punto.observacion"
-              (ngModelChange)="actualizarPunto($index, 'observacion', $event)"
-            />
-            <div class="punto-card__acciones">
-              @if (!soloLectura()) {
-                <app-button variant="outline" size="sm" (clicked)="abrirMapaModal($index)">
-                  Elegir en mapa
-                </app-button>
-              }
-              <button
-                type="button"
-                class="link-maps"
-                (click)="abrirGoogleMaps(punto.latitud, punto.longitud)"
-              >
-                Ver en Google Maps
-              </button>
-            </div>
-          </article>
-        }
-      </section>
+      </div>
     }
   }
 
