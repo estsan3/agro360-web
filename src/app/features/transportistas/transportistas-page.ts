@@ -24,9 +24,14 @@ import {
 import { TransportistasService } from './data-access/transportistas.service';
 import { TransportistasStore } from './data-access/transportistas.store';
 
+import { CUIT_AR } from '../../core/utils/format-cuit';
+
 const PATENTE_AR = /^([A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{3}\d{3})$/i;
-const CUIT_AR = /^\d{2}-\d{8}-\d$/;
 const EMPRESAS_POR_PAGINA = 20;
+
+function normalizarPatente(valor: string): string {
+  return valor.trim().toUpperCase().replace(/\s+/g, '');
+}
 
 function filtrarPorEstadoYBusqueda<T extends { activo: boolean; eliminado: boolean }>(
   items: T[],
@@ -167,7 +172,7 @@ export class TransportistasPage {
   });
 
   protected readonly camionForm = this.fb.group({
-    dominio: ['', Validators.pattern(PATENTE_AR)],
+    dominio: ['', [Validators.required, Validators.pattern(PATENTE_AR)]],
     marca: [''],
     modelo: [''],
     tipo: [''],
@@ -262,14 +267,27 @@ export class TransportistasPage {
 
   protected readonly camionAsociadoOptions = computed<SelectOption[]>(() => {
     const detalle = this.detalle();
+    const choferEditId =
+      this.drawerEntidad() === 'chofer' && this.drawerAbierto() ? this.entidadId() : null;
+    const camionAsignadoId =
+      choferEditId && detalle
+        ? (detalle.choferes.find((c) => c.id === choferEditId)?.camionId ?? null)
+        : null;
+
     if (!detalle) {
       return [{ value: '', label: 'Sin camión' }];
     }
+
+    const camiones = detalle.camiones.filter(
+      (c) => !c.eliminado && (c.activo || c.id === camionAsignadoId),
+    );
+
     return [
       { value: '', label: 'Sin camión' },
-      ...detalle.camiones
-        .filter((c) => !c.eliminado && c.activo)
-        .map((c) => ({ value: c.id, label: `${c.dominio} · ${c.marca} ${c.modelo}` })),
+      ...camiones.map((c) => ({
+        value: c.id,
+        label: `${c.dominio} · ${c.marca} ${c.modelo}`.replace(/ · $/, ''),
+      })),
     ];
   });
 
@@ -304,6 +322,23 @@ export class TransportistasPage {
     }
     if (control.errors['pattern']) {
       return 'Formato inválido. Usá XX-XXXXXXXX-X';
+    }
+    return '';
+  }
+
+  protected errorCamion(campo: string): string {
+    const control = this.camionForm.get(campo);
+    if (!control?.touched || !control.errors) {
+      return '';
+    }
+    if (control.errors['required']) {
+      return 'Campo obligatorio';
+    }
+    if (control.errors['pattern']) {
+      return 'Patente inválida. Usá AA123BB (Mercosur) o ABC123 (vieja)';
+    }
+    if (control.errors['maxlength']) {
+      return 'Máximo 20 caracteres';
     }
     return '';
   }
@@ -387,7 +422,7 @@ export class TransportistasPage {
 
   protected guardarMasterEmpresa(): void {
     const id = this.seleccionadoId();
-    if (!id) {
+    if (!id || !this.masterDirty()) {
       return;
     }
     if (this.empresaForm.invalid) {
@@ -400,9 +435,8 @@ export class TransportistasPage {
         'Empresa actualizada',
         detalle.nombreFantasia || detalle.razonSocial,
       );
-      this.masterDirty.set(false);
       this.recargarEmpresas();
-      this.store.refrescarDetalle(id).subscribe();
+      this.cerrarConfigModalForzado();
     });
   }
 
@@ -582,13 +616,13 @@ export class TransportistasPage {
         ? this.api.crearChofer(transportistaId, body)
         : this.api.actualizarChofer(transportistaId, this.entidadId()!, body);
 
-    obs.subscribe(() => {
+    obs.subscribe((detalle) => {
       this.notifications.success(
         modo === 'crear' ? 'Chofer agregado' : 'Chofer actualizado',
         `${body.nombre} ${body.apellido}`,
       );
       this.cerrarDrawerForzado();
-      this.store.refrescarDetalle(transportistaId).subscribe();
+      this.store.actualizarDetalle(detalle);
     });
   }
 
@@ -596,6 +630,12 @@ export class TransportistasPage {
     const transportistaId = this.seleccionadoId();
     if (!transportistaId) {
       return;
+    }
+    const dominioCtrl = this.camionForm.get('dominio');
+    if (dominioCtrl) {
+      dominioCtrl.setValue(normalizarPatente(String(dominioCtrl.value ?? '')), {
+        emitEvent: false,
+      });
     }
     if (this.camionForm.invalid) {
       this.camionForm.markAllAsTouched();
@@ -607,13 +647,13 @@ export class TransportistasPage {
         ? this.api.crearCamion(transportistaId, body)
         : this.api.actualizarCamion(transportistaId, this.entidadId()!, body);
 
-    obs.subscribe(() => {
+    obs.subscribe((detalle) => {
       this.notifications.success(
         modo === 'crear' ? 'Camión agregado' : 'Camión actualizado',
         body.dominio ?? '',
       );
       this.cerrarDrawerForzado();
-      this.store.refrescarDetalle(transportistaId).subscribe();
+      this.store.actualizarDetalle(detalle);
     });
   }
 

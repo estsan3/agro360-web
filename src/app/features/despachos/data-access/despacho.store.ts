@@ -7,7 +7,13 @@ import {
   asyncLoading,
   asyncSuccess,
 } from '../../../core/models/async-state';
-import { Catalogos, Despacho, NuevoDespacho } from './despacho.model';
+import {
+  Catalogos,
+  Despacho,
+  AgregarViajeInput,
+  ActualizarMetadatosDespachoInput,
+  NuevoDespacho,
+} from './despacho.model';
 import { DespachoService } from './despacho.service';
 
 /**
@@ -38,6 +44,7 @@ export class DespachoStore {
    */
   readonly enOperacion = computed(() =>
     (this._despachos().data ?? [])
+      .filter((despacho) => despacho.estado !== 'cerrado')
       .map((despacho) => ({
         ...despacho,
         viajes: despacho.viajes.filter((viaje) => viaje.estado !== 'borrador'),
@@ -105,6 +112,38 @@ export class DespachoStore {
     return this.api
       .eliminarViaje(despachoId, viajeId)
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  agregarViaje(despachoId: string, input: AgregarViajeInput): Observable<Despacho> {
+    return this.api
+      .agregarViaje(despachoId, input)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  cerrarDespacho(despachoId: string): Observable<Despacho> {
+    return this.api
+      .cerrarDespacho(despachoId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  actualizarMetadatos(
+    despachoId: string,
+    input: ActualizarMetadatosDespachoInput,
+  ): Observable<Despacho> {
+    return this.api
+      .actualizarMetadatos(despachoId, input)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  duplicarDespacho(despachoId: string, nombre?: string): Observable<Despacho> {
+    return this.api.duplicarDespacho(despachoId, nombre).pipe(
+      tap((copia) => {
+        const actual = this._despachos();
+        if (actual.status === 'success') {
+          this._despachos.set(asyncSuccess([...(actual.data ?? []), copia]));
+        }
+      }),
+    );
   }
 
   private reemplazar(despacho: Despacho): void {

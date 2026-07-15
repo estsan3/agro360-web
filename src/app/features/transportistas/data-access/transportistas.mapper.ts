@@ -90,7 +90,7 @@ export function mapTransportistaDetalle(dto: TransportistaDetalleDto): Transport
 
 export function toCamionDto(camion: Partial<CamionTransportista>): Record<string, unknown> {
   return {
-    dominio: camion.dominio ?? '',
+    dominio: normalizarPatente(camion.dominio ?? ''),
     marca: camion.marca ?? '',
     modelo: camion.modelo ?? '',
     tipo: camion.tipo ?? '',
@@ -98,6 +98,10 @@ export function toCamionDto(camion: Partial<CamionTransportista>): Record<string
     nro_motor: camion.nroMotor ?? '',
     foto_tarjeta_verde: toArchivoDto(camion.fotoTarjetaVerde),
   };
+}
+
+function normalizarPatente(valor: string): string {
+  return valor.trim().toUpperCase().replace(/\s+/g, '');
 }
 
 export function toChoferDto(chofer: Partial<ChoferTransportista>): Record<string, unknown> {
@@ -111,7 +115,7 @@ export function toChoferDto(chofer: Partial<ChoferTransportista>): Record<string
     fecha_nacimiento: chofer.fechaNacimiento ?? '',
     licencia_tipo: chofer.licenciaTipo ?? '',
     licencia_vencimiento: chofer.licenciaVencimiento ?? '',
-    camion_id: chofer.camionId ?? null,
+    camion_id: chofer.camionId || null,
     foto_licencia: toArchivoDto(chofer.fotoLicencia),
     foto_dni_frente: toArchivoDto(chofer.fotoDniFrente),
     foto_dni_dorso: toArchivoDto(chofer.fotoDniDorso),

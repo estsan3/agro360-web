@@ -25,11 +25,55 @@
     display: flex;
     gap: t.$space-sm;
   }
+
+  &__filtros-btn--activo ::ng-deep .btn--outline {
+    border-color: t.$color-primary;
+    color: t.$color-primary-dark;
+    background: t.$color-primary-light;
+  }
+}
+
+.filtros-panel {
+  padding: t.$space-lg;
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: t.$space-md;
+    margin-bottom: t.$space-md;
+
+    h2 {
+      margin: 0;
+      font-size: ty.$font-size-lg;
+      font-weight: ty.$font-weight-semibold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: t.$space-xs 0 0;
+      font-size: ty.$font-size-sm;
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: t.$space-md;
+  }
+}
+
+.card {
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-lg;
 }
 
 .draft-cols {
   display: grid;
-  grid-template-columns: 1.5fr 0.8fr 1.1fr 1.1fr 90px 110px 230px;
+  // Campaña 20 % más ancha (1.5fr → 1.8fr) + columna Estado
+  grid-template-columns: 1.8fr 100px 0.8fr 1.1fr 1.1fr 90px 110px 230px;
   align-items: center;
   gap: t.$space-md;
   width: 100%;
@@ -37,9 +81,10 @@
   text-align: left;
 
   @media (max-width: t.$breakpoint-tablet) {
-    grid-template-columns: 1.5fr 90px 230px;
+    grid-template-columns: 1.8fr 100px 230px;
 
-    .draft__dato {
+    .draft__dato,
+    .draft__metric:nth-child(7) {
       display: none;
     }
   }
@@ -58,10 +103,10 @@
     font-weight: ty.$font-weight-semibold;
 
     @media (max-width: t.$breakpoint-tablet) {
-      span:nth-child(2),
       span:nth-child(3),
       span:nth-child(4),
-      span:nth-child(6) {
+      span:nth-child(5),
+      span:nth-child(7) {
         display: none;
       }
     }
@@ -103,10 +148,12 @@
   }
 
   &__nombre {
+    font-weight: ty.$font-weight-semibold;
+  }
+
+  &__estado {
     display: flex;
     align-items: center;
-    gap: t.$space-sm;
-    font-weight: ty.$font-weight-semibold;
   }
 
   &__dato {
@@ -126,32 +173,12 @@
     gap: t.$space-xs;
   }
 
-  &__ver-viajes {
-    display: inline-flex;
-    align-items: center;
-    gap: t.$space-xs;
-    height: 32px;
-    padding: 0 t.$space-md;
-    border: none;
-    border-radius: t.$radius-md;
-    background: t.$color-background-alt;
-    font-family: inherit;
-    font-size: ty.$font-size-sm;
-    font-weight: ty.$font-weight-medium;
-    color: t.$color-text;
-    cursor: pointer;
+  &__ver-viajes-btn--abierto ::ng-deep app-icon {
+    transform: rotate(180deg);
+  }
 
-    app-icon {
-      transition: transform 0.2s ease;
-    }
-
-    &--abierto app-icon {
-      transform: rotate(180deg);
-    }
-
-    &:hover {
-      background: t.$color-border;
-    }
+  &__ver-viajes-btn ::ng-deep app-icon {
+    transition: transform 0.2s ease;
   }
 
   &__icono {

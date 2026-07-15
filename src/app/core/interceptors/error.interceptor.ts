@@ -33,7 +33,10 @@ function friendlyMessage(error: HttpErrorResponse): string {
     case 404:
       return 'El recurso solicitado no existe';
     case 422:
-      return 'Los datos enviados no son válidos';
+      return (
+        (error.error as { error?: { mensaje?: string } })?.error?.mensaje ??
+        'Los datos enviados no son válidos'
+      );
     default:
       return 'Ocurrió un error inesperado. Intentalo de nuevo.';
   }

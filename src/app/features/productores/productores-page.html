@@ -125,9 +125,6 @@
         <section class="config-modal__master">
           <div class="config-modal__head config-modal__head--master">
             <h3>Datos del productor</h3>
-            <app-button variant="primary" size="sm" (clicked)="guardarMasterProductor()">
-              Guardar cambios
-            </app-button>
           </div>
           <form class="config-modal__form config-modal__form--master" [formGroup]="productorForm">
             <app-text-input label="Nombre fantasía" formControlName="nombreFantasia" />
@@ -136,6 +133,7 @@
               label="CUIT"
               formControlName="cuit"
               placeholder="30-12345678-9"
+              mask="cuit"
               [error]="errorProductor('cuit')"
             />
             <app-text-input label="Dirección fiscal" formControlName="direccionFiscal" />
@@ -323,6 +321,20 @@
             </app-table>
           </div>
         </section>
+
+        <footer class="config-modal__footer">
+          <app-button variant="outline" size="md" (clicked)="cerrarConfigModal()">
+            Salir sin guardar
+          </app-button>
+          <app-button
+            variant="primary"
+            size="md"
+            [disabled]="!masterDirty()"
+            (clicked)="guardarMasterProductor()"
+          >
+            Guardar cambios
+          </app-button>
+        </footer>
       </div>
     }
   </app-state-wrapper>
@@ -344,6 +356,7 @@
                 label="CUIT"
                 formControlName="cuit"
                 placeholder="30-12345678-9"
+                mask="cuit"
                 [error]="errorProductor('cuit')"
               />
               <app-select-input

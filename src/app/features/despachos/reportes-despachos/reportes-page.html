@@ -137,6 +137,12 @@
           <app-text-input label="Desde" type="date" formControlName="fechaDesde" />
           <app-text-input label="Hasta" type="date" formControlName="fechaHasta" />
           <app-select-input
+            label="Campaña"
+            placeholder="Todas"
+            [options]="campaniaOptions()"
+            formControlName="campaniaId"
+          />
+          <app-select-input
             label="Productor"
             placeholder="Todos"
             [options]="productorOptions()"

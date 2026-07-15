@@ -13,8 +13,7 @@ import {
   MockPreferencias,
   MockUsuario,
 } from './mock-data';
-import { manejarMockTransportistas } from './mock-transportistas-handler';
-import { manejarMockProductores, obtenerCatalogoProductoresMock } from './mock-productores-handler';
+import { obtenerCatalogoProductoresMock } from './mock-productores-handler';
 
 const MOCK_USER: User = {
   id: 'u-1',
@@ -57,31 +56,6 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const path = req.url.slice(environment.apiBaseUrl.length);
-  const esMockTransportistas =
-    path.startsWith('/transportistas') ||
-    path === '/parametria/tipos-vehiculo' ||
-    path === '/parametria/tipos-licencia';
-  const esMockProductores = path.startsWith('/productores');
-
-  if (!environment.mockApi && !esMockTransportistas && !esMockProductores) {
-    return next(req);
-  }
-
-  const respuestaProductores = manejarMockProductores(req, path);
-  if (respuestaProductores !== undefined) {
-    if (respuestaProductores === null) {
-      return fail(404);
-    }
-    return ok(respuestaProductores, esMockProductores ? 120 : undefined);
-  }
-
-  const respuestaTransportistas = manejarMockTransportistas(req, path);
-  if (respuestaTransportistas !== undefined) {
-    if (respuestaTransportistas === null) {
-      return fail(404);
-    }
-    return ok(respuestaTransportistas, esMockTransportistas ? 120 : undefined);
-  }
 
   if (!environment.mockApi) {
     return next(req);

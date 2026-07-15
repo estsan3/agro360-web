@@ -3,8 +3,8 @@
     <button
       type="button"
       class="kpis__filtro"
-      [class.kpis__filtro--activo]="filtroEstado() === 'en-viaje'"
-      [attr.aria-pressed]="filtroEstado() === 'en-viaje'"
+      [class.kpis__filtro--activo]="filtros().estadoViaje === 'en-viaje'"
+      [attr.aria-pressed]="filtros().estadoViaje === 'en-viaje'"
       (click)="toggleFiltroEstado('en-viaje')"
     >
       <app-kpi-card
@@ -21,8 +21,8 @@
     <button
       type="button"
       class="kpis__filtro"
-      [class.kpis__filtro--activo]="filtroEstado() === 'pendiente'"
-      [attr.aria-pressed]="filtroEstado() === 'pendiente'"
+      [class.kpis__filtro--activo]="filtros().estadoViaje === 'pendiente'"
+      [attr.aria-pressed]="filtros().estadoViaje === 'pendiente'"
       (click)="toggleFiltroEstado('pendiente')"
     >
       <app-kpi-card
@@ -39,8 +39,8 @@
     <button
       type="button"
       class="kpis__filtro"
-      [class.kpis__filtro--activo]="filtroEstado() === 'retrasado'"
-      [attr.aria-pressed]="filtroEstado() === 'retrasado'"
+      [class.kpis__filtro--activo]="filtros().estadoViaje === 'retrasado'"
+      [attr.aria-pressed]="filtros().estadoViaje === 'retrasado'"
       (click)="toggleFiltroEstado('retrasado')"
     >
       <app-kpi-card
@@ -57,8 +57,8 @@
     <button
       type="button"
       class="kpis__filtro"
-      [class.kpis__filtro--activo]="filtroEstado() === 'completado'"
-      [attr.aria-pressed]="filtroEstado() === 'completado'"
+      [class.kpis__filtro--activo]="filtros().estadoViaje === 'completado'"
+      [attr.aria-pressed]="filtros().estadoViaje === 'completado'"
       (click)="toggleFiltroEstado('completado')"
     >
       <app-kpi-card
@@ -74,11 +74,11 @@
     </button>
   </div>
 
-  @if (filtroEstado()) {
+  @if (filtros().estadoViaje) {
     <div class="filtro-activo">
       Mostrando solo viajes
       <strong>
-        @switch (filtroEstado()) {
+        @switch (filtros().estadoViaje) {
           @case ('en-viaje') {
             en ruta
           }
@@ -93,7 +93,7 @@
           }
         }
       </strong>
-      <button type="button" (click)="filtroEstado.set(null)">
+      <button type="button" (click)="quitarFiltroEstado()">
         <app-icon name="x" />
         Quitar filtro
       </button>
@@ -107,7 +107,12 @@
       (valueChange)="busqueda.set($event)"
     />
     <div class="toolbar__actions">
-      <app-button variant="outline" size="md">
+      <app-button
+        variant="outline"
+        size="md"
+        [class.toolbar__filtros-btn--activo]="filtrosAbiertos() || hayFiltrosActivos()"
+        (clicked)="toggleFiltros()"
+      >
         <app-icon name="filter" />
         Filtros
       </app-button>
@@ -118,11 +123,88 @@
     </div>
   </div>
 
+  @if (filtrosAbiertos()) {
+    <section class="filtros-panel card">
+      <header class="filtros-panel__head">
+        <div>
+          <h2>Filtrar campañas activas</h2>
+          <p>Refiná el listado por equipo, carga o estado de los viajes</p>
+        </div>
+        <app-button variant="outline" size="sm" (clicked)="limpiarFiltros()">
+          Limpiar filtros
+        </app-button>
+      </header>
+      <form class="filtros-panel__grid" [formGroup]="filtrosForm">
+        <app-select-input
+          label="Administrador"
+          placeholder="Todos"
+          [options]="administradorOptions()"
+          formControlName="administradorId"
+        />
+        <app-select-input
+          label="Vendedor"
+          placeholder="Todos"
+          [options]="vendedorOptions()"
+          formControlName="vendedorId"
+        />
+        <app-select-input
+          label="Productor"
+          placeholder="Todos"
+          [options]="productorOptions()"
+          formControlName="productorId"
+        />
+        <app-select-input
+          label="Material"
+          placeholder="Todos"
+          [options]="materialOptions()"
+          formControlName="material"
+        />
+        <app-select-input
+          label="Chofer"
+          placeholder="Todos"
+          [options]="choferOptions()"
+          formControlName="chofer"
+        />
+        <app-select-input
+          label="Estado del viaje"
+          placeholder="Todos"
+          [options]="estadoViajeOptions()"
+          formControlName="estadoViaje"
+        />
+        <app-select-input
+          label="Destino"
+          placeholder="Todos"
+          [options]="destinoOptions()"
+          formControlName="destino"
+        />
+        <app-text-input
+          label="Patente / dominio"
+          placeholder="Ej. AA123BB"
+          formControlName="dominio"
+        />
+        <app-text-input label="Fecha inicio desde" type="date" formControlName="fechaDesde" />
+        <app-text-input label="Fecha inicio hasta" type="date" formControlName="fechaHasta" />
+        <app-text-input
+          label="Mín. viajes"
+          type="number"
+          placeholder="0"
+          formControlName="minViajes"
+        />
+        <app-text-input
+          label="Mín. toneladas"
+          type="number"
+          placeholder="0"
+          formControlName="minToneladas"
+        />
+      </form>
+    </section>
+  }
+
   <app-state-wrapper
     [status]="despachos().status"
     [error]="despachos().error ?? ''"
     [empty]="campanias().length === 0"
-    emptyMessage="No hay campañas activas"
+    [emptyMessage]="emptyMessage()"
     [skeletonRows]="4"
   >
     <div class="leyenda">
@@ -147,15 +229,30 @@
         <span class="grid-container__num">Total Viajes</span>
         <span class="grid-container__num">Total Toneladas</span>
         <span class="grid-container__num">Estado</span>
-        <span class="grid-container__num">Acciones</span>
+        <span class="grid-container__num camp__acciones-col">Acciones</span>
       </div>
 
       @for (campania of campanias(); track campania.id) {
         <article class="camp" [class.camp--alt]="$index % 2 === 1">
-          <button class="camp-cols camp__header" type="button" (click)="toggle(campania.id)">
-            <span class="camp__chevron" [class.camp__chevron--open]="expandidas().has(campania.id)">
-              <app-icon name="chevron-down" />
-            </span>
+          <div class="camp-cols camp__header">
+            <button
+              class="camp__chevron-btn"
+              type="button"
+              [attr.aria-expanded]="expandidas().has(campania.id)"
+              [attr.aria-label]="
+                expandidas().has(campania.id)
+                  ? 'Ocultar viajes'
+                  : 'Ver viajes de ' + campania.nombre
+              "
+              (click)="toggle(campania.id)"
+            >
+              <span
+                class="camp__chevron"
+                [class.camp__chevron--open]="expandidas().has(campania.id)"
+              >
+                <app-icon name="chevron-down" />
+              </span>
+            </button>
             <span class="camp__nombre">{{ campania.nombre }}</span>
             <span class="camp__dato">{{ campania.productorCampo }}</span>
             <span class="camp__dato">{{ campania.administrador }}</span>
@@ -185,8 +282,43 @@
                 <app-icon name="alert-triangle" /> {{ campania.conProblemas }}
               </span>
             </span>
-            <span class="camp__more"><app-icon name="more-vertical" /></span>
-          </button>
+            <div class="camp__acciones-col">
+              <div class="acciones acciones--campania">
+                <button
+                  class="acciones__btn"
+                  [class.acciones__btn--activo]="expandidas().has(campania.id)"
+                  type="button"
+                  title="Ver viajes"
+                  aria-label="Ver viajes"
+                  (click)="toggle(campania.id)"
+                >
+                  <app-icon name="chevron-down" />
+                </button>
+                <button
+                  class="acciones__btn acciones__btn--primary"
+                  type="button"
+                  title="Agregar viaje"
+                  aria-label="Agregar viaje"
+                  [disabled]="!esCampaniaOperable(campania)"
+                  (click)="abrirAgregarViaje(campania.id)"
+                >
+                  <app-icon name="plus" />
+                </button>
+                <div class="acciones__menu-wrap">
+                  <button
+                    class="acciones__btn"
+                    [class.acciones__btn--activo]="menuCampaniaAbierto() === campania.id"
+                    type="button"
+                    title="Más opciones de campaña"
+                    aria-label="Más opciones de campaña"
+                    (click)="toggleMenuCampania(campania.id, $event)"
+                  >
+                    <app-icon name="more-vertical" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           @if (expandidas().has(campania.id)) {
             <div class="camp__body">
@@ -359,5 +491,264 @@
         </article>
       }
     </div>
+
+    @if (campaniaDelMenu(); as campania) {
+      @if (menuCampaniaPos(); as pos) {
+        <button
+          class="acciones__backdrop"
+          type="button"
+          aria-label="Cerrar menú"
+          (click)="cerrarMenuCampania()"
+        ></button>
+        <div
+          class="acciones__menu acciones__menu--campania acciones__menu--fixed"
+          role="menu"
+          [style.top.px]="pos.top"
+          [style.right.px]="pos.right"
+        >
+          <button type="button" role="menuitem" (click)="verDetalleCampania(campania.id)">
+            Ver detalle de campaña
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            [class.acciones__menu-item--muted]="!esCampaniaActiva(campania)"
+            (click)="abrirEditarMetadatos(campania.id)"
+          >
+            Editar metadatos
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            [class.acciones__menu-item--muted]="!esCampaniaOperable(campania)"
+            (click)="abrirAgregarViaje(campania.id)"
+          >
+            Agregar viaje
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            [class.acciones__menu-item--muted]="!esCampaniaOperable(campania)"
+            (click)="iniciarPendientesCampania(campania.id)"
+          >
+            Iniciar pendientes asignados
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            [class.acciones__menu-item--muted]="!puedeCerrarCampania(campania)"
+            (click)="cerrarCampania(campania)"
+          >
+            Cerrar campaña
+          </button>
+          <button type="button" role="menuitem" (click)="duplicarCampania(campania.id)">
+            Duplicar como borrador
+          </button>
+          <button type="button" role="menuitem" (click)="exportarCampania(campania)">
+            Exportar viajes (CSV)
+          </button>
+          <button type="button" role="menuitem" (click)="irAReportes(campania.id)">
+            Ir a reportes
+          </button>
+          <button type="button" role="menuitem" (click)="filtrarSoloCampania(campania)">
+            Filtrar solo esta campaña
+          </button>
+          <button type="button" role="menuitem" (click)="contactarChoferesCampania(campania)">
+            Contactar choferes
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            (click)="adjuntarMasivoCampania(campania, 'carta de porte')"
+          >
+            Carta de porte masiva
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            (click)="adjuntarMasivoCampania(campania, 'ticket de gasoil')"
+          >
+            Ticket gasoil masivo
+          </button>
+        </div>
+      }
+    }
   </app-state-wrapper>
+
+  <app-modal
+    [abierto]="!!detalleCampania()"
+    [titulo]="detalleCampania()?.nombre ?? 'Detalle de campaña'"
+    ancho="720px"
+    (cerrar)="cerrarDetalleCampania()"
+  >
+    @if (detalleCampania(); as detalle) {
+      <div class="detalle-campania">
+        <div class="detalle-campania__grid">
+          <div>
+            <span class="detalle-campania__label">Productor</span>
+            <strong>{{ detalle.productor }}</strong>
+          </div>
+          <div>
+            <span class="detalle-campania__label">Campo</span>
+            <strong>{{ detalle.campo }}</strong>
+          </div>
+          <div>
+            <span class="detalle-campania__label">Material</span>
+            <strong>{{ detalle.material }}</strong>
+          </div>
+          <div>
+            <span class="detalle-campania__label">Origen</span>
+            <strong>{{ detalle.origen }}</strong>
+          </div>
+          <div>
+            <span class="detalle-campania__label">Entrada de campo</span>
+            <strong>{{ detalle.entradaCampo }}</strong>
+          </div>
+          <div>
+            <span class="detalle-campania__label">Administrador</span>
+            <strong>{{ detalle.administrador }}</strong>
+          </div>
+          <div>
+            <span class="detalle-campania__label">Vendedor</span>
+            <strong>{{ detalle.vendedor }}</strong>
+          </div>
+          <div>
+            <span class="detalle-campania__label">Fecha inicio</span>
+            <strong>{{ detalle.fechaInicio }}</strong>
+          </div>
+          <div>
+            <span class="detalle-campania__label">Llegada estimada</span>
+            <strong>{{ detalle.fechaLlegada }}</strong>
+          </div>
+          <div class="detalle-campania__full">
+            <span class="detalle-campania__label">Observaciones</span>
+            <strong>{{ detalle.observaciones }}</strong>
+          </div>
+        </div>
+        <div class="detalle-campania__kpis">
+          <div>
+            <span>Viajes</span><strong>{{ detalle.totalViajes }}</strong>
+          </div>
+          <div>
+            <span>Toneladas</span><strong>{{ detalle.totalToneladas }} tn</strong>
+          </div>
+          <div>
+            <span>En ruta</span><strong>{{ detalle.enViaje }}</strong>
+          </div>
+          <div>
+            <span>Completados</span><strong>{{ detalle.completados }}</strong>
+          </div>
+          <div>
+            <span>Con problemas</span><strong>{{ detalle.conProblemas }}</strong>
+          </div>
+          <div>
+            <span>Pend. asignables</span><strong>{{ detalle.pendientesAsignables }}</strong>
+          </div>
+        </div>
+        <div class="detalle-campania__acciones">
+          <app-button variant="outline" size="md" (clicked)="abrirEditarMetadatos(detalle.id)">
+            <app-icon name="settings" />
+            Editar metadatos
+          </app-button>
+          <app-button variant="outline" size="md" (clicked)="irAReportes(detalle.id)">
+            <app-icon name="dollar" />
+            Ver en reportes
+          </app-button>
+          <app-button variant="primary" size="md" (clicked)="abrirAgregarViaje(detalle.id)">
+            <app-icon name="plus" />
+            Agregar viaje
+          </app-button>
+        </div>
+      </div>
+    }
+  </app-modal>
+
+  <app-modal
+    [abierto]="!!agregarViajeCampaniaId()"
+    titulo="Agregar viaje a la campaña"
+    ancho="560px"
+    (cerrar)="cerrarAgregarViaje()"
+  >
+    <form class="agregar-viaje" [formGroup]="agregarViajeForm" (ngSubmit)="guardarViajeNuevo()">
+      <app-select-input
+        label="Chofer"
+        placeholder="Sin asignar"
+        [options]="choferOptionsAgregar()"
+        formControlName="choferId"
+      />
+      @if (patentesAgregarViaje().length > 0) {
+        <app-select-input
+          label="Patente"
+          placeholder="Seleccionar"
+          [options]="patentesAgregarOptions()"
+          formControlName="dominio"
+        />
+      } @else {
+        <app-text-input label="Patente" placeholder="Opcional" formControlName="dominio" />
+      }
+      <app-text-input
+        label="Destino"
+        placeholder="Puerto, acopio…"
+        formControlName="destino"
+        [error]="errorAgregarViaje('destino')"
+      />
+      <app-text-input
+        label="Toneladas"
+        type="number"
+        placeholder="Ej: 28.5"
+        formControlName="toneladas"
+        [error]="errorAgregarViaje('toneladas')"
+      />
+      <div class="agregar-viaje__footer">
+        <app-button variant="outline" size="md" type="button" (clicked)="cerrarAgregarViaje()">
+          Cancelar
+        </app-button>
+        <app-button
+          variant="primary"
+          size="md"
+          type="button"
+          [disabled]="guardandoViaje()"
+          (clicked)="guardarViajeNuevo()"
+        >
+          @if (guardandoViaje()) {
+            Guardando…
+          } @else {
+            Agregar viaje
+          }
+        </app-button>
+      </div>
+    </form>
+  </app-modal>
+
+  <app-modal
+    [abierto]="!!metadatosCampaniaId()"
+    titulo="Editar metadatos de campaña"
+    ancho="560px"
+    (cerrar)="cerrarEditarMetadatos()"
+  >
+    <form class="agregar-viaje" [formGroup]="metadatosForm" (ngSubmit)="guardarMetadatos()">
+      <app-text-input
+        label="Fecha llegada estimada"
+        type="date"
+        formControlName="fechaLlegadaEstimada"
+      />
+      <app-text-input
+        label="Observaciones operativas"
+        placeholder="Notas para el equipo…"
+        formControlName="observaciones"
+      />
+      <div class="agregar-viaje__footer">
+        <app-button variant="outline" size="md" type="button" (clicked)="cerrarEditarMetadatos()">
+          Cancelar
+        </app-button>
+        <app-button variant="primary" size="md" type="submit" [disabled]="guardandoMetadatos()">
+          @if (guardandoMetadatos()) {
+            Guardando…
+          } @else {
+            Guardar cambios
+          }
+        </app-button>
+      </div>
+    </form>
+  </app-modal>
 </section>

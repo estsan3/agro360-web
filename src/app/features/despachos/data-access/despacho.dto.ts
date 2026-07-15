@@ -29,8 +29,26 @@ export interface DespachoDto {
   vendedor_id: string;
   fecha_inicio: string; // ISO date
   fecha_llegada_estimada: string; // ISO date
-  estado: 'borrador' | 'activo';
+  observaciones?: string;
+  estado: 'borrador' | 'activo' | 'cerrado';
   viajes: ViajeDto[];
+}
+
+export interface CrearViajeDto {
+  chofer_id?: string | null;
+  dominio?: string | null;
+  destino: string;
+  toneladas: number;
+  observaciones?: string;
+}
+
+export interface ActualizarMetadatosDespachoDto {
+  fecha_llegada_estimada: string;
+  observaciones?: string;
+}
+
+export interface DuplicarDespachoDto {
+  nombre?: string;
 }
 
 export interface CrearDespachoDto {
@@ -54,7 +72,22 @@ export interface CrearDespachoDto {
 }
 
 export interface CatalogosDto {
-  productores: { id: string; nombre: string; campos: { id: string; nombre: string }[] }[];
+  productores: {
+    id: string;
+    nombre: string;
+    campos: {
+      id: string;
+      nombre: string;
+      puntos_entrada?: {
+        id: string;
+        nombre: string;
+        orden: number;
+        latitud: number;
+        longitud: number;
+        observacion: string;
+      }[];
+    }[];
+  }[];
   administradores: { id: string; nombre: string }[];
   vendedores: { id: string; nombre: string }[];
   materiales: string[];

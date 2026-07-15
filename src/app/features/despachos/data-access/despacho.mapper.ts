@@ -50,6 +50,7 @@ export function toDespacho(dto: DespachoDto): Despacho {
     vendedorId: dto.vendedor_id,
     fechaInicio: parseFecha(dto.fecha_inicio),
     fechaLlegadaEstimada: parseFecha(dto.fecha_llegada_estimada),
+    observaciones: dto.observaciones ?? '',
     estado: dto.estado,
     viajes: dto.viajes.map(toViaje),
   };
@@ -67,7 +68,7 @@ export function toCrearDespachoDto(input: NuevoDespacho): CrearDespachoDto {
     vendedor_id: input.vendedorId,
     fecha_inicio: input.fechaInicio,
     fecha_llegada_estimada: input.fechaLlegadaEstimada || input.fechaInicio,
-    estado: input.estado,
+    estado: input.estado === 'cerrado' ? 'activo' : input.estado,
     viajes: input.viajes.map((viaje) => ({
       chofer_id: viaje.choferId,
       ...(viaje.dominio ? { dominio: viaje.dominio.trim().toUpperCase() } : {}),

@@ -2,7 +2,7 @@
  * Modelo de dominio del front (camelCase, fechas como Date).
  */
 export type EstadoViaje = 'borrador' | 'pendiente' | 'en-viaje' | 'retrasado' | 'completado';
-export type EstadoDespacho = 'borrador' | 'activo';
+export type EstadoDespacho = 'borrador' | 'activo' | 'cerrado';
 
 export interface Viaje {
   id: string;
@@ -28,6 +28,7 @@ export interface Despacho {
   vendedorId: string;
   fechaInicio: Date;
   fechaLlegadaEstimada: Date;
+  observaciones: string;
   estado: EstadoDespacho;
   viajes: Viaje[];
 }
@@ -37,6 +38,20 @@ export interface NuevoViaje {
   dominio: string;
   destino: string;
   toneladas: number;
+}
+
+/** Alta de un viaje en campaña ya activa (chofer opcional). */
+export interface AgregarViajeInput {
+  choferId?: string;
+  dominio?: string;
+  destino: string;
+  toneladas: number;
+  observaciones?: string;
+}
+
+export interface ActualizarMetadatosDespachoInput {
+  fechaLlegadaEstimada: string;
+  observaciones?: string;
 }
 
 export interface NuevoDespacho {

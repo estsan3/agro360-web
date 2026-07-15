@@ -47,18 +47,28 @@ export class TransportistasStore {
   }
 
   refrescarDetalle(id: string): Observable<TransportistaDetalle> {
-    return this.api.obtener(id).pipe(
-      tap((detalle) => {
-        this._detalle.set(asyncSuccess(detalle));
-        this._empresas.update((state) => {
-          if (!state.data) {
-            return state;
-          }
-          return asyncSuccess(
-            state.data.map((e) => (e.id === id ? { ...e, activo: detalle.activo } : e)),
-          );
-        });
-      }),
-    );
+    return this.api.obtener(id).pipe(tap((detalle) => this.actualizarDetalle(detalle)));
+  }
+
+  /** Sincroniza el detalle en memoria (p. ej. tras POST que devuelve el detalle completo). */
+  actualizarDetalle(detalle: TransportistaDetalle): void {
+    this._detalle.set(asyncSuccess(detalle));
+    this._empresas.update((state) => {
+      if (!state.data) {
+        return state;
+      }
+      return asyncSuccess(
+        state.data.map((e) =>
+          e.id === detalle.id
+            ? {
+                ...e,
+                activo: detalle.activo,
+                nombreFantasia: detalle.nombreFantasia,
+                razonSocial: detalle.razonSocial,
+              }
+            : e,
+        ),
+      );
+    });
   }
 }

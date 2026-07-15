@@ -25,7 +25,8 @@ import {
 import { ProductoresService } from './data-access/productores.service';
 import { ProductoresStore } from './data-access/productores.store';
 
-const CUIT_AR = /^\d{2}-\d{8}-\d$/;
+import { CUIT_AR } from '../../core/utils/format-cuit';
+
 const PRODUCTORES_POR_PAGINA = 20;
 const CENTRO_MAPA = { latitud: -33.89, longitud: -60.57 };
 
@@ -381,7 +382,10 @@ export class ProductoresPage {
 
   protected guardarMasterProductor(): void {
     const id = this.seleccionadoId();
-    if (!id || this.productorForm.invalid) {
+    if (!id || !this.masterDirty()) {
+      return;
+    }
+    if (this.productorForm.invalid) {
       this.productorForm.markAllAsTouched();
       return;
     }
@@ -391,9 +395,8 @@ export class ProductoresPage {
         'Productor actualizado',
         detalle.nombreFantasia || detalle.razonSocial,
       );
-      this.masterDirty.set(false);
       this.recargarProductores();
-      this.store.refrescarDetalle(id).subscribe();
+      this.cerrarConfigModalForzado();
     });
   }
 

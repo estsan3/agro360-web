@@ -2,6 +2,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ParametrosStore } from '../../../core/state/parametros.store';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -45,6 +46,7 @@ const ESTADO_LABEL: Record<EstadoViaje, string> = {
 
 interface FilaReporte {
   id: string;
+  campaniaId: string;
   campania: string;
   productor: string;
   campo: string;
@@ -100,6 +102,7 @@ const REPORTE_COLUMNS: TableColumn[] = [
 export class ReportesPage {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly store = inject(DespachoStore);
+  private readonly route = inject(ActivatedRoute);
   private readonly parametrosStore = inject(ParametrosStore);
   private readonly exportService = inject(ReportExportService);
   private readonly datePipe = inject(DatePipe);
@@ -198,6 +201,7 @@ export class ReportesPage {
   protected readonly filtrosForm = this.fb.group({
     fechaDesde: [''],
     fechaHasta: [''],
+    campaniaId: [''],
     productorId: [''],
     material: [''],
     estado: [''],
@@ -215,6 +219,12 @@ export class ReportesPage {
     (this.store.catalogos().data?.productores ?? []).map((p) => ({
       value: p.id,
       label: p.nombre,
+    })),
+  );
+  protected readonly campaniaOptions = computed<SelectOption[]>(() =>
+    this.store.activos().map((despacho) => ({
+      value: despacho.id,
+      label: despacho.nombre,
     })),
   );
   protected readonly materialOptions = computed<SelectOption[]>(() =>
@@ -241,6 +251,7 @@ export class ReportesPage {
       const campo = productor?.campos.find((c) => c.id === despacho.campoId);
       return despacho.viajes.map((viaje) => ({
         id: viaje.id,
+        campaniaId: despacho.id,
         campania: despacho.nombre,
         productor: productor?.nombre ?? '—',
         campo: campo?.nombre ?? '—',
@@ -271,6 +282,7 @@ export class ReportesPage {
       (fila) =>
         (!desde || fila.fecha >= desde) &&
         (!hasta || fila.fecha <= hasta) &&
+        (!filtros.campaniaId || fila.campaniaId === filtros.campaniaId) &&
         (!filtros.productorId || fila.productor === productorNombre) &&
         (!filtros.material || fila.material === filtros.material) &&
         (!filtros.estado || fila.estado === filtros.estado) &&
@@ -299,6 +311,14 @@ export class ReportesPage {
     this.store.cargarDespachos();
     this.store.cargarCatalogos();
     this.parametrosStore.cargar();
+
+    this.route.queryParamMap.subscribe((params) => {
+      const campaniaId = params.get('campania');
+      if (campaniaId) {
+        this.filtrosForm.patchValue({ campaniaId });
+        this.seccion.set('generador');
+      }
+    });
   }
 
   protected limpiarFiltros(): void {

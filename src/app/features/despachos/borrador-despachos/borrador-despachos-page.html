@@ -6,7 +6,12 @@
       (valueChange)="busqueda.set($event)"
     />
     <div class="toolbar__actions">
-      <app-button variant="outline" size="md">
+      <app-button
+        variant="outline"
+        size="md"
+        [class.toolbar__filtros-btn--activo]="filtrosAbiertos() || hayFiltrosActivos()"
+        (clicked)="toggleFiltros()"
+      >
         <app-icon name="filter" />
         Filtros
       </app-button>
@@ -17,16 +22,77 @@
     </div>
   </div>
 
+  @if (filtrosAbiertos()) {
+    <section class="filtros-panel card">
+      <header class="filtros-panel__head">
+        <div>
+          <h2>Filtrar borradores</h2>
+          <p>Refiná el listado por campaña, equipo o carga pendiente</p>
+        </div>
+        <app-button variant="outline" size="sm" (clicked)="limpiarFiltros()">
+          Limpiar filtros
+        </app-button>
+      </header>
+      <form class="filtros-panel__grid" [formGroup]="filtrosForm">
+        <app-select-input
+          label="Administrador"
+          placeholder="Todos"
+          [options]="administradorOptions()"
+          formControlName="administradorId"
+        />
+        <app-select-input
+          label="Vendedor"
+          placeholder="Todos"
+          [options]="vendedorOptions()"
+          formControlName="vendedorId"
+        />
+        <app-select-input
+          label="Productor"
+          placeholder="Todos"
+          [options]="productorOptions()"
+          formControlName="productorId"
+        />
+        <app-select-input
+          label="Material"
+          placeholder="Todos"
+          [options]="materialOptions()"
+          formControlName="material"
+        />
+        <app-select-input
+          label="Chofer (viaje en borrador)"
+          placeholder="Todos"
+          [options]="choferOptions()"
+          formControlName="chofer"
+        />
+        <app-text-input label="Fecha inicio desde" type="date" formControlName="fechaDesde" />
+        <app-text-input label="Fecha inicio hasta" type="date" formControlName="fechaHasta" />
+        <app-text-input
+          label="Mín. viajes en borrador"
+          type="number"
+          placeholder="0"
+          formControlName="minViajes"
+        />
+        <app-text-input
+          label="Mín. toneladas"
+          type="number"
+          placeholder="0"
+          formControlName="minToneladas"
+        />
+      </form>
+    </section>
+  }
+
   <app-state-wrapper
     [status]="despachos().status"
     [error]="despachos().error ?? ''"
     [empty]="borradores().length === 0"
-    emptyMessage="No tenés borradores guardados"
+    [emptyMessage]="emptyMessage()"
     [skeletonRows]="4"
   >
     <div class="grid-container">
       <div class="draft-cols grid-container__head">
         <span>Campaña</span>
+        <span>Estado</span>
         <span>Fecha</span>
         <span>Administrador</span>
         <span>Vendedor</span>
@@ -39,11 +105,11 @@
         <article class="draft" [class.draft--alt]="$index % 2 === 1">
           <div class="draft-cols draft__row">
             <div class="draft__campania">
-              <div class="draft__nombre">
-                {{ borrador.nombre }}
-                <app-badge variant="warning">Borrador</app-badge>
-              </div>
+              <div class="draft__nombre">{{ borrador.nombre }}</div>
               <small>{{ borrador.codigo }}</small>
+            </div>
+            <div class="draft__estado">
+              <app-badge variant="warning">Borrador</app-badge>
             </div>
             <span class="draft__dato">{{ borrador.fecha }}</span>
             <span class="draft__dato">{{ borrador.administrador }}</span>
@@ -51,15 +117,16 @@
             <span class="draft__metric">{{ borrador.totalViajes }}</span>
             <span class="draft__metric">{{ borrador.totalToneladas }} tn</span>
             <div class="draft__acciones">
-              <button
-                class="draft__ver-viajes"
-                type="button"
-                [class.draft__ver-viajes--abierto]="expandidos().has(borrador.id)"
-                (click)="toggle(borrador.id)"
+              <app-button
+                class="draft__ver-viajes-btn"
+                [class.draft__ver-viajes-btn--abierto]="expandidos().has(borrador.id)"
+                variant="outline"
+                size="sm"
+                (clicked)="toggle(borrador.id)"
               >
                 <app-icon name="chevron-down" />
                 Ver viajes
-              </button>
+              </app-button>
               <button
                 class="draft__icono"
                 type="button"

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, forwardRef, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { formatCuitInput } from '../../../core/utils/format-cuit';
 
 let nextId = 0;
 
@@ -25,6 +26,8 @@ export class TextInput implements ControlValueAccessor {
   readonly type = input<'text' | 'email' | 'password' | 'number' | 'date'>('text');
   readonly placeholder = input('');
   readonly error = input('');
+  /** Máscara de entrada en vivo (`cuit` → XX-XXXXXXXX-X). */
+  readonly mask = input<'cuit' | ''>('');
 
   readonly inputId = `app-text-input-${nextId++}`;
   readonly value = signal('');
@@ -34,7 +37,8 @@ export class TextInput implements ControlValueAccessor {
   protected onTouched: () => void = () => undefined;
 
   writeValue(value: string | null): void {
-    this.value.set(value ?? '');
+    const crudo = value ?? '';
+    this.value.set(this.mask() === 'cuit' ? formatCuitInput(crudo) : crudo);
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -50,7 +54,14 @@ export class TextInput implements ControlValueAccessor {
   }
 
   protected handleInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+    const input = event.target as HTMLInputElement;
+    let value = input.value;
+    if (this.mask() === 'cuit') {
+      value = formatCuitInput(value);
+      if (input.value !== value) {
+        input.value = value;
+      }
+    }
     this.value.set(value);
     this.onChange(value);
   }

@@ -98,34 +98,87 @@
     display: flex;
     gap: t.$space-sm;
   }
+
+  &__filtros-btn--activo ::ng-deep .btn--outline {
+    border-color: t.$color-primary;
+    color: t.$color-primary-dark;
+    background: t.$color-primary-light;
+  }
 }
 
-// Grilla compartida entre el header de columnas y las filas de campaña
+.filtros-panel {
+  padding: t.$space-lg;
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: t.$space-md;
+    margin-bottom: t.$space-md;
+
+    h2 {
+      margin: 0;
+      font-size: ty.$font-size-lg;
+      font-weight: ty.$font-weight-semibold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: t.$space-xs 0 0;
+      font-size: ty.$font-size-sm;
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: t.$space-md;
+  }
+}
+
+.card {
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-lg;
+}
+
 .camp-cols {
   display: grid;
-  grid-template-columns: 24px 1.3fr 1.4fr 1fr 1fr 110px 130px 190px 90px;
+  grid-template-columns: 24px 1.2fr 1.3fr 1fr 1fr 96px 116px 168px 120px;
   align-items: center;
-  gap: t.$space-md;
+  gap: t.$space-sm t.$space-md;
   width: 100%;
+  min-width: 1000px;
   padding: t.$space-md t.$space-lg;
   text-align: left;
 
   @media (max-width: t.$breakpoint-tablet) {
-    grid-template-columns: 24px 1fr auto auto 40px;
+    grid-template-columns: 24px minmax(120px, 1fr) 168px 120px;
+    min-width: 480px;
 
-    .camp__dato {
+    .camp__dato,
+    .camp__metric {
       display: none;
     }
   }
 }
 
-// Leyenda de los chips de estado (qué mide cada icono)
+.camp__acciones-col {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: inherit;
+}
+
 .leyenda {
   display: flex;
   justify-content: flex-end;
   gap: t.$space-md;
   margin-bottom: t.$space-sm;
-  padding-right: 110px; // apunta a la columna Estado
 
   &__item {
     display: inline-flex;
@@ -152,12 +205,11 @@
   }
 }
 
-// Contenedor único de todas las campañas (diseño Figma)
 .grid-container {
   background: t.$color-surface;
   border: 1px solid t.$color-border;
   border-radius: t.$radius-lg;
-  overflow: hidden;
+  overflow-x: auto;
 
   &__head {
     background: #f0faec;
@@ -168,7 +220,9 @@
     @media (max-width: t.$breakpoint-tablet) {
       span:nth-child(3),
       span:nth-child(4),
-      span:nth-child(5) {
+      span:nth-child(5),
+      span:nth-child(6),
+      span:nth-child(7) {
         display: none;
       }
     }
@@ -182,14 +236,13 @@
 .camp {
   border-top: 1px solid t.$color-border;
 
-  // Bandas alternadas por campaña (legibilidad con todo expandido)
   &--alt {
     .camp__header {
       background: #f3f8f2;
+    }
 
-      &:hover {
-        background: #eaf3e8;
-      }
+    .camp__header:hover {
+      background: #eaf3e8;
     }
 
     .camp__body {
@@ -198,17 +251,33 @@
   }
 
   &__header {
-    border: none;
     background: t.$color-surface;
     font-family: inherit;
     font-size: ty.$font-size-md-sm;
     color: t.$color-text;
-    cursor: pointer;
     transition: background-color 0.12s ease;
+
+    &:hover,
+    &:focus-within {
+      .camp__acciones-col {
+        z-index: 5;
+      }
+    }
 
     &:hover {
       background: t.$color-background;
     }
+  }
+
+  &__chevron-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: t.$color-text-muted;
+    cursor: pointer;
   }
 
   &__chevron {
@@ -239,9 +308,10 @@
     display: flex;
     gap: t.$space-xs;
     justify-content: center;
+    min-width: 0;
+    overflow: hidden;
   }
 
-  // Chips semáforo: tintados por estado; en cero se apagan
   &__estado {
     display: inline-flex;
     align-items: center;
@@ -257,7 +327,7 @@
 
     &--info {
       background: #fdf0e3;
-      color: #d97706; // camión naranja (diseño Figma)
+      color: #d97706;
     }
 
     &--success {
@@ -274,13 +344,6 @@
       background: t.$color-background-alt;
       color: #b7bcc4;
     }
-  }
-
-  &__more {
-    display: inline-flex;
-    justify-content: center;
-    font-size: 16px;
-    color: t.$color-text-muted;
   }
 
   &__body {
@@ -305,7 +368,13 @@
   align-items: center;
   gap: t.$space-xs;
 
+  &--campania {
+    justify-content: center;
+    flex-wrap: nowrap;
+  }
+
   &__btn {
+    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -328,6 +397,19 @@
 
     &--chat {
       position: relative;
+      color: t.$color-primary;
+    }
+
+    &--activo {
+      background: t.$color-primary-light;
+      color: t.$color-primary-dark;
+
+      app-icon {
+        transform: rotate(180deg);
+      }
+    }
+
+    &--primary {
       color: t.$color-primary;
     }
   }
@@ -356,7 +438,7 @@
   &__backdrop {
     position: fixed;
     inset: 0;
-    z-index: 10;
+    z-index: 900;
     border: none;
     background: transparent;
     cursor: default;
@@ -375,6 +457,25 @@
     box-shadow: t.$shadow-md;
     display: flex;
     flex-direction: column;
+
+    &--campania {
+      min-width: 260px;
+      padding: t.$space-sm;
+      gap: 2px;
+
+      button {
+        white-space: nowrap;
+
+        &:last-child {
+          color: t.$color-text;
+        }
+      }
+    }
+
+    &--fixed {
+      position: fixed;
+      z-index: 901;
+    }
 
     button {
       padding: t.$space-sm t.$space-md;
@@ -395,6 +496,10 @@
         color: t.$color-danger-strong;
       }
     }
+  }
+
+  &__menu-item--muted {
+    opacity: 0.55;
   }
 }
 
@@ -485,5 +590,77 @@
 
   &--vacio {
     color: t.$color-text-muted;
+  }
+}
+
+.detalle-campania {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-lg;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: t.$space-md;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: t.$space-xs;
+    }
+
+    .detalle-campania__full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__label {
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
+  }
+
+  &__kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: t.$space-sm;
+
+    > div {
+      padding: t.$space-sm t.$space-md;
+      border-radius: t.$radius-md;
+      background: t.$color-background;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      span {
+        font-size: ty.$font-size-sm;
+        color: t.$color-text-muted;
+      }
+
+      strong {
+        font-size: ty.$font-size-lg;
+        color: t.$color-text;
+      }
+    }
+  }
+
+  &__acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: t.$space-sm;
+    flex-wrap: wrap;
+  }
+}
+
+.agregar-viaje {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-md;
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: t.$space-sm;
+    margin-top: t.$space-sm;
   }
 }
