@@ -22,12 +22,14 @@ import { DespachoStore } from '../despachos/data-access/despacho.store';
 import { ConfiguracionService, TipoCatalogo } from './data-access/configuracion.service';
 import { UsuariosStore } from './data-access/usuarios.store';
 
-type Seccion = 'usuarios' | 'cuenta' | 'catalogos' | 'notificaciones' | 'parametros';
+type Seccion =
+  'usuarios' | 'cuenta' | 'catalogos' | 'transportistas' | 'notificaciones' | 'parametros';
 
 const SECCIONES: { id: Seccion; label: string }[] = [
   { id: 'usuarios', label: 'Usuarios' },
   { id: 'cuenta', label: 'Mi cuenta' },
   { id: 'catalogos', label: 'Catálogos' },
+  { id: 'transportistas', label: 'Transportistas' },
   { id: 'notificaciones', label: 'Notificaciones' },
   { id: 'parametros', label: 'Parámetros' },
 ];
@@ -125,6 +127,14 @@ export class ConfiguracionPage {
   protected nuevoModelo = '';
   protected nuevoVendedor = '';
   protected nuevoMaterial = '';
+  protected nuevoTransportista = '';
+  protected nuevoTransportistaCuit = '';
+  protected camionTransportistaId = '';
+  protected nuevoCamionDominio = '';
+  protected nuevoCamionModelo = '';
+  protected choferTransportistaId = '';
+  protected nuevoChoferTransportista = '';
+  protected readonly transportistasExpandidos = signal<Set<string>>(new Set());
 
   constructor() {
     const tab = this.route.snapshot.queryParamMap.get('tab');
@@ -187,6 +197,81 @@ export class ConfiguracionPage {
 
   protected eliminarCatalogo(tipo: TipoCatalogo, id: string): void {
     this.configService.eliminarCatalogo(tipo, id).subscribe(() => {
+      this.despachoStore.recargarCatalogos();
+    });
+  }
+
+  protected toggleTransportista(id: string): void {
+    this.transportistasExpandidos.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  protected crearTransportista(): void {
+    const nombre = this.nuevoTransportista.trim();
+    if (!nombre) {
+      return;
+    }
+    this.configService
+      .crearTransportista({
+        nombre,
+        ...(this.nuevoTransportistaCuit.trim() ? { cuit: this.nuevoTransportistaCuit.trim() } : {}),
+      })
+      .subscribe(() => {
+        this.despachoStore.recargarCatalogos();
+        this.nuevoTransportista = '';
+        this.nuevoTransportistaCuit = '';
+        this.notifications.success('Transportista creado', nombre);
+      });
+  }
+
+  protected agregarCamion(): void {
+    if (!this.camionTransportistaId || !this.nuevoCamionDominio.trim()) {
+      return;
+    }
+    this.configService
+      .agregarCamion(this.camionTransportistaId, {
+        dominio: this.nuevoCamionDominio.trim(),
+        ...(this.nuevoCamionModelo.trim() ? { modelo: this.nuevoCamionModelo.trim() } : {}),
+      })
+      .subscribe(() => {
+        this.despachoStore.recargarCatalogos();
+        this.nuevoCamionDominio = '';
+        this.nuevoCamionModelo = '';
+        this.notifications.success('Camión agregado', 'Patente registrada en la flota');
+      });
+  }
+
+  protected agregarChoferTransportista(): void {
+    if (!this.choferTransportistaId || !this.nuevoChoferTransportista.trim()) {
+      return;
+    }
+    this.configService
+      .crearChoferEnTransportista(this.choferTransportistaId, {
+        nombre: this.nuevoChoferTransportista.trim(),
+      })
+      .subscribe(() => {
+        this.despachoStore.recargarCatalogos();
+        this.nuevoChoferTransportista = '';
+        this.notifications.success('Chofer agregado', 'Vinculado al transportista');
+      });
+  }
+
+  protected eliminarTransportista(id: string, nombre: string): void {
+    this.configService.eliminarTransportista(id).subscribe(() => {
+      this.despachoStore.recargarCatalogos();
+      this.notifications.warning('Transportista dado de baja', nombre);
+    });
+  }
+
+  protected eliminarCamion(transportistaId: string, camionId: string): void {
+    this.configService.eliminarCamion(transportistaId, camionId).subscribe(() => {
       this.despachoStore.recargarCatalogos();
     });
   }

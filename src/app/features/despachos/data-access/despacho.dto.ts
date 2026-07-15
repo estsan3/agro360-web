@@ -58,5 +58,28 @@ export interface CatalogosDto {
   administradores: { id: string; nombre: string }[];
   vendedores: { id: string; nombre: string }[];
   materiales: string[];
-  choferes: { id: string; nombre: string; dominio: string; modelo: string }[];
+  choferes: ChoferCatalogoDto[];
+  transportistas?: TransportistaCatalogoDto[];
+}
+
+export interface CamionCatalogoDto {
+  id: string;
+  dominio: string;
+  modelo: string;
+}
+
+export interface ChoferCatalogoDto {
+  id: string;
+  nombre: string;
+  transportista_id?: string | null;
+  dominio: string;
+  modelo: string;
+  camiones?: CamionCatalogoDto[];
+}
+
+export interface TransportistaCatalogoDto {
+  id: string;
+  nombre: string;
+  camiones: CamionCatalogoDto[];
+  choferes?: ChoferCatalogoDto[];
 }

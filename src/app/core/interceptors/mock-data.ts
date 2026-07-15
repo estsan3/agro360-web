@@ -29,10 +29,58 @@ export const MOCK_CATALOGOS = {
   ],
   materiales: ['Soja', 'Maíz', 'Girasol', 'Trigo'],
   choferes: [
-    { id: 'ch-1', nombre: 'Carlos Ruiz', dominio: 'AA123BB', modelo: 'Mercedes 1114' },
-    { id: 'ch-2', nombre: 'Miguel Torres', dominio: 'EF789GH', modelo: 'Volvo FH 420' },
-    { id: 'ch-3', nombre: 'Roberto Gómez', dominio: 'BC456CD', modelo: 'Scania R450' },
-    { id: 'ch-4', nombre: 'Pedro Ramírez', dominio: 'XY789ZA', modelo: 'Iveco Tector 170' },
+    {
+      id: 'ch-1',
+      nombre: 'Carlos Ruiz',
+      transportista_id: 't-1',
+      dominio: 'AA123BB',
+      modelo: 'Mercedes 1114',
+      camiones: [{ id: 'cm-1', dominio: 'AA123BB', modelo: 'Mercedes 1114' }],
+    },
+    {
+      id: 'ch-2',
+      nombre: 'Miguel Torres',
+      transportista_id: 't-1',
+      dominio: 'EF789GH',
+      modelo: 'Volvo FH 420',
+      camiones: [{ id: 'cm-2', dominio: 'EF789GH', modelo: 'Volvo FH 420' }],
+    },
+    {
+      id: 'ch-3',
+      nombre: 'Roberto Gómez',
+      transportista_id: 't-2',
+      dominio: 'BC456CD',
+      modelo: 'Scania R450',
+      camiones: [{ id: 'cm-3', dominio: 'BC456CD', modelo: 'Scania R450' }],
+    },
+    {
+      id: 'ch-4',
+      nombre: 'Pedro Ramírez',
+      transportista_id: 't-2',
+      dominio: 'XY789ZA',
+      modelo: 'Iveco Tector 170',
+      camiones: [{ id: 'cm-4', dominio: 'XY789ZA', modelo: 'Iveco Tector 170' }],
+    },
+  ],
+  transportistas: [
+    {
+      id: 't-1',
+      nombre: 'Transportes del Plata',
+      camiones: [
+        { id: 'cm-1', dominio: 'AA123BB', modelo: 'Mercedes 1114' },
+        { id: 'cm-2', dominio: 'EF789GH', modelo: 'Volvo FH 420' },
+      ],
+      choferes: [],
+    },
+    {
+      id: 't-2',
+      nombre: 'Flota Pampeana',
+      camiones: [
+        { id: 'cm-3', dominio: 'BC456CD', modelo: 'Scania R450' },
+        { id: 'cm-4', dominio: 'XY789ZA', modelo: 'Iveco Tector 170' },
+      ],
+      choferes: [],
+    },
   ],
 };
 

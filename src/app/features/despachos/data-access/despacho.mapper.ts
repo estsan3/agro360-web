@@ -1,5 +1,14 @@
 import { CatalogosDto, CrearDespachoDto, DespachoDto, ViajeDto } from './despacho.dto';
-import { Catalogos, Despacho, EstadoViaje, NuevoDespacho, Viaje } from './despacho.model';
+import {
+  CamionCatalogo,
+  Catalogos,
+  ChoferCatalogo,
+  Despacho,
+  EstadoViaje,
+  NuevoDespacho,
+  TransportistaCatalogo,
+  Viaje,
+} from './despacho.model';
 
 const ESTADO_VIAJE_MAP: Record<ViajeDto['estado'], EstadoViaje> = {
   borrador: 'borrador',
@@ -69,5 +78,30 @@ export function toCrearDespachoDto(input: NuevoDespacho): CrearDespachoDto {
 }
 
 export function toCatalogos(dto: CatalogosDto): Catalogos {
-  return dto; // misma forma hoy; el mapper existe para absorber cambios futuros
+  const mapCamion = (c: { id: string; dominio: string; modelo: string }): CamionCatalogo => ({
+    id: c.id,
+    dominio: c.dominio,
+    modelo: c.modelo,
+  });
+  const mapChofer = (c: CatalogosDto['choferes'][number]): ChoferCatalogo => ({
+    id: c.id,
+    nombre: c.nombre,
+    transportistaId: c.transportista_id ?? null,
+    dominio: c.dominio,
+    modelo: c.modelo,
+    camiones: (c.camiones ?? []).map(mapCamion),
+  });
+  return {
+    productores: dto.productores,
+    administradores: dto.administradores,
+    vendedores: dto.vendedores,
+    materiales: dto.materiales,
+    choferes: dto.choferes.map(mapChofer),
+    transportistas: (dto.transportistas ?? []).map((t): TransportistaCatalogo => ({
+      id: t.id,
+      nombre: t.nombre,
+      camiones: t.camiones.map(mapCamion),
+      choferes: (t.choferes ?? []).map(mapChofer),
+    })),
+  };
 }

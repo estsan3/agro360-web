@@ -54,10 +54,33 @@ export interface NuevoDespacho {
   viajes: NuevoViaje[];
 }
 
+export interface CamionCatalogo {
+  id: string;
+  dominio: string;
+  modelo: string;
+}
+
+export interface ChoferCatalogo {
+  id: string;
+  nombre: string;
+  transportistaId: string | null;
+  dominio: string;
+  modelo: string;
+  camiones: CamionCatalogo[];
+}
+
+export interface TransportistaCatalogo {
+  id: string;
+  nombre: string;
+  camiones: CamionCatalogo[];
+  choferes: ChoferCatalogo[];
+}
+
 export interface Catalogos {
   productores: { id: string; nombre: string; campos: { id: string; nombre: string }[] }[];
   administradores: { id: string; nombre: string }[];
   vendedores: { id: string; nombre: string }[];
   materiales: string[];
-  choferes: { id: string; nombre: string; dominio: string; modelo: string }[];
+  choferes: ChoferCatalogo[];
+  transportistas: TransportistaCatalogo[];
 }

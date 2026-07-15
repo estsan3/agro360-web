@@ -36,4 +36,38 @@ export class ConfiguracionService {
   eliminarCatalogo(tipo: TipoCatalogo, id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/catalogos/${tipo}/${encodeURIComponent(id)}`);
   }
+
+  crearTransportista(body: { nombre: string; cuit?: string }): Observable<unknown> {
+    return this.http.post(`${this.base}/catalogos/transportistas`, body);
+  }
+
+  agregarCamion(
+    transportistaId: string,
+    body: { dominio: string; modelo?: string },
+  ): Observable<unknown> {
+    return this.http.post(
+      `${this.base}/catalogos/transportistas/${transportistaId}/camiones`,
+      body,
+    );
+  }
+
+  crearChoferEnTransportista(
+    transportistaId: string,
+    body: { nombre: string },
+  ): Observable<unknown> {
+    return this.http.post(
+      `${this.base}/catalogos/transportistas/${transportistaId}/choferes`,
+      body,
+    );
+  }
+
+  eliminarTransportista(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/catalogos/transportistas/${id}`);
+  }
+
+  eliminarCamion(transportistaId: string, camionId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.base}/catalogos/transportistas/${transportistaId}/camiones/${camionId}`,
+    );
+  }
 }
