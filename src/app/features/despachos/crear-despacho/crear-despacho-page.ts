@@ -251,8 +251,34 @@ export class CrearDespachoPage {
     grupo.controls.choferId.setValue(choferId, { emitEvent: false });
     const chofer = this.catalogos().data?.choferes.find((ch) => ch.id === choferId);
     if (chofer) {
-      grupo.controls.dominio.setValue(chofer.dominio);
+      const patente = chofer.camiones[0]?.dominio ?? chofer.dominio;
+      if (patente) {
+        grupo.controls.dominio.setValue(patente);
+      }
     }
+  }
+
+  protected patentesChofer(choferId: string): string[] {
+    const chofer = this.catalogos().data?.choferes.find((ch) => ch.id === choferId);
+    if (!chofer) {
+      return [];
+    }
+    const patentes = chofer.camiones.map((c) => c.dominio);
+    if (chofer.dominio && !patentes.includes(chofer.dominio)) {
+      patentes.unshift(chofer.dominio);
+    }
+    return patentes;
+  }
+
+  protected nombreTransportista(choferId: string): string {
+    const chofer = this.catalogos().data?.choferes.find((ch) => ch.id === choferId);
+    if (!chofer?.transportistaId) {
+      return '';
+    }
+    return (
+      this.catalogos().data?.transportistas.find((t) => t.id === chofer.transportistaId)?.nombre ??
+      ''
+    );
   }
 
   // --- Selección múltiple ---

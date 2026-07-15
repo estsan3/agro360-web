@@ -203,15 +203,33 @@
             >
               <option value="">Chofer…</option>
               @for (chofer of catalogos().data?.choferes ?? []; track chofer.id) {
-                <option [value]="chofer.id">{{ chofer.nombre }}</option>
+                <option [value]="chofer.id">
+                  @if (nombreTransportista(chofer.id)) {
+                    {{ nombreTransportista(chofer.id) }} ·
+                  }
+                  {{ chofer.nombre }}
+                </option>
               }
             </select>
-            <input
-              class="vtable__input"
-              [attr.aria-label]="'Dominio del viaje ' + (i + 1)"
-              placeholder="AA123BB"
-              [formControl]="grupo.controls.dominio"
-            />
+            @if (patentesChofer(grupo.controls.choferId.value).length > 0) {
+              <select
+                class="vtable__input"
+                [attr.aria-label]="'Patente del viaje ' + (i + 1)"
+                [formControl]="grupo.controls.dominio"
+              >
+                <option value="">Patente…</option>
+                @for (patente of patentesChofer(grupo.controls.choferId.value); track patente) {
+                  <option [value]="patente">{{ patente }}</option>
+                }
+              </select>
+            } @else {
+              <input
+                class="vtable__input"
+                [attr.aria-label]="'Dominio del viaje ' + (i + 1)"
+                placeholder="AA123BB"
+                [formControl]="grupo.controls.dominio"
+              />
+            }
             <input
               class="vtable__input"
               [attr.aria-label]="'Destino del viaje ' + (i + 1)"
