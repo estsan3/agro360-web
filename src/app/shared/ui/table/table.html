@@ -3,6 +3,9 @@
     class="table"
     [class.table--soft]="headerVariant() === 'soft'"
     [class.table--fixed]="layout() === 'fixed'"
+    [class.table--striped]="striped()"
+    [class.table--compact]="compact()"
+    [class.table--dense]="dense()"
     [style.min-width]="minWidth() || null"
   >
     <thead>

@@ -35,6 +35,9 @@ export class Table {
   /** fixed: anchos deterministas — tablas repetidas quedan alineadas entre sí */
   readonly layout = input<'auto' | 'fixed'>('auto');
   readonly minWidth = input('');
+  readonly striped = input(false);
+  readonly compact = input(false);
+  readonly dense = input(false);
   /** Clase de estado por fila: 'row--danger' | 'row--warning' | 'row--success' | '' */
   readonly rowClass = input<(row: Record<string, unknown>) => string>(() => '');
 

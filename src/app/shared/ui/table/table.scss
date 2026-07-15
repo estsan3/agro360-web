@@ -46,8 +46,11 @@
   &--fixed {
     table-layout: fixed;
 
-    td {
+    td,
+    th {
       overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 
@@ -55,6 +58,38 @@
     background: #f0faec;
     color: t.$color-primary-dark;
     font-weight: ty.$font-weight-semibold;
+  }
+
+  &--striped tbody tr:nth-child(even) td {
+    background: #f3f8f2;
+  }
+
+  &--striped tbody tr:hover {
+    background: transparent;
+  }
+
+  &--striped tbody tr:hover td {
+    background: #eaf3e8;
+  }
+
+  &--compact {
+    th,
+    td {
+      padding: 6px t.$space-md;
+    }
+  }
+
+  &--dense {
+    th,
+    td {
+      padding: 3px 8px;
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    th {
+      font-size: 11px;
+    }
   }
 
   .row--danger td {

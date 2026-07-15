@@ -13,6 +13,7 @@ import {
   MockPreferencias,
   MockUsuario,
 } from './mock-data';
+import { manejarMockTransportistas } from './mock-transportistas-handler';
 
 const MOCK_USER: User = {
   id: 'u-1',
@@ -50,11 +51,31 @@ let preferencias: MockPreferencias = {
  * environment.mockApi = false cuando exista el backend Python.
  */
 export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
-  if (!environment.mockApi || !req.url.startsWith(environment.apiBaseUrl)) {
+  if (!req.url.startsWith(environment.apiBaseUrl)) {
     return next(req);
   }
 
   const path = req.url.slice(environment.apiBaseUrl.length);
+  const esMockTransportistas =
+    path.startsWith('/transportistas') ||
+    path === '/parametria/tipos-vehiculo' ||
+    path === '/parametria/tipos-licencia';
+
+  if (!environment.mockApi && !esMockTransportistas) {
+    return next(req);
+  }
+
+  const respuestaTransportistas = manejarMockTransportistas(req, path);
+  if (respuestaTransportistas !== undefined) {
+    if (respuestaTransportistas === null) {
+      return fail(404);
+    }
+    return ok(respuestaTransportistas, esMockTransportistas ? 120 : undefined);
+  }
+
+  if (!environment.mockApi) {
+    return next(req);
+  }
 
   if (req.method === 'POST' && path === '/auth/login') {
     // Simula credenciales inválidas con contraseñas de menos de 8 caracteres
@@ -142,7 +163,7 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
     const nuevo = {
       id: `ch-${nextCatalogoId++}`,
       nombre: body.nombre,
-      transportista_id: body.transportista_id ?? null,
+      transportista_id: body.transportista_id ?? 't-1',
       dominio,
       modelo: body.modelo ?? 'Sin modelo',
       camiones: dominio ? [{ id: `cm-${nextCatalogoId}`, dominio, modelo: body.modelo ?? '' }] : [],
@@ -306,11 +327,11 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req);
 };
 
-function ok(body: unknown) {
+function ok(body: unknown, delayMs = 400) {
   // Clonar: nunca entregar referencias vivas de las "tablas" en memoria
   // (un store que guarde la referencia vería mutaciones fantasma)
   const snapshot = body === null ? null : structuredClone(body);
-  return of(new HttpResponse({ status: 200, body: snapshot })).pipe(delay(400));
+  return of(new HttpResponse({ status: 200, body: snapshot })).pipe(delay(delayMs));
 }
 
 function fail(status: number) {

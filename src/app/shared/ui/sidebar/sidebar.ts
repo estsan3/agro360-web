@@ -7,6 +7,7 @@ export interface SidebarItem {
   icon: IconName;
   label: string;
   section?: 'top' | 'bottom';
+  adminOnly?: boolean;
 }
 
 /**
