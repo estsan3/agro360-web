@@ -46,6 +46,12 @@ export const routes: Routes = [
           import('./features/transportistas/transportistas-page').then((m) => m.TransportistasPage),
       },
       {
+        path: 'productores',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/productores/productores-page').then((m) => m.ProductoresPage),
+      },
+      {
         path: 'configuracion',
         loadComponent: () =>
           import('./features/configuracion/configuracion-page').then((m) => m.ConfiguracionPage),

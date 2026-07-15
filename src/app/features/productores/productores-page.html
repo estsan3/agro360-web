@@ -1,0 +1,491 @@
+<section class="page">
+  <header class="page__header">
+    <p class="page__subtitle">Productores, responsables, campos y puntos de entrada para mapas</p>
+    <app-button variant="primary" size="md" (clicked)="abrirDrawer('productor', 'crear')">
+      <app-icon name="plus" />
+      Nuevo productor
+    </app-button>
+  </header>
+
+  <div class="toolbar card">
+    <app-text-input
+      label="Buscar"
+      placeholder="Nombre, razón social o CUIT…"
+      [ngModel]="busqueda()"
+      (ngModelChange)="onBusquedaChange($event)"
+    />
+    <app-select-input
+      label="Estado"
+      [options]="filtroOptions"
+      [ngModel]="filtro()"
+      (ngModelChange)="onFiltroChange($event)"
+    />
+  </div>
+
+  <app-state-wrapper
+    [status]="productoresState().status"
+    [error]="productoresState().error ?? ''"
+    [empty]="totalProductores() === 0"
+    emptyMessage="No hay productores"
+    [skeletonRows]="4"
+  >
+    <div class="tabla-scroll">
+      <app-table
+        [columns]="productoresColumns"
+        [rows]="productoresRowsPagina()"
+        headerVariant="soft"
+        [striped]="true"
+        [compact]="true"
+      >
+        <ng-template appTableCell="nombreFantasia" let-row>
+          <span>{{ $any(row)['nombreFantasia'] || '—' }}</span>
+        </ng-template>
+        <ng-template appTableCell="estado" let-row>
+          <app-badge [variant]="$any(row)['activo'] ? 'success' : 'neutral'">
+            {{ $any(row)['estado'] }}
+          </app-badge>
+        </ng-template>
+        <ng-template appTableCell="acciones" let-row>
+          <div class="fila-acciones">
+            <button
+              type="button"
+              class="fila-acciones__btn fila-acciones__btn--config"
+              title="Configurar productor"
+              aria-label="Configurar productor"
+              (click)="abrirConfigProductor($any(row)['id'])"
+            >
+              <app-icon name="settings" />
+            </button>
+            <button
+              type="button"
+              class="fila-acciones__btn"
+              [class.fila-acciones__btn--on]="!$any(row)['activo']"
+              [title]="$any(row)['activo'] ? 'Desactivar' : 'Activar'"
+              [attr.aria-label]="$any(row)['activo'] ? 'Desactivar' : 'Activar'"
+              (click)="toggleActivoProductor($any(row))"
+            >
+              <app-icon [name]="$any(row)['activo'] ? 'alert-circle' : 'check-circle'" />
+            </button>
+            <button
+              type="button"
+              class="fila-acciones__btn fila-acciones__btn--danger"
+              title="Eliminar"
+              aria-label="Eliminar"
+              (click)="eliminarProductor($any(row))"
+            >
+              <app-icon name="trash" />
+            </button>
+          </div>
+        </ng-template>
+      </app-table>
+    </div>
+
+    @if (totalProductores() > 0) {
+      <footer class="paginacion">
+        <span class="paginacion__info">Mostrando {{ rangoProductores() }}</span>
+        <div class="paginacion__controles">
+          <app-button
+            variant="outline"
+            size="sm"
+            [disabled]="paginaProductores() <= 1"
+            (clicked)="paginaAnterior()"
+          >
+            Anterior
+          </app-button>
+          <span class="paginacion__pagina">
+            Página {{ paginaProductores() }} / {{ totalPaginas() }}
+          </span>
+          <app-button
+            variant="outline"
+            size="sm"
+            [disabled]="paginaProductores() >= totalPaginas()"
+            (clicked)="paginaSiguiente()"
+          >
+            Siguiente
+          </app-button>
+        </div>
+      </footer>
+    }
+  </app-state-wrapper>
+</section>
+
+<app-modal
+  [abierto]="configModalAbierto()"
+  [titulo]="configModalTitulo()"
+  ancho="1680px"
+  (cerrar)="cerrarConfigModal()"
+>
+  <app-state-wrapper
+    [status]="detalleState().status"
+    [error]="detalleState().error ?? ''"
+    [skeletonRows]="6"
+  >
+    @if (detalle(); as det) {
+      <div class="config-modal">
+        <section class="config-modal__master">
+          <div class="config-modal__head config-modal__head--master">
+            <h3>Datos del productor</h3>
+            <app-button variant="primary" size="sm" (clicked)="guardarMasterProductor()">
+              Guardar cambios
+            </app-button>
+          </div>
+          <form class="config-modal__form config-modal__form--master" [formGroup]="productorForm">
+            <app-text-input label="Nombre fantasía" formControlName="nombreFantasia" />
+            <app-text-input label="Razón social" formControlName="razonSocial" />
+            <app-text-input
+              label="CUIT"
+              formControlName="cuit"
+              placeholder="30-12345678-9"
+              [error]="errorProductor('cuit')"
+            />
+            <app-text-input label="Dirección fiscal" formControlName="direccionFiscal" />
+            <app-text-input label="Email" type="email" formControlName="email" />
+            <app-text-input label="Teléfono" formControlName="telefono" />
+            <app-select-input
+              label="Vendedor asignado"
+              [options]="vendedorOptions()"
+              formControlName="vendedorId"
+            />
+            <app-text-input label="Notas" formControlName="notas" />
+          </form>
+        </section>
+
+        <section class="config-modal__section">
+          <div class="config-modal__head">
+            <h3>Responsables</h3>
+            <app-button variant="primary" size="sm" (clicked)="abrirDrawer('responsable', 'crear')">
+              <app-icon name="plus" />
+              Agregar responsable
+            </app-button>
+          </div>
+          <div class="config-modal__filtros">
+            <app-text-input
+              label="Buscar"
+              placeholder="Nombre, DNI, teléfono…"
+              [ngModel]="busquedaResponsables()"
+              (ngModelChange)="busquedaResponsables.set($event)"
+            />
+            <app-select-input
+              label="Estado"
+              [options]="filtroOptions"
+              [ngModel]="filtroResponsables()"
+              (ngModelChange)="filtroResponsables.set($event)"
+            />
+          </div>
+          <div
+            class="config-modal__tabla-scroll config-modal__tabla"
+            [class.config-modal__tabla-scroll--limit]="
+              det.responsables.filter((r) => !r.eliminado).length > 10
+            "
+          >
+            <app-table
+              [columns]="responsablesColumns"
+              [rows]="responsablesRows()"
+              headerVariant="soft"
+              layout="fixed"
+              minWidth="100%"
+              [striped]="true"
+              [compact]="true"
+            >
+              <ng-template appTableCell="estado" let-row>
+                <app-badge [variant]="$any(row)['activo'] ? 'success' : 'neutral'">
+                  {{ $any(row)['estado'] }}
+                </app-badge>
+              </ng-template>
+              <ng-template appTableCell="acciones" let-row>
+                <div class="fila-acciones">
+                  <button
+                    type="button"
+                    class="fila-acciones__btn"
+                    title="Ver"
+                    aria-label="Ver responsable"
+                    (click)="abrirDrawer('responsable', 'ver', $any(row)['id'])"
+                  >
+                    <app-icon name="search" />
+                  </button>
+                  <button
+                    type="button"
+                    class="fila-acciones__btn"
+                    title="Editar"
+                    aria-label="Editar responsable"
+                    (click)="abrirDrawer('responsable', 'editar', $any(row)['id'])"
+                  >
+                    <app-icon name="file-text" />
+                  </button>
+                  <button
+                    type="button"
+                    class="fila-acciones__btn"
+                    [class.fila-acciones__btn--on]="!$any(row)['activo']"
+                    [title]="$any(row)['activo'] ? 'Desactivar' : 'Activar'"
+                    [attr.aria-label]="$any(row)['activo'] ? 'Desactivar' : 'Activar'"
+                    (click)="toggleActivoResponsable($any(row))"
+                  >
+                    <app-icon [name]="$any(row)['activo'] ? 'alert-circle' : 'check-circle'" />
+                  </button>
+                  <button
+                    type="button"
+                    class="fila-acciones__btn fila-acciones__btn--danger"
+                    title="Eliminar"
+                    aria-label="Eliminar responsable"
+                    (click)="eliminarResponsable($any(row))"
+                  >
+                    <app-icon name="trash" />
+                  </button>
+                </div>
+              </ng-template>
+            </app-table>
+          </div>
+        </section>
+
+        <section class="config-modal__section">
+          <div class="config-modal__head">
+            <h3>Campos</h3>
+            <app-button variant="primary" size="sm" (clicked)="abrirDrawer('campo', 'crear')">
+              <app-icon name="plus" />
+              Agregar campo
+            </app-button>
+          </div>
+          <div class="config-modal__filtros">
+            <app-text-input
+              label="Buscar"
+              placeholder="Nombre, código, localidad…"
+              [ngModel]="busquedaCampos()"
+              (ngModelChange)="busquedaCampos.set($event)"
+            />
+            <app-select-input
+              label="Estado"
+              [options]="filtroOptions"
+              [ngModel]="filtroCampos()"
+              (ngModelChange)="filtroCampos.set($event)"
+            />
+          </div>
+          <div
+            class="config-modal__tabla-scroll config-modal__tabla"
+            [class.config-modal__tabla-scroll--limit]="
+              det.campos.filter((c) => !c.eliminado).length > 10
+            "
+          >
+            <app-table
+              [columns]="camposColumns"
+              [rows]="camposRows()"
+              headerVariant="soft"
+              layout="fixed"
+              minWidth="100%"
+              [striped]="true"
+              [compact]="true"
+            >
+              <ng-template appTableCell="estado" let-row>
+                <app-badge [variant]="$any(row)['activo'] ? 'success' : 'neutral'">
+                  {{ $any(row)['estado'] }}
+                </app-badge>
+              </ng-template>
+              <ng-template appTableCell="acciones" let-row>
+                <div class="fila-acciones">
+                  <button
+                    type="button"
+                    class="fila-acciones__btn"
+                    title="Ver"
+                    aria-label="Ver campo"
+                    (click)="abrirDrawer('campo', 'ver', $any(row)['id'])"
+                  >
+                    <app-icon name="search" />
+                  </button>
+                  <button
+                    type="button"
+                    class="fila-acciones__btn"
+                    title="Editar"
+                    aria-label="Editar campo"
+                    (click)="abrirDrawer('campo', 'editar', $any(row)['id'])"
+                  >
+                    <app-icon name="file-text" />
+                  </button>
+                  <button
+                    type="button"
+                    class="fila-acciones__btn"
+                    [class.fila-acciones__btn--on]="!$any(row)['activo']"
+                    [title]="$any(row)['activo'] ? 'Desactivar' : 'Activar'"
+                    [attr.aria-label]="$any(row)['activo'] ? 'Desactivar' : 'Activar'"
+                    (click)="toggleActivoCampo($any(row))"
+                  >
+                    <app-icon [name]="$any(row)['activo'] ? 'alert-circle' : 'check-circle'" />
+                  </button>
+                  <button
+                    type="button"
+                    class="fila-acciones__btn fila-acciones__btn--danger"
+                    title="Eliminar"
+                    aria-label="Eliminar campo"
+                    (click)="eliminarCampo($any(row))"
+                  >
+                    <app-icon name="trash" />
+                  </button>
+                </div>
+              </ng-template>
+            </app-table>
+          </div>
+        </section>
+      </div>
+    }
+  </app-state-wrapper>
+</app-modal>
+
+<app-side-drawer [abierto]="drawerAbierto()" [titulo]="drawerTitulo()" (cerrar)="cerrarDrawer()">
+  @switch (drawerEntidad()) {
+    @case ('productor') {
+      <form class="form-drawer" [formGroup]="productorForm">
+        <app-text-input label="Nombre fantasía" formControlName="nombreFantasia" />
+        <app-text-input label="Razón social" formControlName="razonSocial" />
+        <app-text-input
+          label="CUIT"
+          formControlName="cuit"
+          placeholder="30-12345678-9"
+          [error]="errorProductor('cuit')"
+        />
+        <app-text-input label="Dirección fiscal" formControlName="direccionFiscal" />
+        <app-text-input label="Email" type="email" formControlName="email" />
+        <app-text-input label="Teléfono" formControlName="telefono" />
+        <app-select-input
+          label="Vendedor asignado"
+          [options]="vendedorOptions()"
+          formControlName="vendedorId"
+        />
+        <app-text-input label="Notas" formControlName="notas" />
+      </form>
+    }
+    @case ('responsable') {
+      <form class="form-drawer" [formGroup]="responsableForm">
+        <app-text-input label="Nombre" formControlName="nombre" />
+        <app-text-input label="Apellido" formControlName="apellido" />
+        <app-text-input label="Nº documento" formControlName="documento" />
+        <app-text-input label="Teléfono" formControlName="telefono" />
+      </form>
+    }
+    @case ('campo') {
+      <form class="form-drawer" [formGroup]="campoForm">
+        <app-text-input label="Nombre" formControlName="nombre" />
+        <app-text-input label="Código interno" formControlName="codigo" />
+        <app-text-input label="Superficie (ha)" type="number" formControlName="superficieHa" />
+        <app-text-input label="Localidad" formControlName="localidad" />
+        <app-text-input label="Provincia" formControlName="provincia" />
+        <app-text-input label="Partido" formControlName="partido" />
+        <app-text-input label="Dirección" formControlName="direccion" />
+        <app-text-input label="Contacto en campo" formControlName="contactoNombre" />
+        <app-text-input label="Teléfono contacto" formControlName="contactoTelefono" />
+
+        <section class="ubicacion-campo">
+          <h4>Ubicación del campo</h4>
+          <div class="ubicacion-campo__grid">
+            <app-text-input label="Latitud" type="number" formControlName="latitud" />
+            <app-text-input label="Longitud" type="number" formControlName="longitud" />
+          </div>
+          @if (!soloLectura()) {
+            <app-button variant="outline" size="sm" (clicked)="abrirMapaModal('campo')">
+              <app-icon name="search" />
+              Elegir en mapa
+            </app-button>
+          } @else if (campoForm.controls.latitud.value && campoForm.controls.longitud.value) {
+            <button
+              type="button"
+              class="link-maps"
+              (click)="
+                abrirGoogleMaps(
+                  campoForm.controls.latitud.value!,
+                  campoForm.controls.longitud.value!
+                )
+              "
+            >
+              Ver en Google Maps
+            </button>
+          }
+        </section>
+      </form>
+
+      <section class="puntos-entrada">
+        <div class="puntos-entrada__head">
+          <div>
+            <h4>Puntos de entrada</h4>
+            <p class="puntos-entrada__desc">
+              Referencias para que el chofer llegue al acceso correcto del campo.
+            </p>
+          </div>
+          @if (!soloLectura()) {
+            <app-button variant="outline" size="sm" (clicked)="agregarPuntoEntrada()">
+              <app-icon name="plus" />
+              Agregar entrada
+            </app-button>
+          }
+        </div>
+
+        @if (puntosDraft().length === 0) {
+          <p class="puntos-entrada__empty">Sin puntos de entrada cargados.</p>
+        }
+
+        @for (punto of puntosDraft(); track $index) {
+          <article class="punto-card">
+            <div class="punto-card__head">
+              <strong>Entrada {{ $index + 1 }}</strong>
+              @if (!soloLectura()) {
+                <button
+                  type="button"
+                  class="punto-card__remove"
+                  title="Quitar entrada"
+                  (click)="quitarPuntoEntrada($index)"
+                >
+                  <app-icon name="trash" />
+                </button>
+              }
+            </div>
+            <div class="punto-card__grid">
+              <app-text-input
+                label="Latitud"
+                type="number"
+                [ngModel]="punto.latitud"
+                (ngModelChange)="actualizarPunto($index, 'latitud', +$event)"
+              />
+              <app-text-input
+                label="Longitud"
+                type="number"
+                [ngModel]="punto.longitud"
+                (ngModelChange)="actualizarPunto($index, 'longitud', +$event)"
+              />
+            </div>
+            <app-text-input
+              label="Observación"
+              [ngModel]="punto.observacion"
+              (ngModelChange)="actualizarPunto($index, 'observacion', $event)"
+            />
+            <div class="punto-card__acciones">
+              @if (!soloLectura()) {
+                <app-button variant="outline" size="sm" (clicked)="abrirMapaModal($index)">
+                  Elegir en mapa
+                </app-button>
+              }
+              <button
+                type="button"
+                class="link-maps"
+                (click)="abrirGoogleMaps(punto.latitud, punto.longitud)"
+              >
+                Ver en Google Maps
+              </button>
+            </div>
+          </article>
+        }
+      </section>
+    }
+  }
+
+  <footer class="form-drawer__footer">
+    <app-button variant="outline" size="md" (clicked)="cerrarDrawer()">Cancelar</app-button>
+    @if (drawerModo() !== 'ver') {
+      <app-button variant="primary" size="md" (clicked)="guardarDrawer()">Guardar</app-button>
+    }
+  </footer>
+</app-side-drawer>
+
+<app-map-picker-modal
+  [abierto]="mapModalAbierto()"
+  [titulo]="mapModalTitulo()"
+  [latitud]="mapModalLat()"
+  [longitud]="mapModalLng()"
+  (cerrar)="cerrarMapaModal()"
+  (confirmar)="confirmarMapaModal($event)"
+/>

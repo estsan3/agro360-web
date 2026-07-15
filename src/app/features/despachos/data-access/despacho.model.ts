@@ -76,8 +76,25 @@ export interface TransportistaCatalogo {
   choferes: ChoferCatalogo[];
 }
 
+export interface PuntoEntradaCatalogo {
+  id: string;
+  nombre: string;
+  orden: number;
+  latitud: number;
+  longitud: number;
+  observacion: string;
+}
+
+export interface CampoCatalogo {
+  id: string;
+  nombre: string;
+  puntosEntrada?: PuntoEntradaCatalogo[];
+  /** Alias snake_case del mock API */
+  puntos_entrada?: PuntoEntradaCatalogo[];
+}
+
 export interface Catalogos {
-  productores: { id: string; nombre: string; campos: { id: string; nombre: string }[] }[];
+  productores: { id: string; nombre: string; campos: CampoCatalogo[] }[];
   administradores: { id: string; nombre: string }[];
   vendedores: { id: string; nombre: string }[];
   materiales: string[];

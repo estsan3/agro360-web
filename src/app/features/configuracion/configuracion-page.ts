@@ -90,13 +90,6 @@ export class ConfiguracionPage {
     ),
   );
 
-  protected readonly productorOptions = computed<SelectOption[]>(() =>
-    (this.despachoStore.catalogos().data?.productores ?? []).map((p) => ({
-      value: p.id,
-      label: p.nombre,
-    })),
-  );
-
   // --- Formularios ---
   protected readonly usuarioForm = this.fb.group({
     nombre: ['', Validators.required],
@@ -117,9 +110,6 @@ export class ConfiguracionPage {
   ];
 
   // Campos de alta de catálogos (template-driven, efímeros)
-  protected nuevoProductor = '';
-  protected campoProductorId = '';
-  protected nuevoCampo = '';
   protected nuevoVendedor = '';
   protected nuevoMaterial = '';
 
@@ -169,16 +159,6 @@ export class ConfiguracionPage {
   protected agregarCatalogo(tipo: TipoCatalogo, body: Record<string, string>): void {
     this.configService.agregarCatalogo(tipo, body).subscribe(() => {
       this.despachoStore.recargarCatalogos();
-    });
-  }
-
-  protected agregarCampo(): void {
-    if (!this.campoProductorId || !this.nuevoCampo.trim()) {
-      return;
-    }
-    this.configService.agregarCampo(this.campoProductorId, this.nuevoCampo.trim()).subscribe(() => {
-      this.despachoStore.recargarCatalogos();
-      this.nuevoCampo = '';
     });
   }
 

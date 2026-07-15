@@ -113,58 +113,6 @@
         @if (despachoStore.catalogos().data; as catalogos) {
           <div class="catalogos">
             <div class="card">
-              <h2>Productores y campos</h2>
-              <ul class="lista">
-                @for (productor of catalogos.productores; track productor.id) {
-                  <li>
-                    <div class="lista__item">
-                      <strong>{{ productor.nombre }}</strong>
-                      <button
-                        class="lista__delete"
-                        type="button"
-                        [attr.aria-label]="'Eliminar ' + productor.nombre"
-                        (click)="eliminarCatalogo('productores', productor.id)"
-                      >
-                        <app-icon name="x" />
-                      </button>
-                    </div>
-                    <div class="chips">
-                      @for (campo of productor.campos; track campo.id) {
-                        <span class="chip">{{ campo.nombre }}</span>
-                      }
-                    </div>
-                  </li>
-                }
-              </ul>
-              <div class="add-form">
-                <input placeholder="Nuevo productor" [(ngModel)]="nuevoProductor" />
-                <app-button
-                  variant="outline"
-                  size="md"
-                  (clicked)="
-                    nuevoProductor.trim() &&
-                      agregarCatalogo('productores', { nombre: nuevoProductor.trim() });
-                    nuevoProductor = ''
-                  "
-                >
-                  <app-icon name="plus" />
-                </app-button>
-              </div>
-              <div class="add-form">
-                <select [(ngModel)]="campoProductorId">
-                  <option value="">Productor…</option>
-                  @for (option of productorOptions(); track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
-                  }
-                </select>
-                <input placeholder="Nuevo campo" [(ngModel)]="nuevoCampo" />
-                <app-button variant="outline" size="md" (clicked)="agregarCampo()">
-                  <app-icon name="plus" />
-                </app-button>
-              </div>
-            </div>
-
-            <div class="card">
               <h2>Vendedores</h2>
               <ul class="lista">
                 @for (vendedor of catalogos.vendedores; track vendedor.id) {

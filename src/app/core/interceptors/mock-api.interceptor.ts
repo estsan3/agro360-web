@@ -14,6 +14,7 @@ import {
   MockUsuario,
 } from './mock-data';
 import { manejarMockTransportistas } from './mock-transportistas-handler';
+import { manejarMockProductores, obtenerCatalogoProductoresMock } from './mock-productores-handler';
 
 const MOCK_USER: User = {
   id: 'u-1',
@@ -60,9 +61,18 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
     path.startsWith('/transportistas') ||
     path === '/parametria/tipos-vehiculo' ||
     path === '/parametria/tipos-licencia';
+  const esMockProductores = path.startsWith('/productores');
 
-  if (!environment.mockApi && !esMockTransportistas) {
+  if (!environment.mockApi && !esMockTransportistas && !esMockProductores) {
     return next(req);
+  }
+
+  const respuestaProductores = manejarMockProductores(req, path);
+  if (respuestaProductores !== undefined) {
+    if (respuestaProductores === null) {
+      return fail(404);
+    }
+    return ok(respuestaProductores, esMockProductores ? 120 : undefined);
   }
 
   const respuestaTransportistas = manejarMockTransportistas(req, path);
@@ -97,7 +107,10 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   if (req.method === 'GET' && path === '/catalogos') {
-    return ok(catalogosDb);
+    return ok({
+      ...catalogosDb,
+      productores: obtenerCatalogoProductoresMock(),
+    });
   }
 
   // --- Configuración: usuarios ---

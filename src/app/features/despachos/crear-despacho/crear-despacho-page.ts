@@ -23,20 +23,20 @@ import { SelectInput, SelectOption } from '../../../shared/ui/select/select-inpu
 import { StateWrapper } from '../../../shared/ui/state-wrapper/state-wrapper';
 import { TextInput } from '../../../shared/ui/input/text-input';
 import { Toast } from '../../../shared/ui/toast/toast';
-import { Despacho, EstadoDespacho, NuevoDespacho } from '../data-access/despacho.model';
+import {
+  Despacho,
+  EstadoDespacho,
+  NuevoDespacho,
+  PuntoEntradaCatalogo,
+} from '../data-access/despacho.model';
 import { DespachoStore } from '../data-access/despacho.store';
 
-// TODO(backend): las entradas deberían venir por campo desde el catálogo
-const ENTRADAS_CAMPO: SelectOption[] = [
-  {
-    value: 'Entrada Norte (Lat: -32.9442, Lng: -60.6505)',
-    label: 'Entrada Norte (Lat: -32.9442, Lng: -60.6505)',
-  },
-  {
-    value: 'Entrada Sur (Lat: -33.0100, Lng: -60.7200)',
-    label: 'Entrada Sur (Lat: -33.0100, Lng: -60.7200)',
-  },
-];
+function puntosDeCampo(campo: {
+  puntosEntrada?: PuntoEntradaCatalogo[];
+  puntos_entrada?: PuntoEntradaCatalogo[];
+}): PuntoEntradaCatalogo[] {
+  return campo.puntosEntrada ?? campo.puntos_entrada ?? [];
+}
 
 type ViajeGroup = FormGroup<{
   choferId: FormControl<string>;
@@ -78,11 +78,22 @@ export class CrearDespachoPage {
   // Une las entradas conocidas con la del borrador cargado (si difiere)
   private readonly entradaExtra = signal<string | null>(null);
   protected readonly entradaOptions = computed<SelectOption[]>(() => {
+    const productor = (this.catalogos().data?.productores ?? []).find(
+      (p) => p.id === this.productorSeleccionado(),
+    );
+    const campo = productor?.campos.find((c) => c.id === this.campoSeleccionado());
+    const opciones = puntosDeCampo(campo ?? {})
+      .slice()
+      .sort((a, b) => a.orden - b.orden)
+      .map((p) => ({
+        value: p.id,
+        label: `${p.nombre} (Lat: ${p.latitud}, Lng: ${p.longitud})`,
+      }));
     const extra = this.entradaExtra();
-    if (extra && !ENTRADAS_CAMPO.some((opcion) => opcion.value === extra)) {
-      return [{ value: extra, label: extra }, ...ENTRADAS_CAMPO];
+    if (extra && !opciones.some((opcion) => opcion.value === extra)) {
+      return [{ value: extra, label: extra }, ...opciones];
     }
-    return ENTRADAS_CAMPO;
+    return opciones;
   });
 
   /** Modo edición de borrador (?borrador=<id>) */
@@ -134,6 +145,9 @@ export class CrearDespachoPage {
   private readonly productorSeleccionado = toSignal(this.form.controls.productorId.valueChanges, {
     initialValue: '',
   });
+  private readonly campoSeleccionado = toSignal(this.form.controls.campoId.valueChanges, {
+    initialValue: '',
+  });
   protected readonly campoOptions = computed<SelectOption[]>(() => {
     const productor = (this.catalogos().data?.productores ?? []).find(
       (p) => p.id === this.productorSeleccionado(),
@@ -149,6 +163,11 @@ export class CrearDespachoPage {
       const campo = this.form.controls.campoId;
       campo.reset('');
       campo.enable();
+      this.form.controls.entradaCampo.reset('');
+    });
+
+    this.form.controls.campoId.valueChanges.subscribe(() => {
+      this.form.controls.entradaCampo.reset('');
     });
 
     this.agregarViaje();
