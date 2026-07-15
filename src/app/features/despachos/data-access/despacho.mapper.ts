@@ -57,7 +57,7 @@ export function toCrearDespachoDto(input: NuevoDespacho): CrearDespachoDto {
     administrador_id: input.administradorId,
     vendedor_id: input.vendedorId,
     fecha_inicio: input.fechaInicio,
-    fecha_llegada_estimada: input.fechaLlegadaEstimada,
+    fecha_llegada_estimada: input.fechaLlegadaEstimada || input.fechaInicio,
     estado: input.estado,
     viajes: input.viajes.map((viaje) => ({
       chofer_id: viaje.choferId,
