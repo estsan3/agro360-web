@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-export type KpiTone = 'brand' | 'orange' | 'amber' | 'red' | 'green';
+export type KpiTone = 'brand' | 'neutral' | 'orange' | 'amber' | 'red' | 'green';
 
 /**
  * Card de KPI del kit Agro360 (Figma: UI Kit Gestión → Card / Reportería,

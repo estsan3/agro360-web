@@ -1,6 +1,8 @@
 <div
   class="kpi"
   [class.kpi--dark]="variant() === 'dark'"
+  [class.kpi--brand]="tone() === 'brand' && variant() !== 'dark'"
+  [class.kpi--neutral]="tone() === 'neutral'"
   [class.kpi--orange]="tone() === 'orange'"
   [class.kpi--amber]="tone() === 'amber'"
   [class.kpi--red]="tone() === 'red'"

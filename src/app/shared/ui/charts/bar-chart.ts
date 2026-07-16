@@ -30,10 +30,12 @@ const RADIUS = 4; // redondeo solo en el extremo del dato (arriba)
 })
 export class BarChart {
   readonly data = input.required<ChartDatum[]>();
+  /** Índice en la paleta del kit (0–3). */
+  readonly colorIndex = input(0);
 
   protected readonly width = WIDTH;
   protected readonly height = HEIGHT;
-  protected readonly color = CHART_COLORS[0];
+  protected readonly color = computed(() => CHART_COLORS[this.colorIndex() % CHART_COLORS.length]);
   protected readonly plotHeight = HEIGHT - PADDING_BOTTOM - PADDING_TOP;
   protected readonly baseline = HEIGHT - PADDING_BOTTOM;
 
@@ -66,7 +68,15 @@ export class BarChart {
         `V ${this.baseline}`,
         'Z',
       ].join(' ');
-      return { label: datum.label, value: datum.value, x, y, width: barWidth, height, path };
+      return {
+        label: datum.label.length > 14 ? `${datum.label.slice(0, 12)}…` : datum.label,
+        value: datum.value,
+        x,
+        y,
+        width: barWidth,
+        height,
+        path,
+      };
     });
   });
 }

@@ -1,4 +1,12 @@
 <section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Reportería</h1>
+      <p>Análisis operativo de viajes, volumen y desempeño</p>
+    </div>
+    <span class="page__periodo">{{ rangoFiltroTexto() }}</span>
+  </header>
+
   <nav class="tabs" role="tablist">
     <button
       type="button"
@@ -27,16 +35,17 @@
     [error]="despachos().error ?? ''"
     [skeletonRows]="4"
   >
-    <!-- Slicers globales (Power BI) -->
     <div class="card slicers">
       <div class="card__head">
         <div>
-          <h2>Filtros de análisis</h2>
-          <p>Los slicers actualizan el dashboard y el generador en vivo</p>
+          <h2>Filtros</h2>
+          <p>Aplican al dashboard y al generador en tiempo real</p>
         </div>
-        <app-button variant="outline" size="md" (clicked)="limpiarFiltros()">
-          Limpiar filtros
-        </app-button>
+        @if (hayFiltrosActivos()) {
+          <app-button variant="outline" size="md" (clicked)="limpiarFiltros()">
+            Limpiar
+          </app-button>
+        }
       </div>
       <form class="filtros" [formGroup]="filtrosForm">
         <app-text-input label="Desde" type="date" formControlName="fechaDesde" />
@@ -89,7 +98,7 @@
 
     @if (hayFiltrosActivos()) {
       <div class="filtros-activos">
-        <span class="filtros-activos__label">Filtros activos:</span>
+        <span class="filtros-activos__label">Activos</span>
         @for (chip of etiquetasFiltrosActivos(); track chip) {
           <span class="filtros-activos__chip">{{ chip }}</span>
         }
@@ -98,194 +107,245 @@
 
     @if (seccion() === 'dashboard') {
       <div class="dash">
-        <div class="dash__kpis">
-          <app-kpi-card
-            variant="dark"
-            layout="stat"
-            label="Valor transportado"
-            [value]="'$' + (recaudacion() | number: '1.0-0')"
-            [trend]="avancePorcentaje() + '% avance'"
-            trendTone="neutral"
-            [detail]="(toneladasCompletadas() | number: '1.0-1') + ' tn completadas'"
-          >
-            <app-icon name="dollar" />
-          </app-kpi-card>
-          <app-kpi-card
-            layout="stat"
-            label="Viajes analizados"
-            [value]="'' + totalViajes()"
-            [trend]="campaniasUnicas() + ' campañas'"
-            trendTone="neutral"
-            [detail]="'Prom. ' + promedioToneladas() + ' tn/viaje'"
-          >
-            <app-icon name="truck" />
-          </app-kpi-card>
-          <app-kpi-card
-            layout="stat"
-            label="Toneladas totales"
-            [value]="(totalToneladas() | number: '1.0-1') + ' tn'"
-            [trend]="rangoFiltroTexto()"
-            trendTone="neutral"
-          >
-            <app-icon name="list" />
-          </app-kpi-card>
-          <app-kpi-card
-            layout="stat"
-            tone="green"
-            label="Completados"
-            [value]="'' + completados()"
-            [trend]="avancePorcentaje() + '%'"
-            trendTone="neutral"
-          >
-            <app-icon name="check-circle" />
-          </app-kpi-card>
-          <app-kpi-card
-            layout="stat"
-            tone="orange"
-            label="En ruta"
-            [value]="'' + enViaje()"
-            [trend]="pendientes() + ' pendientes'"
-            trendTone="neutral"
-          >
-            <app-icon name="truck" />
-          </app-kpi-card>
-          <app-kpi-card
-            layout="stat"
-            tone="red"
-            label="Retrasados"
-            [value]="'' + retrasados()"
-            trend="Requieren acción"
-            trendTone="bad"
-          >
-            <app-icon name="alert-triangle" />
-          </app-kpi-card>
-        </div>
+        <section class="dash__section">
+          <div class="dash__section-head">
+            <h2>Indicadores clave</h2>
+            <p>{{ totalViajes() }} viajes · {{ totalToneladas() | number: '1.0-1' }} tn</p>
+          </div>
+          <div class="dash__kpis">
+            <app-kpi-card
+              variant="dark"
+              label="Valor transportado"
+              [value]="'$' + (recaudacion() | number: '1.0-0')"
+              [trend]="avancePorcentaje() + '% avance'"
+              trendTone="neutral"
+              [detail]="(toneladasCompletadas() | number: '1.0-1') + ' tn completadas'"
+            >
+              <app-icon name="dollar" />
+            </app-kpi-card>
+            <app-kpi-card
+              tone="brand"
+              label="Viajes analizados"
+              [value]="'' + totalViajes()"
+              [trend]="campaniasUnicas() + ' campañas'"
+              trendTone="neutral"
+              [detail]="'Prom. ' + promedioToneladas() + ' tn/viaje'"
+            >
+              <app-icon name="truck" />
+            </app-kpi-card>
+            <app-kpi-card
+              tone="neutral"
+              label="Toneladas totales"
+              [value]="(totalToneladas() | number: '1.0-1') + ' tn'"
+              [trend]="rangoFiltroTexto()"
+              trendTone="neutral"
+            >
+              <app-icon name="list" />
+            </app-kpi-card>
+            <app-kpi-card
+              tone="green"
+              label="Completados"
+              [value]="'' + completados()"
+              [trend]="avancePorcentaje() + '%'"
+              trendTone="neutral"
+            >
+              <app-icon name="check-circle" />
+            </app-kpi-card>
+            <app-kpi-card
+              tone="orange"
+              label="En ruta"
+              [value]="'' + enViaje()"
+              [trend]="pendientes() + ' pendientes'"
+              trendTone="neutral"
+            >
+              <app-icon name="truck" />
+            </app-kpi-card>
+            <app-kpi-card
+              tone="red"
+              label="Retrasados"
+              [value]="'' + retrasados()"
+              trend="Requieren acción"
+              trendTone="bad"
+            >
+              <app-icon name="alert-triangle" />
+            </app-kpi-card>
+          </div>
+        </section>
 
-        <div class="dash__grid">
+        <section class="dash__section">
+          <div class="dash__section-head">
+            <h2>Volumen por campo</h2>
+            <p>Evolución mensual de los tres campos con mayor tonelaje</p>
+          </div>
           <article class="chart-card chart-card--wide">
-            <header class="chart-card__head">
-              <div>
-                <h2>Evolución de toneladas por campo</h2>
-                <p>Comparativa mensual de los dos campos con mayor volumen</p>
-              </div>
-              <span class="chart-card__rango">{{ rangoFiltroTexto() }}</span>
-            </header>
-            <app-grouped-bar-chart [data]="viajesPorCampoMes()" [series]="camposSeries()" />
-            <p class="chart-card__hint">
-              Clic en leyenda de material o estado para filtrar el tablero
-            </p>
-          </article>
-
-          <article class="chart-card chart-card--gris">
-            <header class="chart-card__head">
-              <div>
-                <h2>Estado operativo</h2>
-                <p>Distribución de viajes según filtros</p>
-              </div>
-            </header>
-            <app-donut-chart
-              [data]="viajesPorEstado()"
-              centerLabel="Viajes"
-              (segmentClick)="aplicarFiltroGrafico('estado', $event)"
-            />
-          </article>
-
-          <article class="chart-card chart-card--gris">
-            <header class="chart-card__head">
-              <div>
-                <h2>Material transportado</h2>
-                <p>Clic en segmento para filtrar</p>
-              </div>
-            </header>
-            <app-donut-chart
-              [data]="viajesPorMaterial()"
-              centerLabel="Viajes"
-              (segmentClick)="aplicarFiltroGrafico('material', $event)"
-            />
-          </article>
-
-          <article class="chart-card">
-            <header class="chart-card__head">
-              <div>
-                <h2>Top campos por toneladas</h2>
-                <p>Ranking de volumen en el período</p>
-              </div>
-            </header>
-            <app-bar-chart [data]="topCamposToneladas()" />
-          </article>
-
-          <article class="chart-card chart-card--gris">
-            <header class="chart-card__head">
-              <div>
-                <h2>Destinos principales</h2>
-                <p>Participación sobre el total filtrado</p>
-              </div>
-            </header>
-            <div class="destinos">
-              <app-bubble-chart [data]="viajesPorDestino()" />
-              <ul class="destinos__lista">
-                @for (destino of viajesPorDestino().slice(0, 5); track destino.label) {
-                  <li>
-                    <button
-                      type="button"
-                      class="destinos__btn"
-                      (click)="aplicarFiltroGrafico('destino', destino.label)"
-                    >
-                      <div class="destinos__fila">
-                        <span>{{ destino.label }}</span>
-                        <strong>{{ porcentajeDestino(destino.value) }}%</strong>
-                      </div>
-                      <div class="destinos__barra">
-                        <div
-                          class="destinos__fill"
-                          [style.width.%]="porcentajeDestino(destino.value)"
-                        ></div>
-                      </div>
-                    </button>
-                  </li>
-                }
-              </ul>
+            <div class="dash__evolucion">
+              @for (item of evolucionTopCampos(); track item.campo; let i = $index) {
+                <div class="dash__evolucion-item">
+                  <header class="dash__evolucion-head">
+                    <div>
+                      <span class="dash__evolucion-rank">#{{ i + 1 }}</span>
+                      <h3>{{ item.campo }}</h3>
+                    </div>
+                    <strong>{{ item.totalTn | number: '1.0-1' }} tn</strong>
+                  </header>
+                  <app-bar-chart [data]="item.datos" [colorIndex]="i" />
+                </div>
+              } @empty {
+                <div class="empty">
+                  <p>Sin datos de volumen para el período seleccionado</p>
+                </div>
+              }
             </div>
           </article>
-        </div>
+        </section>
 
-        <div class="dash__tablas">
-          <article class="card">
-            <div class="card__head">
-              <div>
-                <h2>Ranking de campañas</h2>
-                <p>Priorizá seguimiento por volumen y alertas</p>
-              </div>
-              <app-button variant="outline" size="md" (clicked)="verDetalleTabla()">
-                Ver detalle
-              </app-button>
-            </div>
-            <app-table
-              [columns]="rankingCampaniaColumns"
-              [rows]="rankingCampanias()"
-              headerVariant="soft"
-              layout="fixed"
-            />
-          </article>
+        <section class="dash__section">
+          <div class="dash__section-head">
+            <h2>Distribución operativa</h2>
+            <p>Clic en un segmento o destino para filtrar el tablero</p>
+          </div>
+          <div class="dash__grid">
+            <article class="chart-card">
+              <header class="chart-card__head">
+                <div>
+                  <h3>Estado de viajes</h3>
+                  <p>Distribución según filtros activos</p>
+                </div>
+              </header>
+              <app-donut-chart
+                [data]="viajesPorEstado()"
+                centerLabel="Viajes"
+                (segmentClick)="aplicarFiltroGrafico('estado', $event)"
+              />
+            </article>
 
-          <article class="card">
-            <div class="card__head">
-              <div>
-                <h2>Top choferes</h2>
-                <p>Desempeño por toneladas transportadas</p>
+            <article class="chart-card">
+              <header class="chart-card__head">
+                <div>
+                  <h3>Material transportado</h3>
+                  <p>Participación por tipo de cultivo</p>
+                </div>
+              </header>
+              <app-donut-chart
+                [data]="viajesPorMaterial()"
+                centerLabel="Viajes"
+                (segmentClick)="aplicarFiltroGrafico('material', $event)"
+              />
+            </article>
+
+            <article class="chart-card">
+              <header class="chart-card__head">
+                <div>
+                  <h3>Top campos</h3>
+                  <p>Ranking de volumen en el período</p>
+                </div>
+              </header>
+              @if (topCamposToneladas().length) {
+                <app-bar-chart [data]="topCamposToneladas()" />
+              } @else {
+                <div class="empty">
+                  <p>Sin campos con volumen en el período</p>
+                </div>
+              }
+            </article>
+
+            <article class="chart-card">
+              <header class="chart-card__head">
+                <div>
+                  <h3>Destinos principales</h3>
+                  <p>Participación sobre el total filtrado</p>
+                </div>
+              </header>
+              @if (viajesPorDestino().length) {
+                <div class="destinos">
+                  <app-bubble-chart [data]="viajesPorDestino()" />
+                  <ul class="destinos__lista">
+                    @for (destino of viajesPorDestino().slice(0, 5); track destino.label) {
+                      <li>
+                        <button
+                          type="button"
+                          class="destinos__btn"
+                          (click)="aplicarFiltroGrafico('destino', destino.label)"
+                        >
+                          <div class="destinos__fila">
+                            <span>{{ destino.label }}</span>
+                            <strong>{{ porcentajeDestino(destino.value) }}%</strong>
+                          </div>
+                          <div class="destinos__barra">
+                            <div
+                              class="destinos__fill"
+                              [style.width.%]="porcentajeDestino(destino.value)"
+                            ></div>
+                          </div>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              } @else {
+                <div class="empty">
+                  <p>Sin destinos para mostrar</p>
+                </div>
+              }
+            </article>
+          </div>
+        </section>
+
+        <section class="dash__section">
+          <div class="dash__section-head">
+            <h2>Rankings</h2>
+            <p>Campañas y choferes priorizados por volumen</p>
+          </div>
+          <div class="dash__tablas">
+            <article class="card">
+              <div class="card__head">
+                <div>
+                  <h2>Campañas</h2>
+                  <p>Volumen, avance y alertas</p>
+                </div>
+                <app-button variant="outline" size="md" (clicked)="verDetalleTabla()">
+                  Ver detalle
+                </app-button>
               </div>
-            </div>
-            <app-table
-              [columns]="rankingChoferColumns"
-              [rows]="rankingChoferes()"
-              headerVariant="soft"
-              layout="fixed"
-            />
-          </article>
-        </div>
+              @if (rankingCampanias().length) {
+                <app-table
+                  [columns]="rankingCampaniaColumns"
+                  [rows]="rankingCampanias()"
+                  headerVariant="soft"
+                  layout="fixed"
+                />
+              } @else {
+                <div class="empty">
+                  <p>Sin campañas en el período filtrado</p>
+                </div>
+              }
+            </article>
+
+            <article class="card">
+              <div class="card__head">
+                <div>
+                  <h2>Choferes</h2>
+                  <p>Desempeño por toneladas transportadas</p>
+                </div>
+              </div>
+              @if (rankingChoferes().length) {
+                <app-table
+                  [columns]="rankingChoferColumns"
+                  [rows]="rankingChoferes()"
+                  headerVariant="soft"
+                  layout="fixed"
+                />
+              } @else {
+                <div class="empty">
+                  <p>Sin choferes con viajes en el período</p>
+                </div>
+              }
+            </article>
+          </div>
+        </section>
       </div>
     } @else {
-      <div class="card">
+      <div class="card generador">
         <div class="card__head">
           <div>
             <h2>Resultados detallados</h2>
@@ -309,27 +369,36 @@
           </div>
         </div>
 
-        <app-table [columns]="reporteColumns" [rows]="filasTabla()" headerVariant="soft">
-          <ng-template appTableCell="estado" let-row>
-            @switch (row['estado']) {
-              @case ('borrador') {
-                <app-badge variant="neutral">Borrador</app-badge>
+        @if (filasTabla().length) {
+          <app-table [columns]="reporteColumns" [rows]="filasTabla()" headerVariant="soft">
+            <ng-template appTableCell="estado" let-row>
+              @switch (row['estado']) {
+                @case ('borrador') {
+                  <app-badge variant="neutral">Borrador</app-badge>
+                }
+                @case ('en-viaje') {
+                  <app-badge variant="info">En viaje</app-badge>
+                }
+                @case ('pendiente') {
+                  <app-badge variant="warning">Pendiente</app-badge>
+                }
+                @case ('retrasado') {
+                  <app-badge variant="danger">Retrasado</app-badge>
+                }
+                @case ('completado') {
+                  <app-badge variant="success">Completado</app-badge>
+                }
               }
-              @case ('en-viaje') {
-                <app-badge variant="info">En viaje</app-badge>
-              }
-              @case ('pendiente') {
-                <app-badge variant="warning">Pendiente</app-badge>
-              }
-              @case ('retrasado') {
-                <app-badge variant="danger">Retrasado</app-badge>
-              }
-              @case ('completado') {
-                <app-badge variant="success">Completado</app-badge>
-              }
-            }
-          </ng-template>
-        </app-table>
+            </ng-template>
+          </app-table>
+        } @else {
+          <div class="empty empty--panel">
+            <p>No hay viajes que coincidan con los filtros seleccionados</p>
+            <app-button variant="outline" size="md" (clicked)="limpiarFiltros()">
+              Limpiar filtros
+            </app-button>
+          </div>
+        }
       </div>
     }
   </app-state-wrapper>

@@ -10,7 +10,6 @@ import { BarChart } from '../../../shared/ui/charts/bar-chart';
 import { BubbleChart } from '../../../shared/ui/charts/bubble-chart';
 import { ChartDatum } from '../../../shared/ui/charts/chart-colors';
 import { DonutChart } from '../../../shared/ui/charts/donut-chart';
-import { GroupedBarChart, GroupedBarDatum } from '../../../shared/ui/charts/grouped-bar-chart';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { KpiCard } from '../../../shared/ui/kpi-card/kpi-card';
 import { SelectInput, SelectOption } from '../../../shared/ui/select/select-input';
@@ -58,6 +57,12 @@ interface FilaReporte {
   toneladas: number;
   estado: EstadoViaje;
   fecha: Date;
+}
+
+interface EvolucionCampoVm {
+  campo: string;
+  totalTn: number;
+  datos: ChartDatum[];
 }
 
 interface RankingCampania {
@@ -118,7 +123,6 @@ const RANKING_CHOFER_COLUMNS: TableColumn[] = [
     BubbleChart,
     Button,
     DonutChart,
-    GroupedBarChart,
     Icon,
     KpiCard,
     SelectInput,
@@ -307,14 +311,21 @@ export class ReportesPage {
 
   protected readonly rangoFiltroTexto = computed(() => {
     const f = this.filtros();
+    const formatear = (iso: string) => {
+      const fecha = new Date(`${iso}T12:00:00`);
+      if (Number.isNaN(fecha.getTime())) {
+        return iso;
+      }
+      return `${String(fecha.getDate()).padStart(2, '0')} ${MESES_CORTOS[fecha.getMonth()]} ${fecha.getFullYear()}`;
+    };
     if (f.fechaDesde && f.fechaHasta) {
-      return `${f.fechaDesde} → ${f.fechaHasta}`;
+      return `${formatear(f.fechaDesde)} – ${formatear(f.fechaHasta)}`;
     }
     if (f.fechaDesde) {
-      return `Desde ${f.fechaDesde}`;
+      return `Desde ${formatear(f.fechaDesde)}`;
     }
     if (f.fechaHasta) {
-      return `Hasta ${f.fechaHasta}`;
+      return `Hasta ${formatear(f.fechaHasta)}`;
     }
     return 'Todo el período';
   });
@@ -387,34 +398,42 @@ export class ReportesPage {
       .sort((a, b) => orden.indexOf(a.label) - orden.indexOf(b.label));
   });
 
-  protected readonly camposSeries = computed<[string, string]>(() => {
+  protected readonly evolucionTopCampos = computed<EvolucionCampoVm[]>(() => {
     const totales = new Map<string, number>();
     for (const fila of this.filasFiltradas()) {
       totales.set(fila.campo, (totales.get(fila.campo) ?? 0) + fila.toneladas);
     }
-    const top = [...totales.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2);
-    return [top[0]?.[0] ?? '—', top[1]?.[0] ?? '—'];
-  });
+    const topCampos = [...totales.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([campo]) => campo);
 
-  protected readonly viajesPorCampoMes = computed<GroupedBarDatum[]>(() => {
-    const [serie1, serie2] = this.camposSeries();
-    const meses = new Map<string, GroupedBarDatum>();
-
-    for (const fila of this.filasFiltradas()) {
-      if (fila.campo !== serie1 && fila.campo !== serie2) {
-        continue;
+    return topCampos.map((campo) => {
+      const meses = new Map<string, ChartDatum>();
+      let totalTn = 0;
+      for (const fila of this.filasFiltradas()) {
+        if (fila.campo !== campo) {
+          continue;
+        }
+        totalTn += fila.toneladas;
+        const clave = `${fila.fecha.getFullYear()}-${String(fila.fecha.getMonth()).padStart(2, '0')}`;
+        if (!meses.has(clave)) {
+          meses.set(clave, {
+            label: MESES_CORTOS[fila.fecha.getMonth()],
+            value: 0,
+          });
+        }
+        const entrada = meses.get(clave)!;
+        entrada.value = Math.round((entrada.value + fila.toneladas) * 10) / 10;
       }
-      const clave = `${fila.fecha.getFullYear()}-${String(fila.fecha.getMonth()).padStart(2, '0')}`;
-      if (!meses.has(clave)) {
-        meses.set(clave, {
-          label: MESES_CORTOS[fila.fecha.getMonth()],
-          values: [0, 0],
-        });
-      }
-      const entrada = meses.get(clave)!;
-      entrada.values[fila.campo === serie1 ? 0 : 1] += fila.toneladas;
-    }
-    return [...meses.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([, valor]) => valor);
+      return {
+        campo,
+        totalTn: Math.round(totalTn * 10) / 10,
+        datos: [...meses.entries()]
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([, valor]) => valor),
+      };
+    });
   });
 
   protected readonly topCamposToneladas = computed<ChartDatum[]>(() => {
