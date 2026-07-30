@@ -13,6 +13,7 @@ const TITULOS: Record<string, string> = {
   reportes: 'Reportería',
   mensajeria: 'Mensajería',
   transportistas: 'Transportistas',
+  liquidaciones: 'Cuenta corriente',
   productores: 'Productores',
   configuracion: 'Configuración',
 };
@@ -24,6 +25,7 @@ const NAV_ITEMS: SidebarItem[] = [
   { id: 'mensajeria', icon: 'message', label: 'Mensajería' },
   { id: 'borradores', icon: 'list', label: 'Borradores' },
   { id: 'transportistas', icon: 'user', label: 'Transportistas', adminOnly: true },
+  { id: 'liquidaciones', icon: 'dollar', label: 'Cuenta corriente', adminOnly: true },
   { id: 'productores', icon: 'user', label: 'Productores', adminOnly: true },
   { id: 'configuracion', icon: 'settings', label: 'Configuración', section: 'bottom' },
 ];

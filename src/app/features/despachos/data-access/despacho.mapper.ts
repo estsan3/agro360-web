@@ -12,6 +12,7 @@ import {
 
 const ESTADO_VIAJE_MAP: Record<ViajeDto['estado'], EstadoViaje> = {
   borrador: 'borrador',
+  en_busqueda_transportistas: 'en-busqueda-transportistas',
   pendiente: 'pendiente',
   en_viaje: 'en-viaje',
   retrasado: 'retrasado',
@@ -52,6 +53,12 @@ export function toDespacho(dto: DespachoDto): Despacho {
     fechaLlegadaEstimada: parseFecha(dto.fecha_llegada_estimada),
     observaciones: dto.observaciones ?? '',
     estado: dto.estado,
+    dadorViaje: dto.dador_viaje ?? '',
+    tarifaLlena: dto.tarifa_llena ?? false,
+    tarifaPorTn: dto.tarifa_por_tn ?? null,
+    distanciaKm: dto.distancia_km ?? null,
+    cuando: dto.cuando ?? 'ahora',
+    cuandoFecha: dto.cuando_fecha ?? null,
     viajes: dto.viajes.map(toViaje),
   };
 }
@@ -69,8 +76,14 @@ export function toCrearDespachoDto(input: NuevoDespacho): CrearDespachoDto {
     fecha_inicio: input.fechaInicio,
     fecha_llegada_estimada: input.fechaLlegadaEstimada || input.fechaInicio,
     estado: input.estado === 'cerrado' ? 'activo' : input.estado,
+    dador_viaje: input.dadorViaje ?? '',
+    tarifa_llena: input.tarifaLlena ?? false,
+    tarifa_por_tn: input.tarifaLlena ? null : (input.tarifaPorTn ?? null),
+    distancia_km: input.distanciaKm ?? null,
+    cuando: input.cuando ?? 'ahora',
+    cuando_fecha: input.cuando === 'fecha' ? (input.cuandoFecha ?? null) : null,
     viajes: input.viajes.map((viaje) => ({
-      chofer_id: viaje.choferId,
+      chofer_id: viaje.choferId || null,
       ...(viaje.dominio ? { dominio: viaje.dominio.trim().toUpperCase() } : {}),
       destino: viaje.destino,
       toneladas: viaje.toneladas,

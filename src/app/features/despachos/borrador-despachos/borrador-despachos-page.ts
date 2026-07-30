@@ -22,6 +22,7 @@ interface BorradorVm {
   administrador: string;
   vendedor: string;
   desde: string;
+  enBusqueda: boolean;
   totalViajes: number;
   totalToneladas: number;
   viajes: Viaje[];
@@ -106,7 +107,11 @@ export class BorradorDespachosPage {
     const nombres = new Set<string>();
     for (const despacho of this.store.borradores()) {
       for (const viaje of despacho.viajes) {
-        if (viaje.estado === 'borrador' && viaje.chofer && viaje.chofer !== 'Sin asignar') {
+        if (
+          (viaje.estado === 'borrador' || viaje.estado === 'en-busqueda-transportistas') &&
+          viaje.chofer &&
+          viaje.chofer !== 'Sin asignar'
+        ) {
           nombres.add(viaje.chofer);
         }
       }
@@ -159,7 +164,9 @@ export class BorradorDespachosPage {
         if (hasta && despacho.fechaInicio > hasta) {
           return false;
         }
-        const viajesBorrador = despacho.viajes.filter((v) => v.estado === 'borrador');
+        const viajesBorrador = despacho.viajes.filter(
+          (v) => v.estado === 'borrador' || v.estado === 'en-busqueda-transportistas',
+        );
         if (f.chofer && !viajesBorrador.some((v) => v.chofer === f.chofer)) {
           return false;
         }
@@ -175,7 +182,10 @@ export class BorradorDespachosPage {
       .map((despacho) => {
         const productor = catalogos?.productores.find((p) => p.id === despacho.productorId);
         const campo = productor?.campos.find((c) => c.id === despacho.campoId);
-        const viajesBorrador = despacho.viajes.filter((viaje) => viaje.estado === 'borrador');
+        const viajesBorrador = despacho.viajes.filter(
+          (viaje) => viaje.estado === 'borrador' || viaje.estado === 'en-busqueda-transportistas',
+        );
+        const enBusqueda = despacho.viajes.some((v) => v.estado === 'en-busqueda-transportistas');
         return {
           id: despacho.id,
           codigo: `DSP-${despacho.id.replace(/\D/g, '').padStart(3, '0')}`,
@@ -186,6 +196,7 @@ export class BorradorDespachosPage {
             '—',
           vendedor: catalogos?.vendedores.find((v) => v.id === despacho.vendedorId)?.nombre ?? '—',
           desde: `${campo?.nombre ?? '—'}\n${despacho.origen}`,
+          enBusqueda,
           totalViajes: viajesBorrador.length,
           totalToneladas: viajesBorrador.reduce((sum, viaje) => sum + viaje.toneladas, 0),
           viajes: viajesBorrador,

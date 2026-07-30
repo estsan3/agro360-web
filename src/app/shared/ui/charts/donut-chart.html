@@ -23,16 +23,23 @@
   <ul class="donut__legend">
     @for (segment of segments(); track segment.label) {
       <li>
-        <span class="donut__dot" [style.background]="segment.color"></span>
-        <span class="donut__name">{{ segment.label }}</span>
-        <span class="donut__value">{{ segment.value | number }}</span>
-        @if (segment.trend) {
-          <span class="donut__chip" [class.donut__chip--bad]="segment.trend.startsWith('-')">
-            {{ segment.trend }}
-          </span>
-        } @else {
-          <span class="donut__percent">{{ segment.percent }}%</span>
-        }
+        <button
+          type="button"
+          class="donut__legend-btn"
+          [attr.aria-label]="'Filtrar por ' + segment.label"
+          (click)="segmentClick.emit(segment.label)"
+        >
+          <span class="donut__dot" [style.background]="segment.color"></span>
+          <span class="donut__name">{{ segment.label }}</span>
+          <span class="donut__value">{{ segment.value | number }}</span>
+          @if (segment.trend) {
+            <span class="donut__chip" [class.donut__chip--bad]="segment.trend.startsWith('-')">
+              {{ segment.trend }}
+            </span>
+          } @else {
+            <span class="donut__percent">{{ segment.percent }}%</span>
+          }
+        </button>
       </li>
     }
   </ul>

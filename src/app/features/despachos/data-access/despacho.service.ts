@@ -109,4 +109,40 @@ export class DespachoService {
       .get<CatalogosDto>(`${environment.apiBaseUrl}/catalogos`)
       .pipe(map(toCatalogos));
   }
+
+  buscarTransportistas(
+    despachoId: string,
+    oferta?: { destino: string; toneladas: number },
+  ): Observable<Despacho> {
+    const body = oferta ? { destino: oferta.destino, toneladas: oferta.toneladas } : {};
+    return this.http
+      .post<DespachoDto>(`${this.base}/${despachoId}/buscar-transportistas`, body)
+      .pipe(map(toDespacho));
+  }
+
+  resolverTarifaNacional(distanciaKm: number): Observable<{ precioPorTn: number }> {
+    return this.http
+      .post<{ precio_por_tn: number }>(`${this.base}/tarifas-nacionales/resolver`, {
+        distancia_km: distanciaKm,
+      })
+      .pipe(map((r) => ({ precioPorTn: r.precio_por_tn })));
+  }
+
+  listarTarifasNacionales(): Observable<
+    { id: string; kmDesde: number; kmHasta: number; precioPorTn: number; vigencia: string }[]
+  > {
+    return this.http
+      .get<import('./despacho.dto').TarifaNacionalDto[]>(`${this.base}/tarifas-nacionales`)
+      .pipe(
+        map((items) =>
+          items.map((t) => ({
+            id: t.id,
+            kmDesde: t.km_desde,
+            kmHasta: t.km_hasta,
+            precioPorTn: t.precio_por_tn,
+            vigencia: t.vigencia,
+          })),
+        ),
+      );
+  }
 }

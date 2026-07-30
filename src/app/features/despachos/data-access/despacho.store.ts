@@ -47,7 +47,9 @@ export class DespachoStore {
       .filter((despacho) => despacho.estado !== 'cerrado')
       .map((despacho) => ({
         ...despacho,
-        viajes: despacho.viajes.filter((viaje) => viaje.estado !== 'borrador'),
+        viajes: despacho.viajes.filter(
+          (viaje) => viaje.estado !== 'borrador' && viaje.estado !== 'en-busqueda-transportistas',
+        ),
       }))
       .filter((despacho) => despacho.estado === 'activo' || despacho.viajes.length > 0),
   );
@@ -93,6 +95,15 @@ export class DespachoStore {
   actualizarDespacho(id: string, input: NuevoDespacho): Observable<Despacho> {
     return this.api
       .actualizarDespacho(id, input)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  buscarTransportistas(
+    despachoId: string,
+    oferta?: { destino: string; toneladas: number },
+  ): Observable<Despacho> {
+    return this.api
+      .buscarTransportistas(despachoId, oferta)
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 

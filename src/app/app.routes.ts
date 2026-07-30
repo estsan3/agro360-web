@@ -46,6 +46,12 @@ export const routes: Routes = [
           import('./features/transportistas/transportistas-page').then((m) => m.TransportistasPage),
       },
       {
+        path: 'liquidaciones',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/liquidaciones/liquidaciones-page').then((m) => m.LiquidacionesPage),
+      },
+      {
         path: 'productores',
         canActivate: [adminGuard],
         loadComponent: () =>

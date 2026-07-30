@@ -12,7 +12,13 @@ export interface ViajeDto {
   dominio: string;
   destino: string;
   toneladas: number;
-  estado: 'borrador' | 'pendiente' | 'en_viaje' | 'retrasado' | 'completado';
+  estado:
+    | 'borrador'
+    | 'en_busqueda_transportistas'
+    | 'pendiente'
+    | 'en_viaje'
+    | 'retrasado'
+    | 'completado';
   progreso: number; // 0-100
   observaciones: string;
 }
@@ -31,7 +37,21 @@ export interface DespachoDto {
   fecha_llegada_estimada: string; // ISO date
   observaciones?: string;
   estado: 'borrador' | 'activo' | 'cerrado';
+  dador_viaje?: string;
+  tarifa_llena?: boolean;
+  tarifa_por_tn?: number | null;
+  distancia_km?: number | null;
+  cuando?: 'ahora' | 'manana' | 'fecha';
+  cuando_fecha?: string | null;
   viajes: ViajeDto[];
+}
+
+export interface TarifaNacionalDto {
+  id: string;
+  km_desde: number;
+  km_hasta: number;
+  precio_por_tn: number;
+  vigencia: string;
 }
 
 export interface CrearViajeDto {
@@ -63,8 +83,14 @@ export interface CrearDespachoDto {
   fecha_inicio: string;
   fecha_llegada_estimada: string;
   estado: 'borrador' | 'activo';
+  dador_viaje?: string;
+  tarifa_llena?: boolean;
+  tarifa_por_tn?: number | null;
+  distancia_km?: number | null;
+  cuando?: 'ahora' | 'manana' | 'fecha';
+  cuando_fecha?: string | null;
   viajes: {
-    chofer_id: string;
+    chofer_id?: string | null;
     dominio?: string;
     destino: string;
     toneladas: number;

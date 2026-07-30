@@ -68,23 +68,57 @@
   }
 
   &--dark {
+    position: relative;
+    overflow: hidden;
+    padding: t.$space-lg;
+    min-height: 116px;
     background: t.$color-primary-deep;
     border-color: transparent;
+    box-shadow: t.$shadow-md;
 
     .kpi__icon {
+      width: 64px;
+      height: 64px;
       background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 30px;
+      border-radius: t.$radius-lg;
     }
 
     .kpi__label {
+      font-size: 15px;
+      font-weight: ty.$font-weight-medium;
       color: rgba(255, 255, 255, 0.7);
     }
 
     .kpi__value {
       color: #fff;
+      font-size: 38px;
+      line-height: 1.1;
     }
 
     .kpi__trend {
+      font-size: 13px;
+      padding: 3px 10px;
+      border-radius: t.$radius-full;
+      background: rgba(255, 255, 255, 0.15);
       color: t.$color-accent-green;
+
+      &--bad {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fecaca;
+      }
+
+      &--neutral {
+        background: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.85);
+      }
+    }
+
+    .kpi__detail {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+      margin-top: 2px;
     }
   }
 
@@ -217,6 +251,14 @@
 
   &--orange {
     @include tone(#fdf0e3, #ea580c);
+  }
+
+  &--brand {
+    @include tone(t.$color-primary-light, t.$color-primary-dark);
+  }
+
+  &--neutral {
+    @include tone(t.$color-background-alt, t.$color-text);
   }
 
   &--amber {

@@ -1,8 +1,10 @@
 /**
  * Modelo de dominio del front (camelCase, fechas como Date).
  */
-export type EstadoViaje = 'borrador' | 'pendiente' | 'en-viaje' | 'retrasado' | 'completado';
+export type EstadoViaje =
+  'borrador' | 'en-busqueda-transportistas' | 'pendiente' | 'en-viaje' | 'retrasado' | 'completado';
 export type EstadoDespacho = 'borrador' | 'activo' | 'cerrado';
+export type CuandoDespacho = 'ahora' | 'manana' | 'fecha';
 
 export interface Viaje {
   id: string;
@@ -30,6 +32,12 @@ export interface Despacho {
   fechaLlegadaEstimada: Date;
   observaciones: string;
   estado: EstadoDespacho;
+  dadorViaje: string;
+  tarifaLlena: boolean;
+  tarifaPorTn: number | null;
+  distanciaKm: number | null;
+  cuando: CuandoDespacho;
+  cuandoFecha: string | null;
   viajes: Viaje[];
 }
 
@@ -66,7 +74,21 @@ export interface NuevoDespacho {
   fechaInicio: string;
   fechaLlegadaEstimada: string;
   estado: EstadoDespacho;
+  dadorViaje?: string;
+  tarifaLlena?: boolean;
+  tarifaPorTn?: number | null;
+  distanciaKm?: number | null;
+  cuando?: CuandoDespacho;
+  cuandoFecha?: string | null;
   viajes: NuevoViaje[];
+}
+
+export interface TarifaNacional {
+  id: string;
+  kmDesde: number;
+  kmHasta: number;
+  precioPorTn: number;
+  vigencia: string;
 }
 
 export interface CamionCatalogo {

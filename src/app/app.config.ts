@@ -1,7 +1,10 @@
+import { registerLocaleData } from '@angular/common';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import localeEsAr from '@angular/common/locales/es-AR';
 import {
   ApplicationConfig,
   inject,
+  LOCALE_ID,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
@@ -14,8 +17,11 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { mockApiInterceptor } from './core/interceptors/mock-api.interceptor';
 import { AuthStore } from './core/state/auth.store';
 
+registerLocaleData(localeEsAr);
+
 export const appConfig: ApplicationConfig = {
   providers: [
+    { provide: LOCALE_ID, useValue: 'es-AR' },
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),

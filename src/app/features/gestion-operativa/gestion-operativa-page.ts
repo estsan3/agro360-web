@@ -60,6 +60,7 @@ const VIAJES_COLUMNS: TableColumn[] = [
 
 const PROGRESS_VARIANT: Record<EstadoViaje, ProgressVariant> = {
   borrador: 'neutral',
+  'en-busqueda-transportistas': 'info',
   completado: 'success',
   'en-viaje': 'info',
   retrasado: 'danger',
@@ -68,6 +69,7 @@ const PROGRESS_VARIANT: Record<EstadoViaje, ProgressVariant> = {
 
 const ESTADO_LABEL: Record<EstadoViaje, string> = {
   borrador: 'Borrador',
+  'en-busqueda-transportistas': 'En búsqueda de transportistas',
   pendiente: 'Pendiente',
   'en-viaje': 'En viaje',
   retrasado: 'Retrasado',

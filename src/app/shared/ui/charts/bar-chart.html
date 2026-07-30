@@ -8,7 +8,7 @@
     <line class="bars__grid" x1="0" [attr.y1]="line" [attr.x2]="width" [attr.y2]="line" />
   }
   @for (bar of bars(); track bar.label) {
-    <path [attr.d]="bar.path" [attr.fill]="color">
+    <path [attr.d]="bar.path" [attr.fill]="color()">
       <title>{{ bar.label }}: {{ bar.value }}</title>
     </path>
     <text
