@@ -140,6 +140,10 @@
             <app-text-input label="Email" type="email" formControlName="email" />
             <app-text-input label="Teléfono celular" formControlName="telefono" />
             <app-text-input label="Página web" formControlName="paginaWeb" />
+            <label class="form-check">
+              <input type="checkbox" formControlName="esFlotaPropia" />
+              Flota propia (prioridad sobre lista de espera)
+            </label>
           </form>
         </section>
 
@@ -367,6 +371,10 @@
                 <app-text-input label="Teléfono celular" formControlName="telefono" />
               </div>
               <app-text-input label="Página web" formControlName="paginaWeb" />
+              <label class="form-check">
+                <input type="checkbox" formControlName="esFlotaPropia" />
+                Flota propia (prioridad sobre lista de espera)
+              </label>
             </div>
           </section>
         </form>
@@ -473,6 +481,7 @@
                 <app-text-input label="Marca" formControlName="marca" />
                 <app-text-input label="Modelo" formControlName="modelo" />
               </div>
+              <app-text-input label="Capacidad (tn)" type="number" formControlName="capacidadTn" />
               <div class="form-section__grid-2">
                 <app-text-input label="Nº chasis" formControlName="nroChasis" />
                 <app-text-input label="Nº motor" formControlName="nroMotor" />

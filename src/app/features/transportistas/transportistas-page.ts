@@ -153,6 +153,7 @@ export class TransportistasPage {
     email: [''],
     telefono: [''],
     paginaWeb: [''],
+    esFlotaPropia: [false],
   });
 
   protected readonly choferForm = this.fb.group({
@@ -176,6 +177,7 @@ export class TransportistasPage {
     marca: [''],
     modelo: [''],
     tipo: [''],
+    capacidadTn: [null as number | null],
     nroChasis: ['', Validators.maxLength(20)],
     nroMotor: ['', Validators.maxLength(20)],
     fotoTarjetaVerde: [undefined as CamionTransportista['fotoTarjetaVerde']],
@@ -403,6 +405,7 @@ export class TransportistasPage {
         email: detalle.email,
         telefono: detalle.telefono,
         paginaWeb: detalle.paginaWeb,
+        esFlotaPropia: detalle.esFlotaPropia,
       });
       this.masterDirty.set(false);
     });
@@ -667,6 +670,7 @@ export class TransportistasPage {
         email: '',
         telefono: '',
         paginaWeb: '',
+        esFlotaPropia: false,
       });
       return;
     }
@@ -685,6 +689,7 @@ export class TransportistasPage {
       email: empresa.email,
       telefono: empresa.telefono,
       paginaWeb: empresa.paginaWeb,
+      esFlotaPropia: empresa.esFlotaPropia,
     });
     if (modo === 'ver') {
       this.empresaForm.disable();
@@ -745,6 +750,7 @@ export class TransportistasPage {
         marca: '',
         modelo: '',
         tipo: '',
+        capacidadTn: null,
         nroChasis: '',
         nroMotor: '',
         fotoTarjetaVerde: undefined,
@@ -760,6 +766,7 @@ export class TransportistasPage {
       marca: camion.marca,
       modelo: camion.modelo,
       tipo: camion.tipo,
+      capacidadTn: camion.capacidadTn,
       nroChasis: camion.nroChasis,
       nroMotor: camion.nroMotor,
       fotoTarjetaVerde: camion.fotoTarjetaVerde,

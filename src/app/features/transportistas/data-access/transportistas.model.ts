@@ -14,6 +14,7 @@ export interface CamionTransportista {
   marca: string;
   modelo: string;
   tipo: string;
+  capacidadTn: number | null;
   nroChasis: string;
   nroMotor: string;
   fotoTarjetaVerde?: ArchivoAdjunto;
@@ -50,6 +51,7 @@ export interface Transportista {
   email: string;
   telefono: string;
   paginaWeb: string;
+  esFlotaPropia: boolean;
 }
 
 export interface TransportistaDetalle extends Transportista {

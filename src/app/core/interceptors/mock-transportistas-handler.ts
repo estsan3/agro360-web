@@ -109,6 +109,7 @@ export function manejarMockTransportistas(
       email: String(body?.['email'] ?? ''),
       telefono: String(body?.['telefono'] ?? ''),
       pagina_web: String(body?.['pagina_web'] ?? ''),
+      es_flota_propia: Boolean(body?.['es_flota_propia']),
     };
     db.empresas.push(nuevo);
     return detalle(nuevo.id)!;
@@ -127,6 +128,7 @@ export function manejarMockTransportistas(
       email: String(body?.['email'] ?? empresa.email),
       telefono: String(body?.['telefono'] ?? empresa.telefono),
       pagina_web: String(body?.['pagina_web'] ?? empresa.pagina_web),
+      es_flota_propia: Boolean(body?.['es_flota_propia'] ?? empresa.es_flota_propia),
     });
     return detalle(empresa.id)!;
   }
@@ -257,6 +259,10 @@ export function manejarMockTransportistas(
       marca: String(body?.['marca'] ?? ''),
       modelo: String(body?.['modelo'] ?? ''),
       tipo: String(body?.['tipo'] ?? ''),
+      capacidad_tn:
+        body?.['capacidad_tn'] != null && body?.['capacidad_tn'] !== ''
+          ? Number(body['capacidad_tn'])
+          : null,
       nro_chasis: String(body?.['nro_chasis'] ?? ''),
       nro_motor: String(body?.['nro_motor'] ?? ''),
       foto_tarjeta_verde: body?.[
@@ -283,6 +289,12 @@ export function manejarMockTransportistas(
       marca: String(body?.['marca'] ?? camion.marca),
       modelo: String(body?.['modelo'] ?? camion.modelo),
       tipo: String(body?.['tipo'] ?? camion.tipo),
+      capacidad_tn:
+        body?.['capacidad_tn'] !== undefined
+          ? body['capacidad_tn'] != null && body['capacidad_tn'] !== ''
+            ? Number(body['capacidad_tn'])
+            : null
+          : camion.capacidad_tn,
       nro_chasis: String(body?.['nro_chasis'] ?? camion.nro_chasis),
       nro_motor: String(body?.['nro_motor'] ?? camion.nro_motor),
       foto_tarjeta_verde: body?.['foto_tarjeta_verde'] ?? camion.foto_tarjeta_verde,

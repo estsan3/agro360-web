@@ -21,6 +21,7 @@ import { TableCellDef } from '../../shared/ui/table/table-cell-def';
 import { Despacho, EstadoViaje, Viaje } from '../despachos/data-access/despacho.model';
 import { DespachoStore } from '../despachos/data-access/despacho.store';
 import { ReportExportService } from '../despachos/reportes-despachos/report-export.service';
+import { ListaEsperaService } from '../lista-espera/data-access/lista-espera.service';
 
 function viajesOperativos(viajes: Viaje[]): Viaje[] {
   return viajes.filter((viaje) => viaje.estado !== 'borrador');
@@ -126,6 +127,7 @@ interface CampaniaDetalleVm {
 })
 export class GestionOperativaPage {
   private readonly store = inject(DespachoStore);
+  private readonly listaEsperaApi = inject(ListaEsperaService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly notifications = inject(NotificationStore);
@@ -517,6 +519,7 @@ export class GestionOperativaPage {
   protected viajesRows(campania: CampaniaVm): Record<string, unknown>[] {
     return campania.viajes.map((viaje) => ({
       ...viaje,
+      campaniaId: campania.id,
       modelo: this.modeloPorDominio().get(viaje.dominio) ?? '',
     }));
   }
@@ -981,5 +984,75 @@ export class GestionOperativaPage {
   protected opcionMenu(opcion: string, viajeId: string): void {
     this.menuAbierto.set(null);
     this.notifications.warning(opcion, `Viaje ${viajeId} — disponible próximamente`);
+  }
+
+  protected asignarPorLista(campaniaId: string, viajeId: string): void {
+    this.menuAbierto.set(null);
+    this.store.asignarPorLista(campaniaId, viajeId).subscribe({
+      next: (despacho) => {
+        const viaje = despacho.viajes.find((v) => v.id === viajeId);
+        if (viaje?.chofer && viaje.chofer !== 'Sin asignar') {
+          this.notifications.success(
+            'Asignado (flota propia o lista)',
+            `${viaje.chofer} → ${viaje.dominio}`,
+          );
+        } else {
+          this.notifications.success(
+            'Oferta enviada',
+            'Se ofreció el viaje al siguiente de la lista de espera',
+          );
+        }
+      },
+      error: (err) =>
+        this.notifications.error(
+          'No se pudo asignar',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        ),
+    });
+  }
+
+  protected aceptarOfertaLista(campaniaId: string, viajeId: string): void {
+    this.menuAbierto.set(null);
+    this.listaEsperaApi.listar().subscribe({
+      next: (entradas) => {
+        const oferta = entradas.find(
+          (e) => e.estado === 'ofertado' && e.viajeOfertadoId === viajeId,
+        );
+        if (!oferta) {
+          this.notifications.warning('Sin oferta', 'No hay oferta activa para este viaje');
+          return;
+        }
+        this.store.aceptarOfertaLista(campaniaId, viajeId, oferta.id).subscribe({
+          next: (despacho) => {
+            const viaje = despacho.viajes.find((v) => v.id === viajeId);
+            this.notifications.success(
+              'Oferta aceptada',
+              viaje ? `${viaje.chofer} / ${viaje.dominio}` : viajeId,
+            );
+          },
+          error: (err) =>
+            this.notifications.error(
+              'No se pudo aceptar',
+              err?.error?.error?.mensaje ?? 'Error de negocio',
+            ),
+        });
+      },
+    });
+  }
+
+  protected rechazarOfertaLista(campaniaId: string, viajeId: string): void {
+    this.menuAbierto.set(null);
+    this.store.rechazarOfertaLista(campaniaId, viajeId).subscribe({
+      next: () =>
+        this.notifications.success(
+          'Oferta rechazada',
+          'La unidad fue al fondo; se ofreció al siguiente',
+        ),
+      error: (err) =>
+        this.notifications.error(
+          'No se pudo rechazar',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        ),
+    });
   }
 }

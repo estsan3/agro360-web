@@ -1,0 +1,69 @@
+.lista-espera {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem 0 2rem;
+}
+
+.lista-espera__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.lista-espera__head h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.lista-espera__head p {
+  margin: 0;
+  color: var(--color-text-muted, #667);
+  max-width: 40rem;
+}
+
+.lista-espera__anotar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lista-espera__anotar h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.lista-espera__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: end;
+}
+
+.lista-espera__acciones {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.lista-espera__btn {
+  border: 1px solid var(--color-border, #d0d5dd);
+  background: #fff;
+  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.lista-espera__btn:hover {
+  background: var(--color-surface-muted, #f5f6f8);
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}

@@ -157,6 +157,24 @@ export class DespachoStore {
     );
   }
 
+  asignarPorLista(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.api
+      .asignarPorLista(despachoId, viajeId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  aceptarOfertaLista(despachoId: string, viajeId: string, entradaId: string): Observable<Despacho> {
+    return this.api
+      .aceptarOfertaLista(despachoId, viajeId, entradaId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  rechazarOfertaLista(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.api
+      .rechazarOfertaLista(despachoId, viajeId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
   private reemplazar(despacho: Despacho): void {
     const actual = this._despachos();
     if (actual.status === 'success') {

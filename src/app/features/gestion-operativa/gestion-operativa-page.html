@@ -469,6 +469,27 @@
                           <button
                             type="button"
                             role="menuitem"
+                            (click)="asignarPorLista($any(row)['campaniaId'], $any(row)['id'])"
+                          >
+                            Asignar por lista
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="aceptarOfertaLista($any(row)['campaniaId'], $any(row)['id'])"
+                          >
+                            Aceptar oferta lista
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="rechazarOfertaLista($any(row)['campaniaId'], $any(row)['id'])"
+                          >
+                            Rechazar oferta lista
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
                             (click)="opcionMenu('Reasignar chofer', $any(row)['id'])"
                           >
                             Reasignar chofer

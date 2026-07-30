@@ -40,6 +40,11 @@ export const routes: Routes = [
           import('./features/mensajeria/mensajeria-page').then((m) => m.MensajeriaPage),
       },
       {
+        path: 'lista-espera',
+        loadComponent: () =>
+          import('./features/lista-espera/lista-espera-page').then((m) => m.ListaEsperaPage),
+      },
+      {
         path: 'transportistas',
         canActivate: [adminGuard],
         loadComponent: () =>

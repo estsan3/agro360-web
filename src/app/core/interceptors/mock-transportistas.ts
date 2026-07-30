@@ -117,6 +117,7 @@ function generarEmpresas(): TransportistaDto[] {
       email: 'contacto@delplata.com.ar',
       telefono: '+54 221 555-0101',
       pagina_web: 'https://delplata.com.ar',
+      es_flota_propia: true,
     },
     {
       id: 't-2',

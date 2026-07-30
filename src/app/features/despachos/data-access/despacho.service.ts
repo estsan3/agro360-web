@@ -120,6 +120,34 @@ export class DespachoService {
       .pipe(map(toDespacho));
   }
 
+  asignarPorLista(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/asignar-por-lista`,
+        {},
+      )
+      .pipe(map(toDespacho));
+  }
+
+  aceptarOfertaLista(despachoId: string, viajeId: string, entradaId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/aceptar-oferta-lista`,
+        {},
+        { params: { entrada_id: entradaId } },
+      )
+      .pipe(map(toDespacho));
+  }
+
+  rechazarOfertaLista(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/rechazar-oferta-lista`,
+        {},
+      )
+      .pipe(map(toDespacho));
+  }
+
   resolverTarifaNacional(distanciaKm: number): Observable<{ precioPorTn: number }> {
     return this.http
       .post<{ precio_por_tn: number }>(`${this.base}/tarifas-nacionales/resolver`, {
