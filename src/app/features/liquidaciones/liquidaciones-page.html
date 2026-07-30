@@ -1,0 +1,321 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>Resumen de cuenta de transportista</h1>
+      <p>
+        {{ nombreTransportadora() }} — seleccioná el transportista titular de la cuenta corriente y
+        el período a liquidar
+      </p>
+    </div>
+    <div class="page__actions">
+      <app-button variant="outline" size="md" (clicked)="abrirParametros()">
+        <app-icon name="settings" />
+        Parámetros
+      </app-button>
+      <app-button
+        variant="outline"
+        size="md"
+        [disabled]="!consultaForm.controls.transportistaId.value"
+        (clicked)="abrirFlete()"
+      >
+        <app-icon name="plus" />
+        Cargar flete
+      </app-button>
+      <app-button
+        variant="primary"
+        size="md"
+        [disabled]="!consultaForm.controls.transportistaId.value"
+        (clicked)="abrirMovimiento()"
+      >
+        <app-icon name="plus" />
+        Movimiento
+      </app-button>
+    </div>
+  </header>
+
+  <div class="card filtros">
+    <form class="filtros__form" [formGroup]="consultaForm">
+      <app-select-input
+        label="Transportista (cuenta corriente)"
+        placeholder="Ej. Santamarina Francisco"
+        [options]="transportistaOptions()"
+        formControlName="transportistaId"
+      />
+      <app-text-input label="Fecha desde" type="date" formControlName="desde" />
+      <app-text-input label="Fecha hasta" type="date" formControlName="hasta" />
+      <div class="filtros__accion">
+        <app-button variant="primary" size="md" (clicked)="consultar()">
+          <app-icon name="search" />
+          Consultar
+        </app-button>
+      </div>
+    </form>
+  </div>
+
+  @if (consultado()) {
+    <app-state-wrapper
+      [status]="store.resumen().status"
+      [error]="store.resumen().error ?? ''"
+      [skeletonRows]="6"
+    >
+      @if (store.resumen().data; as resumen) {
+        <article class="card resumen">
+          <header class="resumen__cabecera">
+            <div>
+              <p class="resumen__empresa">{{ nombreTransportadora() }}</p>
+              <h2>Resumen de cuenta</h2>
+              <p class="resumen__titular">
+                Transportista:
+                <strong>{{ resumen.transportistaNombre }}</strong>
+              </p>
+            </div>
+            <div class="resumen__periodo">
+              <span>Período</span>
+              <strong>
+                @if (resumen.desde && resumen.hasta) {
+                  {{ resumen.desde | date: 'dd/MM/yyyy' }} —
+                  {{ resumen.hasta | date: 'dd/MM/yyyy' }}
+                } @else if (resumen.desde) {
+                  Desde {{ resumen.desde | date: 'dd/MM/yyyy' }}
+                } @else if (resumen.hasta) {
+                  Hasta {{ resumen.hasta | date: 'dd/MM/yyyy' }}
+                } @else {
+                  Todo el historial
+                }
+              </strong>
+              <small class="monto">
+                Saldo inicial: {{ resumen.saldoInicial | number: '1.2-2' }}
+              </small>
+            </div>
+          </header>
+
+          <div class="resumen__tabla">
+            <app-table
+              [columns]="movColumns"
+              [rows]="filasMovimientos()"
+              headerVariant="soft"
+              layout="fixed"
+              [minWidth]="'1400px'"
+            >
+              <ng-template appTableCell="fecha" let-row>
+                {{ row['fecha'] | date: 'dd/MM/yyyy' }}
+              </ng-template>
+              <ng-template appTableCell="comprobante" let-row>
+                {{ row['comprobante'] }}
+              </ng-template>
+              <ng-template appTableCell="detalle" let-row>
+                {{ row['detalle'] }}
+              </ng-template>
+              <ng-template appTableCell="dadorViaje" let-row>
+                {{ row['dadorViaje'] }}
+              </ng-template>
+              <ng-template appTableCell="toneladas" let-row>
+                @if (row['toneladas'] !== null && row['toneladas'] !== undefined) {
+                  <span class="monto">{{ row['toneladas'] | number: '1.2-2' }}</span>
+                } @else {
+                  —
+                }
+              </ng-template>
+              <ng-template appTableCell="tarifa" let-row>
+                @if (row['tarifa'] !== null && row['tarifa'] !== undefined) {
+                  <span class="monto">{{ row['tarifa'] | number: '1.2-2' }}</span>
+                } @else {
+                  —
+                }
+              </ng-template>
+              <ng-template appTableCell="debe" let-row>
+                @if (row['debe']) {
+                  <span class="monto">{{ row['debe'] | number: '1.2-2' }}</span>
+                } @else {
+                  —
+                }
+              </ng-template>
+              <ng-template appTableCell="haber" let-row>
+                @if (row['haber']) {
+                  <span class="monto">{{ row['haber'] | number: '1.2-2' }}</span>
+                } @else {
+                  —
+                }
+              </ng-template>
+              <ng-template appTableCell="saldo" let-row>
+                <strong class="monto">{{ row['saldo'] | number: '1.2-2' }}</strong>
+              </ng-template>
+              <ng-template appTableCell="acciones" let-row>
+                <div class="fila-acciones">
+                  <button
+                    type="button"
+                    class="fila-acciones__btn"
+                    title="Editar"
+                    aria-label="Editar movimiento"
+                    (click)="abrirEditar(row)"
+                  >
+                    <app-icon name="pencil" />
+                  </button>
+                  <button
+                    type="button"
+                    class="fila-acciones__btn fila-acciones__btn--danger"
+                    title="Eliminar"
+                    aria-label="Eliminar movimiento"
+                    (click)="eliminarMovimiento(row)"
+                  >
+                    <app-icon name="trash" />
+                  </button>
+                </div>
+              </ng-template>
+            </app-table>
+
+            @if (!filasMovimientos().length) {
+              <p class="empty">
+                No hay movimientos en el período seleccionado para este transportista.
+              </p>
+            }
+          </div>
+
+          <footer class="resumen__pie" [attr.data-tipo]="cierreSaldo().tipo">
+            <div class="resumen__totales">
+              <span>
+                Total Debe:
+                <strong class="monto">{{ resumen.totalesDebe | number: '1.2-2' }}</strong>
+              </span>
+              <span>
+                Total Haber:
+                <strong class="monto">{{ resumen.totalesHaber | number: '1.2-2' }}</strong>
+              </span>
+            </div>
+            <div class="resumen__cierre">
+              <span>{{ cierreSaldo().etiqueta }}</span>
+              <strong class="monto">
+                {{ cierreSaldo().monto | currency: 'ARS' : 'symbol-narrow' : '1.2-2' }}
+              </strong>
+            </div>
+          </footer>
+        </article>
+      }
+    </app-state-wrapper>
+  } @else {
+    <div class="card empty-state">
+      <app-icon name="list" />
+      <p>
+        Elegí el <strong>transportista</strong> (titular de la cta. cte.), el rango de fechas y
+        pulsá <strong>Consultar</strong> para ver el resumen.
+      </p>
+    </div>
+  }
+
+  <app-modal [abierto]="modalFlete()" titulo="Cargar flete" (cerrar)="modalFlete.set(false)">
+    <p class="form__hint">
+      Genera automáticamente: <strong>Haber</strong> flete + IVA flete (a favor del transportista);
+      <strong>Debe</strong> comisión, IVA comisión e Imp. Ley 25.413 (cargo de la transportadora).
+    </p>
+    <form class="form" [formGroup]="fleteForm">
+      <app-select-input
+        label="Transportista"
+        [options]="transportistaOptions()"
+        formControlName="transportistaId"
+      />
+      <app-text-input label="Detalle" formControlName="detalle" />
+      <app-text-input label="Dador de viaje" formControlName="dadorViaje" />
+      <app-text-input label="Toneladas" type="number" formControlName="toneladas" />
+      <app-text-input
+        label="Tarifa por tn (vacío = parámetro)"
+        type="number"
+        formControlName="tarifa"
+      />
+      <app-text-input label="Fecha" type="date" formControlName="fecha" />
+    </form>
+    <div class="form__actions">
+      <app-button variant="outline" size="md" (clicked)="modalFlete.set(false)">
+        Cancelar
+      </app-button>
+      <app-button variant="primary" size="md" (clicked)="guardarFlete()">
+        Generar liquidación
+      </app-button>
+    </div>
+  </app-modal>
+
+  <app-modal [abierto]="modalEditar()" titulo="Editar movimiento" (cerrar)="modalEditar.set(false)">
+    @if (movimientoEditando(); as mov) {
+      <p class="form__hint">
+        Concepto: <strong>{{ mov.concepto }}</strong>
+      </p>
+    }
+    <form class="form" [formGroup]="editarForm">
+      <app-text-input label="Fecha" type="date" formControlName="fecha" />
+      <app-text-input label="Nro. comprobante" formControlName="comprobante" />
+      <app-text-input label="Detalle" formControlName="detalle" />
+      <app-text-input label="Dador de viaje" formControlName="dadorViaje" />
+      <app-text-input label="Toneladas" type="number" formControlName="toneladas" />
+      <app-text-input label="Tarifa" type="number" formControlName="tarifa" />
+      <app-select-input label="Tipo" [options]="tipoImporteOptions" formControlName="tipoImporte" />
+      <app-text-input label="Importe" type="number" formControlName="importe" />
+    </form>
+    <div class="form__actions">
+      <app-button variant="outline" size="md" (clicked)="modalEditar.set(false)">
+        Cancelar
+      </app-button>
+      <app-button variant="primary" size="md" (clicked)="guardarEdicion()">
+        Guardar cambios
+      </app-button>
+    </div>
+  </app-modal>
+
+  <app-modal
+    [abierto]="modalMovimiento()"
+    titulo="Nuevo movimiento"
+    (cerrar)="modalMovimiento.set(false)"
+  >
+    <form class="form" [formGroup]="movimientoForm">
+      <app-select-input
+        label="Transportista"
+        [options]="transportistaOptions()"
+        formControlName="transportistaId"
+      />
+      <app-select-input label="Concepto" [options]="conceptoOptions" formControlName="concepto" />
+      <app-text-input label="Detalle" formControlName="detalle" />
+      <app-select-input label="Tipo" [options]="tipoImporteOptions" formControlName="tipoImporte" />
+      <app-text-input label="Importe" type="number" formControlName="importe" />
+      <app-text-input label="Fecha" type="date" formControlName="fecha" />
+    </form>
+    <div class="form__actions">
+      <app-button variant="outline" size="md" (clicked)="modalMovimiento.set(false)">
+        Cancelar
+      </app-button>
+      <app-button variant="primary" size="md" (clicked)="guardarMovimiento()"> Guardar </app-button>
+    </div>
+  </app-modal>
+
+  <app-modal
+    [abierto]="modalParametros()"
+    titulo="Parámetros de liquidación"
+    (cerrar)="modalParametros.set(false)"
+  >
+    <form class="form" [formGroup]="parametrosForm">
+      <app-text-input
+        label="Nombre transportadora (empresa)"
+        formControlName="nombreTransportadora"
+      />
+      <app-text-input
+        label="Tarifa flete por tn"
+        type="number"
+        formControlName="tarifaFletePorTn"
+      />
+      <app-text-input
+        label="Comisión % (default 8)"
+        type="number"
+        formControlName="comisionPorcentaje"
+      />
+      <app-text-input label="IVA %" type="number" formControlName="ivaAlicuota" />
+      <app-text-input
+        label="Imp. Ley 25.413 % (alícuota general 0,6)"
+        type="number"
+        formControlName="ley25413Porcentaje"
+      />
+    </form>
+    <div class="form__actions">
+      <app-button variant="outline" size="md" (clicked)="modalParametros.set(false)">
+        Cancelar
+      </app-button>
+      <app-button variant="primary" size="md" (clicked)="guardarParametros()"> Guardar </app-button>
+    </div>
+  </app-modal>
+</section>

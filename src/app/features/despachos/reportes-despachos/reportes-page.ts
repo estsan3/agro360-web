@@ -38,6 +38,7 @@ const MESES_CORTOS = [
 
 const ESTADO_LABEL: Record<EstadoViaje, string> = {
   borrador: 'Borrador',
+  'en-busqueda-transportistas': 'En búsqueda de transportistas',
   pendiente: 'Pendiente',
   'en-viaje': 'En viaje',
   retrasado: 'Retrasado',

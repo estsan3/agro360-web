@@ -112,6 +112,52 @@
               formControlName="fechaLlegadaEstimada"
             />
           </div>
+          <app-select-input
+            label="Dador de viaje *"
+            [options]="dadorOptions"
+            formControlName="dadorViaje"
+          />
+          @if (form.controls.dadorViaje.value === 'Otro') {
+            <app-text-input label="Dador (otro)" formControlName="dadorOtro" />
+          }
+          <app-select-input label="Cuando *" [options]="cuandoOptions" formControlName="cuando" />
+          @if (form.controls.cuando.value === 'fecha') {
+            <app-text-input label="Fecha de carga *" type="date" formControlName="cuandoFecha" />
+          }
+          <app-text-input
+            label="Distancia (km)"
+            type="number"
+            formControlName="distanciaKm"
+            placeholder="Ej. 250"
+          />
+          <div class="tarifa-campo">
+            <app-text-input
+              label="Tarifa ($/tn)"
+              type="number"
+              formControlName="tarifaPorTn"
+              placeholder="Importe"
+            />
+            <label class="tarifa-campo__check">
+              <input type="checkbox" formControlName="tarifaLlena" />
+              Tarifa llena
+            </label>
+            @if (form.controls.tarifaLlena.value && tarifaResuelta() !== null) {
+              <small class="tarifa-campo__hint">
+                FADEEAC: {{ tarifaResuelta() | number: '1.2-2' }} $/tn
+              </small>
+            }
+          </div>
+          <app-text-input
+            label="Destino (oferta) *"
+            placeholder="Ej. Rosario / Timbúes"
+            formControlName="destinoOferta"
+          />
+          <app-text-input
+            label="Toneladas (oferta) *"
+            type="number"
+            formControlName="toneladasOferta"
+            placeholder="Ej. 30"
+          />
         </form>
       } @else {
         <div class="tab-pendiente">
@@ -134,7 +180,10 @@
       <div class="viajes-head">
         <div>
           <h2 class="card__title">Viajes del Despacho</h2>
-          <p class="card__hint">Agregue los viajes que serán parte de este despacho</p>
+          <p class="card__hint">
+            Opcional al buscar transportistas: el viaje se genera automáticamente. Usá la tabla
+            cuando ya tengas chofer/patente asignados.
+          </p>
         </div>
         <div class="totales">
           <app-icon name="info" />
@@ -179,6 +228,7 @@
             (change)="toggleTodos()"
           />
           <span>ID</span>
+          <span>Estado</span>
           <span>Chofer</span>
           <span>Dominio</span>
           <span>Destino</span>
@@ -195,6 +245,13 @@
               (change)="toggleSeleccion(i)"
             />
             <span class="vtable__id">#{{ i + 1 }}</span>
+            <div class="vtable__estado">
+              @if (esBusqueda(grupo.controls.estado.value)) {
+                <app-badge variant="info">En búsqueda de transportistas</app-badge>
+              } @else {
+                <app-badge variant="warning">Borrador</app-badge>
+              }
+            </div>
             <select
               class="vtable__input"
               [attr.aria-label]="'Chofer del viaje ' + (i + 1)"
@@ -296,6 +353,15 @@
         (clicked)="guardar('borrador')"
       >
         Guardar borrador
+      </app-button>
+      <app-button
+        variant="outline"
+        size="md"
+        [disabled]="guardando()"
+        (clicked)="buscarTransportistas()"
+      >
+        <app-icon name="search" />
+        Buscar transportistas
       </app-button>
       <app-button
         variant="primary"

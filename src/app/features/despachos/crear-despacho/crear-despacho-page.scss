@@ -9,6 +9,33 @@
   font-family: ty.$font-family-base;
 }
 
+.tarifa-campo {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-xs;
+
+  &__check {
+    display: inline-flex;
+    align-items: center;
+    gap: t.$space-xs;
+    font-size: ty.$font-size-sm;
+    color: t.$color-text;
+    cursor: pointer;
+
+    input {
+      width: 16px;
+      height: 16px;
+      accent-color: t.$color-primary;
+    }
+  }
+
+  &__hint {
+    color: t.$color-primary-dark;
+    font-size: ty.$font-size-sm;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 .card {
   display: flex;
   flex-direction: column;
@@ -155,12 +182,13 @@
 
   &__row {
     display: grid;
-    grid-template-columns: 32px 48px 1.2fr 0.9fr 1.4fr 0.7fr 130px;
+    // checkbox | ID | Estado (texto largo) | Chofer | Dominio | Destino | Tn | Acciones
+    grid-template-columns: 32px 48px minmax(220px, 1.5fr) 1.2fr 0.9fr 1.3fr 0.7fr 130px;
     align-items: center;
     gap: t.$space-sm;
     padding: t.$space-sm t.$space-md;
     border-bottom: 1px solid t.$color-border;
-    min-width: 760px;
+    min-width: 980px;
 
     &:last-child {
       border-bottom: none;
@@ -186,6 +214,18 @@
   &__id {
     font-weight: ty.$font-weight-medium;
     color: t.$color-text-muted;
+  }
+
+  &__estado {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+
+    ::ng-deep .badge {
+      white-space: normal;
+      text-align: left;
+      line-height: 1.25;
+    }
   }
 
   &__input {

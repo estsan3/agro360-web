@@ -1,0 +1,265 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-lg;
+  padding: t.$space-lg;
+  font-family: ty.$font-family-base;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: t.$space-md;
+    flex-wrap: wrap;
+
+    h1 {
+      margin: 0;
+      font-size: ty.$font-size-3xl;
+      font-weight: ty.$font-weight-bold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: t.$space-xs 0 0;
+      color: t.$color-text-muted;
+      font-size: ty.$font-size-md;
+      max-width: 52rem;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: t.$space-sm;
+    flex-wrap: wrap;
+  }
+}
+
+.card {
+  padding: t.$space-lg;
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-lg;
+  box-shadow: t.$shadow-sm;
+}
+
+.filtros {
+  &__form {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(150px, 1fr)) auto;
+    gap: t.$space-md;
+    align-items: end;
+
+    @media (max-width: t.$breakpoint-desktop) {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @media (max-width: t.$breakpoint-tablet) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__accion {
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 2px;
+  }
+}
+
+.resumen {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-lg;
+
+  &__cabecera {
+    display: flex;
+    justify-content: space-between;
+    gap: t.$space-lg;
+    flex-wrap: wrap;
+    padding-bottom: t.$space-md;
+    border-bottom: 1px solid t.$color-border;
+
+    h2 {
+      margin: t.$space-xs 0 0;
+      font-size: ty.$font-size-2xl;
+      color: t.$color-text;
+    }
+  }
+
+  &__empresa {
+    margin: 0;
+    font-size: ty.$font-size-sm;
+    font-weight: ty.$font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: t.$color-primary-dark;
+  }
+
+  &__titular {
+    margin: t.$space-sm 0 0;
+    color: t.$color-text-muted;
+    font-size: ty.$font-size-md;
+
+    strong {
+      color: t.$color-text;
+    }
+  }
+
+  &__periodo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    text-align: right;
+
+    span {
+      font-size: ty.$font-size-xs;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: t.$color-text-muted;
+    }
+
+    strong {
+      font-size: ty.$font-size-md;
+      color: t.$color-text;
+    }
+
+    small {
+      color: t.$color-text-muted;
+      font-size: ty.$font-size-sm;
+    }
+  }
+
+  &__tabla {
+    overflow-x: auto;
+  }
+
+  &__pie {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: t.$space-md;
+    flex-wrap: wrap;
+    padding-top: t.$space-md;
+    border-top: 2px solid t.$color-primary;
+
+    &[data-tipo='transportadora'] .resumen__cierre strong {
+      color: t.$color-danger-strong;
+    }
+
+    &[data-tipo='transportista'] .resumen__cierre strong {
+      color: t.$color-primary-dark;
+    }
+  }
+
+  &__totales {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
+  }
+
+  &__cierre {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+
+    span {
+      font-size: ty.$font-size-sm;
+      color: t.$color-text-muted;
+    }
+
+    strong {
+      font-size: ty.$font-size-2xl;
+      font-weight: ty.$font-weight-bold;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}
+
+.empty {
+  margin: t.$space-md 0 0;
+  color: t.$color-text-muted;
+  font-size: ty.$font-size-md;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  gap: t.$space-md;
+  color: t.$color-text-muted;
+
+  app-icon {
+    font-size: 28px;
+    color: t.$color-primary;
+  }
+
+  p {
+    margin: 0;
+    font-size: ty.$font-size-md;
+  }
+}
+
+.form {
+  display: grid;
+  gap: t.$space-md;
+
+  &__hint {
+    margin: 0 0 t.$space-md;
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
+    line-height: 1.45;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: t.$space-sm;
+    margin-top: t.$space-md;
+  }
+}
+
+.monto {
+  display: inline-block;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.fila-acciones {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  justify-content: flex-end;
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: t.$radius-sm;
+    background: transparent;
+    color: t.$color-text;
+    font-size: 15px;
+    cursor: pointer;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease;
+
+    &:hover {
+      background: t.$color-primary-light;
+      color: t.$color-primary-dark;
+    }
+
+    &--danger:hover {
+      background: t.$color-danger-bg;
+      color: t.$color-danger-strong;
+    }
+  }
+}

@@ -26,6 +26,7 @@ export type IconName =
   | 'fuel'
   | 'copy'
   | 'trash'
+  | 'pencil'
   | 'check-double'
   | 'map-pin'
   | 'send'

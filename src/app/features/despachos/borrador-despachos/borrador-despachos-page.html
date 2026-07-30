@@ -109,7 +109,11 @@
               <small>{{ borrador.codigo }}</small>
             </div>
             <div class="draft__estado">
-              <app-badge variant="warning">Borrador</app-badge>
+              @if (borrador.enBusqueda) {
+                <app-badge variant="info">En búsqueda de transportistas</app-badge>
+              } @else {
+                <app-badge variant="warning">Borrador</app-badge>
+              }
             </div>
             <span class="draft__dato">{{ borrador.fecha }}</span>
             <span class="draft__dato">{{ borrador.administrador }}</span>

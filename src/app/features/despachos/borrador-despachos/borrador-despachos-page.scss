@@ -72,8 +72,8 @@
 
 .draft-cols {
   display: grid;
-  // Campaña 20 % más ancha (1.5fr → 1.8fr) + columna Estado
-  grid-template-columns: 1.8fr 100px 0.8fr 1.1fr 1.1fr 90px 110px 230px;
+  // Campaña ancha + Estado con espacio para "En búsqueda de transportistas"
+  grid-template-columns: 1.8fr minmax(220px, 1.4fr) 0.8fr 1.1fr 1.1fr 90px 110px 230px;
   align-items: center;
   gap: t.$space-md;
   width: 100%;
@@ -81,7 +81,7 @@
   text-align: left;
 
   @media (max-width: t.$breakpoint-tablet) {
-    grid-template-columns: 1.8fr 100px 230px;
+    grid-template-columns: 1.8fr minmax(180px, 1fr) 230px;
 
     .draft__dato,
     .draft__metric:nth-child(7) {

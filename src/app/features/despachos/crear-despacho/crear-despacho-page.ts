@@ -17,6 +17,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NotificationStore } from '../../../notifications/state/notification.store';
+import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { SelectInput, SelectOption } from '../../../shared/ui/select/select-input';
@@ -24,11 +25,14 @@ import { StateWrapper } from '../../../shared/ui/state-wrapper/state-wrapper';
 import { TextInput } from '../../../shared/ui/input/text-input';
 import { Toast } from '../../../shared/ui/toast/toast';
 import {
+  CuandoDespacho,
   Despacho,
   EstadoDespacho,
+  EstadoViaje,
   NuevoDespacho,
   PuntoEntradaCatalogo,
 } from '../data-access/despacho.model';
+import { DespachoService } from '../data-access/despacho.service';
 import { DespachoStore } from '../data-access/despacho.store';
 
 function puntosDeCampo(campo: {
@@ -43,6 +47,7 @@ type ViajeGroup = FormGroup<{
   dominio: FormControl<string>;
   destino: FormControl<string>;
   toneladas: FormControl<string>;
+  estado: FormControl<EstadoViaje>;
 }>;
 
 /**
@@ -54,6 +59,7 @@ type ViajeGroup = FormGroup<{
   imports: [
     DecimalPipe,
     ReactiveFormsModule,
+    Badge,
     Button,
     Icon,
     SelectInput,
@@ -68,6 +74,7 @@ type ViajeGroup = FormGroup<{
 export class CrearDespachoPage {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly store = inject(DespachoStore);
+  private readonly api = inject(DespachoService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly notifications = inject(NotificationStore);
@@ -114,7 +121,31 @@ export class CrearDespachoPage {
     vendedorId: ['', Validators.required],
     fechaInicio: ['', Validators.required],
     fechaLlegadaEstimada: [''],
+    dadorViaje: ['FEDEA', Validators.required],
+    dadorOtro: [''],
+    distanciaKm: [null as number | null],
+    tarifaPorTn: [null as number | null],
+    tarifaLlena: [false],
+    cuando: ['ahora' as CuandoDespacho, Validators.required],
+    cuandoFecha: [''],
+    /** Destino/tn de la oferta (búsqueda); no requieren fila en la tabla de viajes. */
+    destinoOferta: [''],
+    toneladasOferta: [null as number | null],
   });
+
+  protected readonly dadorOptions: SelectOption[] = [
+    { value: 'FEDEA', label: 'FEDEA' },
+    { value: 'COFCO', label: 'COFCO' },
+    { value: 'Otro', label: 'Otro' },
+  ];
+
+  protected readonly cuandoOptions: SelectOption[] = [
+    { value: 'ahora', label: 'Ahora' },
+    { value: 'manana', label: 'Mañana' },
+    { value: 'fecha', label: 'Fecha específica' },
+  ];
+
+  protected readonly tarifaResuelta = signal<number | null>(null);
 
   // --- Viajes: FormArray editable (detalle del master) ---
   protected readonly viajes = this.fb.array<ViajeGroup>([]);
@@ -170,6 +201,23 @@ export class CrearDespachoPage {
       this.form.controls.entradaCampo.reset('');
     });
 
+    this.form.controls.tarifaLlena.valueChanges.subscribe((llena) => {
+      const ctrl = this.form.controls.tarifaPorTn;
+      if (llena) {
+        ctrl.disable({ emitEvent: false });
+        this.actualizarTarifaLlena();
+      } else {
+        ctrl.enable({ emitEvent: false });
+        this.tarifaResuelta.set(null);
+      }
+    });
+
+    this.form.controls.distanciaKm.valueChanges.subscribe(() => {
+      if (this.form.controls.tarifaLlena.value) {
+        this.actualizarTarifaLlena();
+      }
+    });
+
     this.agregarViaje();
 
     // Precarga del borrador a editar cuando llegan despachos + catálogos
@@ -197,6 +245,10 @@ export class CrearDespachoPage {
       `${valor.getFullYear()}-${String(valor.getMonth() + 1).padStart(2, '0')}-${String(valor.getDate()).padStart(2, '0')}`;
 
     // productorId dispara el reset/enable de campoId: setear campo después
+    const dadoresConocidos = ['FEDEA', 'COFCO'];
+    const dador = despacho.dadorViaje || 'FEDEA';
+    const dadorEsOtro = dador && !dadoresConocidos.includes(dador);
+
     this.form.patchValue({
       nombre: despacho.nombre,
       productorId: despacho.productorId,
@@ -209,12 +261,27 @@ export class CrearDespachoPage {
       fechaLlegadaEstimada: despacho.fechaLlegadaEstimada
         ? fecha(despacho.fechaLlegadaEstimada)
         : '',
+      dadorViaje: dadorEsOtro ? 'Otro' : dador,
+      dadorOtro: dadorEsOtro ? dador : '',
+      distanciaKm: despacho.distanciaKm,
+      tarifaPorTn: despacho.tarifaPorTn,
+      tarifaLlena: despacho.tarifaLlena,
+      cuando: despacho.cuando,
+      cuandoFecha: despacho.cuandoFecha ?? '',
+      destinoOferta: despacho.viajes[0]?.destino ?? '',
+      toneladasOferta: despacho.viajes[0]?.toneladas ?? null,
     });
     this.form.controls.campoId.setValue(despacho.campoId);
+    if (despacho.tarifaLlena) {
+      this.form.controls.tarifaPorTn.disable({ emitEvent: false });
+      this.tarifaResuelta.set(despacho.tarifaPorTn);
+    }
 
     const choferes = this.catalogos().data?.choferes ?? [];
     this.viajes.clear();
-    for (const viaje of despacho.viajes.filter((v) => v.estado === 'borrador')) {
+    for (const viaje of despacho.viajes.filter(
+      (v) => v.estado === 'borrador' || v.estado === 'en-busqueda-transportistas',
+    )) {
       const choferId =
         viaje.choferId ??
         choferes.find((ch) => ch.dominio === viaje.dominio)?.id ??
@@ -226,6 +293,7 @@ export class CrearDespachoPage {
           dominio: viaje.dominio,
           destino: viaje.destino,
           toneladas: String(viaje.toneladas),
+          estado: viaje.estado,
         }),
       );
     }
@@ -345,13 +413,32 @@ export class CrearDespachoPage {
     );
   }
 
-  // --- Guardado ---
-  protected guardar(estado: EstadoDespacho): void {
+  private actualizarTarifaLlena(): void {
+    const km = Number(this.form.controls.distanciaKm.value);
+    if (!km || km <= 0) {
+      this.tarifaResuelta.set(null);
+      return;
+    }
+    this.api.resolverTarifaNacional(km).subscribe({
+      next: (r) => {
+        this.tarifaResuelta.set(r.precioPorTn);
+        this.form.controls.tarifaPorTn.setValue(r.precioPorTn, { emitEvent: false });
+      },
+      error: () => this.tarifaResuelta.set(null),
+    });
+  }
+
+  private armarPayload(
+    estado: EstadoDespacho,
+    exigirChofer: boolean,
+    opciones: { exigirViajes?: boolean } = {},
+  ): NuevoDespacho | null {
+    const exigirViajes = opciones.exigirViajes ?? true;
     this.mensajeExito.set('');
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.tab.set(1);
-      return;
+      return null;
     }
 
     const viajes = this.viajes.controls
@@ -364,22 +451,41 @@ export class CrearDespachoPage {
         toneladas: Number(viaje.toneladas),
       }));
 
-    if (viajes.length === 0) {
+    if (exigirViajes && viajes.length === 0) {
       this.notifications.warning('Sin viajes', 'Agregá al menos un viaje con destino y toneladas');
-      this.tab.set(2);
-      return;
+      return null;
     }
 
-    const sinChofer = viajes.some((viaje) => !viaje.choferId);
-    if (sinChofer) {
+    if (exigirChofer && viajes.some((viaje) => !viaje.choferId)) {
       this.notifications.warning('Chofer requerido', 'Debe seleccionar un chofer');
-      this.tab.set(2);
-      return;
+      return null;
     }
 
-    this.guardando.set(true);
     const form = this.form.getRawValue();
-    const payload: NuevoDespacho = {
+    const dador =
+      form.dadorViaje === 'Otro' ? (form.dadorOtro || '').trim() || 'Otro' : form.dadorViaje;
+
+    if (form.tarifaLlena && (!form.distanciaKm || Number(form.distanciaKm) <= 0)) {
+      this.notifications.warning('Distancia requerida', 'Indicá km para tarifa llena');
+      this.tab.set(1);
+      return null;
+    }
+    if (
+      !form.tarifaLlena &&
+      (!form.tarifaPorTn || Number(form.tarifaPorTn) <= 0) &&
+      estado === 'activo'
+    ) {
+      this.notifications.warning('Tarifa requerida', 'Indicá tarifa o marcá tarifa llena');
+      this.tab.set(1);
+      return null;
+    }
+    if (form.cuando === 'fecha' && !form.cuandoFecha) {
+      this.notifications.warning('Fecha requerida', 'Indicá la fecha de carga');
+      this.tab.set(1);
+      return null;
+    }
+
+    return {
       nombre: form.nombre,
       productorId: form.productorId,
       campoId: form.campoId,
@@ -391,8 +497,24 @@ export class CrearDespachoPage {
       fechaInicio: form.fechaInicio,
       fechaLlegadaEstimada: form.fechaLlegadaEstimada,
       estado,
+      dadorViaje: dador,
+      tarifaLlena: form.tarifaLlena,
+      tarifaPorTn: form.tarifaPorTn,
+      distanciaKm: form.distanciaKm,
+      cuando: form.cuando,
+      cuandoFecha: form.cuandoFecha || null,
       viajes,
     };
+  }
+
+  // --- Guardado ---
+  protected guardar(estado: EstadoDespacho): void {
+    const payload = this.armarPayload(estado, estado === 'activo');
+    if (!payload) {
+      return;
+    }
+
+    this.guardando.set(true);
     const editando = this.editando();
     const peticion = editando
       ? this.store.actualizarDespacho(editando.id, payload)
@@ -416,8 +538,10 @@ export class CrearDespachoPage {
           return;
         }
         this.mensajeExito.set(`Despacho "${despacho.nombre}" creado correctamente`);
-        this.form.reset();
+        this.form.reset({ dadorViaje: 'FEDEA', tarifaLlena: false, cuando: 'ahora' });
         this.form.controls.campoId.disable();
+        this.form.controls.tarifaPorTn.enable({ emitEvent: false });
+        this.tarifaResuelta.set(null);
         this.viajes.clear();
         this.agregarViaje();
         this.seleccionados.set(new Set());
@@ -427,17 +551,81 @@ export class CrearDespachoPage {
     });
   }
 
+  protected buscarTransportistas(): void {
+    // No exige filas en la tabla: el viaje se genera en estado "en búsqueda".
+    const payload = this.armarPayload('borrador', false, { exigirViajes: false });
+    if (!payload) {
+      return;
+    }
+    if (!(payload.dadorViaje || '').trim()) {
+      this.notifications.warning('Dador requerido', 'Seleccioná el dador de viaje');
+      return;
+    }
+    if (payload.tarifaLlena) {
+      if (!payload.distanciaKm) {
+        this.notifications.warning('Distancia requerida', 'Indicá km para tarifa llena');
+        return;
+      }
+    } else if (!payload.tarifaPorTn) {
+      this.notifications.warning('Tarifa requerida', 'Indicá tarifa o marcá tarifa llena');
+      return;
+    }
+
+    const form = this.form.getRawValue();
+    const viajeTabla = payload.viajes[0];
+    const destino = (viajeTabla?.destino || form.destinoOferta || '').trim();
+    const toneladas = viajeTabla?.toneladas || Number(form.toneladasOferta) || 0;
+    if (!destino || toneladas <= 0) {
+      this.notifications.warning(
+        'Oferta incompleta',
+        'Indicá destino y toneladas (en Información General) para buscar transportistas',
+      );
+      this.tab.set(1);
+      return;
+    }
+
+    this.guardando.set(true);
+    const editando = this.editando();
+    const guardar$ = editando
+      ? this.store.actualizarDespacho(editando.id, payload)
+      : this.store.crearDespacho(payload);
+
+    guardar$.subscribe({
+      next: (despacho) => {
+        this.editando.set({ id: despacho.id, nombre: despacho.nombre });
+        this.store.buscarTransportistas(despacho.id, { destino, toneladas }).subscribe({
+          next: () => {
+            this.guardando.set(false);
+            this.notifications.success(
+              'Búsqueda iniciada',
+              'Se generó el viaje y se notificó a las empresas transportistas',
+            );
+            this.router.navigate(['/borradores']);
+          },
+          error: () => this.guardando.set(false),
+        });
+      },
+      error: () => this.guardando.set(false),
+    });
+  }
+
+  protected esBusqueda(estado: EstadoViaje): boolean {
+    return estado === 'en-busqueda-transportistas';
+  }
+
   private crearFila(base?: {
     choferId: string;
     dominio: string;
     destino: string;
     toneladas: string;
+    estado?: EstadoViaje;
   }): ViajeGroup {
     return this.fb.group({
       choferId: [base?.choferId ?? ''],
       dominio: [base?.dominio ?? ''],
       destino: [base?.destino ?? ''],
       toneladas: [base?.toneladas ?? ''],
+      estado: [base?.estado ?? ('borrador' as EstadoViaje)],
     }) as ViajeGroup;
   }
 }
