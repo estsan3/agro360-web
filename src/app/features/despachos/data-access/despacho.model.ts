@@ -2,9 +2,16 @@
  * Modelo de dominio del front (camelCase, fechas como Date).
  */
 export type EstadoViaje =
-  'borrador' | 'en-busqueda-transportistas' | 'pendiente' | 'en-viaje' | 'retrasado' | 'completado';
+  | 'borrador'
+  | 'en-busqueda-transportistas'
+  | 'pendiente'
+  | 'en-viaje'
+  | 'retrasado'
+  | 'completado'
+  | 'cancelado';
 export type EstadoDespacho = 'borrador' | 'activo' | 'cerrado';
 export type CuandoDespacho = 'ahora' | 'manana' | 'fecha';
+export type TipoAdjuntoViaje = 'ticket_gasoil' | 'cpe_escaneada' | 'otro';
 
 export interface Viaje {
   id: string;
@@ -16,6 +23,16 @@ export interface Viaje {
   estado: EstadoViaje;
   progreso: number; // 0-100
   observaciones: string;
+}
+
+export interface ViajeAdjunto {
+  id: string;
+  viajeId: string;
+  tipo: TipoAdjuntoViaje;
+  nombre: string;
+  mime: string;
+  creadoEn: string;
+  dataUrl?: string;
 }
 
 export interface Despacho {

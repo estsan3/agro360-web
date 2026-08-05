@@ -1,4 +1,10 @@
-import { CatalogosDto, CrearDespachoDto, DespachoDto, ViajeDto } from './despacho.dto';
+import {
+  CatalogosDto,
+  CrearDespachoDto,
+  DespachoDto,
+  ViajeAdjuntoDto,
+  ViajeDto,
+} from './despacho.dto';
 import {
   CamionCatalogo,
   Catalogos,
@@ -8,6 +14,7 @@ import {
   NuevoDespacho,
   TransportistaCatalogo,
   Viaje,
+  ViajeAdjunto,
 } from './despacho.model';
 
 const ESTADO_VIAJE_MAP: Record<ViajeDto['estado'], EstadoViaje> = {
@@ -17,7 +24,20 @@ const ESTADO_VIAJE_MAP: Record<ViajeDto['estado'], EstadoViaje> = {
   en_viaje: 'en-viaje',
   retrasado: 'retrasado',
   completado: 'completado',
+  cancelado: 'cancelado',
 };
+
+export function toViajeAdjunto(dto: ViajeAdjuntoDto): ViajeAdjunto {
+  return {
+    id: dto.id,
+    viajeId: dto.viaje_id,
+    tipo: dto.tipo,
+    nombre: dto.nombre,
+    mime: dto.mime,
+    creadoEn: dto.creado_en,
+    dataUrl: dto.data_url,
+  };
+}
 
 export function toViaje(dto: ViajeDto): Viaje {
   return {

@@ -61,6 +61,7 @@ export class BorradorDespachosPage {
   protected readonly busqueda = signal('');
   protected readonly expandidos = signal<Set<string>>(new Set());
   protected readonly filtrosAbiertos = signal(false);
+  protected readonly menuAbierto = signal<string | null>(null);
 
   protected readonly filtrosForm = this.fb.group({
     administradorId: [''],
@@ -292,8 +293,51 @@ export class BorradorDespachosPage {
     this.router.navigate(['/despachos'], { queryParams: { borrador: id } });
   }
 
-  protected masOpciones(): void {
-    this.notifications.warning('Más opciones', 'Disponible próximamente');
+  protected toggleMenu(id: string): void {
+    this.menuAbierto.update((actual) => (actual === id ? null : id));
+  }
+
+  protected activarBorrador(id: string, nombre: string): void {
+    this.menuAbierto.set(null);
+    this.store.activarDespacho(id).subscribe({
+      next: () => {
+        this.notifications.success('Campaña activada', nombre);
+        this.router.navigate(['/gestion-operativa']);
+      },
+      error: (err) =>
+        this.notifications.error(
+          'No se pudo activar',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        ),
+    });
+  }
+
+  protected duplicarBorrador(id: string): void {
+    this.menuAbierto.set(null);
+    this.store.duplicarDespacho(id).subscribe({
+      next: (copia) => this.notifications.success('Borrador duplicado', copia.nombre),
+      error: (err) =>
+        this.notifications.error(
+          'No se pudo duplicar',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        ),
+    });
+  }
+
+  protected buscarTransportistasBorrador(id: string): void {
+    this.menuAbierto.set(null);
+    this.store.buscarTransportistas(id).subscribe({
+      next: () =>
+        this.notifications.success(
+          'Búsqueda iniciada',
+          'Se notificó a las empresas transportistas',
+        ),
+      error: (err) =>
+        this.notifications.error(
+          'No se pudo buscar transportistas',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        ),
+    });
   }
 
   protected crearDespacho(): void {

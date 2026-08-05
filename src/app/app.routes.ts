@@ -23,7 +23,13 @@ export const routes: Routes = [
           import('./features/despachos/despachos.routes').then((m) => m.BORRADORES_ROUTES),
       },
       {
+        path: 'gestion-operativa/viajes/:despachoId/:viajeId',
+        loadComponent: () =>
+          import('./features/gestion-operativa/viaje-detalle-page').then((m) => m.ViajeDetallePage),
+      },
+      {
         path: 'gestion-operativa',
+        pathMatch: 'full',
         loadComponent: () =>
           import('./features/gestion-operativa/gestion-operativa-page').then(
             (m) => m.GestionOperativaPage,

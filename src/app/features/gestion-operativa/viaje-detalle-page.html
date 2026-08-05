@@ -1,0 +1,139 @@
+<section class="page">
+  <header class="page__header">
+    <div class="page__nav">
+      <a routerLink="/gestion-operativa" class="page__back">← Gestión operativa</a>
+    </div>
+    <h1>Detalle del viaje</h1>
+    <p>Datos operativos, documentos y adjuntos del traslado.</p>
+  </header>
+
+  <app-state-wrapper
+    [status]="despachosState().status"
+    [error]="despachosState().error ?? ''"
+    [empty]="despachosState().status === 'success' && !contexto().despacho"
+    emptyMessage="Viaje no encontrado"
+  >
+    @if (contexto(); as ctx) {
+      @if (ctx.despacho && ctx.viaje) {
+        <div class="detalle">
+          <div class="detalle__cabecera">
+            <div>
+              <span class="detalle__label">Viaje</span>
+              <strong class="detalle__id">{{ ctx.viaje.id }}</strong>
+            </div>
+            <app-badge [variant]="estadoBadge(ctx.viaje.estado)" size="md">
+              {{ estadoLabel(ctx.viaje.estado) }}
+            </app-badge>
+          </div>
+
+          <div class="detalle__grid">
+            <div>
+              <span class="detalle__label">Campaña</span>
+              <strong>{{ ctx.despacho.nombre }}</strong>
+            </div>
+            <div>
+              <span class="detalle__label">Productor · Campo</span>
+              <strong>{{ productorCampo() }}</strong>
+            </div>
+            <div>
+              <span class="detalle__label">Material</span>
+              <strong>{{ ctx.despacho.material }}</strong>
+            </div>
+            <div>
+              <span class="detalle__label">Origen</span>
+              <strong>{{ ctx.despacho.origen }}</strong>
+            </div>
+            <div>
+              <span class="detalle__label">Destino</span>
+              <strong>{{ ctx.viaje.destino }}</strong>
+            </div>
+            <div>
+              <span class="detalle__label">Chofer</span>
+              <strong>{{ ctx.viaje.chofer }}</strong>
+            </div>
+            <div>
+              <span class="detalle__label">Patente</span>
+              <strong>{{ ctx.viaje.dominio }}</strong>
+            </div>
+            <div>
+              <span class="detalle__label">Toneladas</span>
+              <strong>{{ ctx.viaje.toneladas }} tn</strong>
+            </div>
+            <div>
+              <span class="detalle__label">Inicio campaña</span>
+              <strong>{{ fechaCorta(ctx.despacho.fechaInicio) }}</strong>
+            </div>
+            <div>
+              <span class="detalle__label">Llegada estimada</span>
+              <strong>{{ fechaCorta(ctx.despacho.fechaLlegadaEstimada) }}</strong>
+            </div>
+            <div class="detalle__full">
+              <span class="detalle__label">Observaciones</span>
+              <strong>{{ ctx.viaje.observaciones || '—' }}</strong>
+            </div>
+          </div>
+
+          <div class="detalle__progreso">
+            <span class="detalle__label">Progreso</span>
+            <app-progress-bar
+              [value]="ctx.viaje.progreso"
+              [variant]="progressVariant(ctx.viaje.estado)"
+            />
+          </div>
+
+          <div class="detalle__acciones">
+            <app-button variant="primary" size="md" (clicked)="emitirCpe(ctx.despacho, ctx.viaje)">
+              <app-icon name="file-text" />
+              Emitir carta de porte
+            </app-button>
+            <app-button
+              variant="outline"
+              size="md"
+              (clicked)="generarTicket(ctx.despacho, ctx.viaje)"
+            >
+              <app-icon name="ticket" />
+              Generar ticket gasoil
+            </app-button>
+            <app-button variant="outline" size="md" (clicked)="subirAdjunto('cpe_escaneada')">
+              Adjuntar CPE escaneada
+            </app-button>
+            <app-button variant="outline" size="md" (clicked)="subirAdjunto('ticket_gasoil')">
+              Adjuntar ticket
+            </app-button>
+          </div>
+
+          <section class="adjuntos">
+            <h2>Adjuntos</h2>
+            @if (cargandoAdjuntos()) {
+              <p class="adjuntos__vacio">Cargando…</p>
+            } @else if (adjuntos().length === 0) {
+              <p class="adjuntos__vacio">Sin adjuntos todavía.</p>
+            } @else {
+              <ul class="adjuntos__lista">
+                @for (adj of adjuntos(); track adj.id) {
+                  <li class="adjuntos__item">
+                    <div>
+                      <strong>{{ adj.nombre }}</strong>
+                      <span>{{ tipoLabel(adj.tipo) }} · {{ adj.mime }}</span>
+                    </div>
+                    <div class="adjuntos__btns">
+                      <app-button variant="outline" size="sm" (clicked)="abrirAdjunto(adj)">
+                        Ver
+                      </app-button>
+                      <app-button variant="outline" size="sm" (clicked)="eliminarAdjunto(adj)">
+                        Eliminar
+                      </app-button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        </div>
+      } @else {
+        <p class="adjuntos__vacio">No se encontró el viaje solicitado.</p>
+        <app-button variant="outline" size="md" (clicked)="volver()">Volver</app-button>
+      }
+    }
+  </app-state-wrapper>
+</section>

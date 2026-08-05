@@ -18,9 +18,56 @@ export interface ViajeDto {
     | 'pendiente'
     | 'en_viaje'
     | 'retrasado'
-    | 'completado';
+    | 'completado'
+    | 'cancelado';
   progreso: number; // 0-100
   observaciones: string;
+}
+
+export type TipoAdjuntoViajeDto = 'ticket_gasoil' | 'cpe_escaneada' | 'otro';
+
+export interface ViajeAdjuntoDto {
+  id: string;
+  viaje_id: string;
+  tipo: TipoAdjuntoViajeDto;
+  nombre: string;
+  mime: string;
+  creado_en: string;
+  data_url?: string;
+}
+
+export interface SubirAdjuntoViajeDto {
+  tipo: TipoAdjuntoViajeDto;
+  nombre: string;
+  mime: string;
+  data_url: string;
+}
+
+export interface ActualizarViajeDto {
+  chofer_id?: string | null;
+  estado?: ViajeDto['estado'];
+  progreso?: number;
+  observaciones?: string;
+}
+
+export interface EmitirCartaPorteDto {
+  despacho_id: string;
+  viaje_id: string;
+}
+
+export interface CartaPorteDto {
+  id: string;
+  despacho_id: string;
+  viaje_id: string;
+  nro_carta_porte: string | null;
+  nro_ctg: string | null;
+  estado: string;
+  material: string;
+  origen: string;
+  destino: string;
+  dominio: string;
+  toneladas: number;
+  error_detalle: string;
 }
 
 export interface DespachoDto {

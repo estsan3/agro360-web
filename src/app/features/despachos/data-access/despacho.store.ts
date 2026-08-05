@@ -137,6 +137,12 @@ export class DespachoStore {
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 
+  activarDespacho(despachoId: string): Observable<Despacho> {
+    return this.api
+      .activarDespacho(despachoId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
   actualizarMetadatos(
     despachoId: string,
     input: ActualizarMetadatosDespachoInput,
@@ -172,6 +178,22 @@ export class DespachoStore {
   rechazarOfertaLista(despachoId: string, viajeId: string): Observable<Despacho> {
     return this.api
       .rechazarOfertaLista(despachoId, viajeId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  actualizarViaje(
+    despachoId: string,
+    viajeId: string,
+    datos: { choferId?: string; estado?: string; progreso?: number; observaciones?: string },
+  ): Observable<Despacho> {
+    return this.api
+      .actualizarViaje(despachoId, viajeId, datos)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  cancelarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.api
+      .cancelarViaje(despachoId, viajeId)
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 

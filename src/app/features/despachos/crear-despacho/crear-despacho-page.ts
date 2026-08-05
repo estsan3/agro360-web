@@ -16,6 +16,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { concatMap, from, toArray } from 'rxjs';
 import { NotificationStore } from '../../../notifications/state/notification.store';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -43,6 +44,7 @@ function puntosDeCampo(campo: {
 }
 
 type ViajeGroup = FormGroup<{
+  id: FormControl<string>;
   choferId: FormControl<string>;
   dominio: FormControl<string>;
   destino: FormControl<string>;
@@ -289,6 +291,7 @@ export class CrearDespachoPage {
         '';
       this.viajes.push(
         this.crearFila({
+          id: viaje.id,
           choferId,
           dominio: viaje.dominio,
           destino: viaje.destino,
@@ -393,24 +396,83 @@ export class CrearDespachoPage {
     );
   }
 
-  // --- Acciones masivas y por fila (TODO backend: generación real) ---
+  // --- Generación real de documentos (requiere viaje ya persistido) ---
   protected accionMasiva(accion: 'carta de porte' | 'ticket de gasoil'): void {
-    const cantidad = this.seleccionados().size;
-    if (cantidad === 0) {
+    const indices = [...this.seleccionados()];
+    if (indices.length === 0) {
       this.notifications.warning('Sin viajes seleccionados', 'Marcá al menos un viaje');
       return;
     }
-    this.notifications.success(
-      accion === 'carta de porte' ? 'Cartas de porte generadas' : 'Tickets de gasoil asignados',
-      `${cantidad} ${cantidad === 1 ? 'viaje' : 'viajes'}`,
-    );
+    const despachoId = this.editando()?.id;
+    if (!despachoId) {
+      this.notifications.warning(
+        'Guardá el despacho',
+        'Primero guardá el borrador para generar documentos',
+      );
+      return;
+    }
+    const viajeIds = indices
+      .map((i) => this.viajes.at(i)?.controls.id.value)
+      .filter((id): id is string => !!id);
+    if (viajeIds.length === 0) {
+      this.notifications.warning(
+        'Sin viajes guardados',
+        'Los viajes seleccionados aún no tienen ID; guardá el despacho',
+      );
+      return;
+    }
+    from(viajeIds)
+      .pipe(
+        concatMap((viajeId) =>
+          accion === 'carta de porte'
+            ? this.api.emitirCartaPorte(despachoId, viajeId)
+            : this.api.generarTicketGasoil(despachoId, viajeId),
+        ),
+        toArray(),
+      )
+      .subscribe({
+        next: (resultados) =>
+          this.notifications.success(
+            accion === 'carta de porte'
+              ? 'Cartas de porte generadas'
+              : 'Tickets de gasoil generados',
+            `${resultados.length} ${resultados.length === 1 ? 'viaje' : 'viajes'}`,
+          ),
+        error: (err) =>
+          this.notifications.error(
+            'Error al generar documentos',
+            err?.error?.error?.mensaje ?? 'Error de negocio',
+          ),
+      });
   }
 
   protected accionFila(index: number, accion: 'carta de porte' | 'ticket de gasoil'): void {
-    this.notifications.success(
-      accion === 'carta de porte' ? 'Carta de porte generada' : 'Ticket de gasoil asignado',
-      `Viaje #${index + 1}`,
-    );
+    const despachoId = this.editando()?.id;
+    const viajeId = this.viajes.at(index)?.controls.id.value;
+    if (!despachoId || !viajeId) {
+      this.notifications.warning(
+        'Guardá el despacho',
+        'Primero guardá el borrador para generar documentos',
+      );
+      return;
+    }
+    const onError = (err: { error?: { error?: { mensaje?: string } } }) =>
+      this.notifications.error(
+        'Error al generar documento',
+        err?.error?.error?.mensaje ?? 'Error de negocio',
+      );
+    if (accion === 'carta de porte') {
+      this.api.emitirCartaPorte(despachoId, viajeId).subscribe({
+        next: (cpe) =>
+          this.notifications.success('Carta de porte generada', cpe.nro_ctg ?? cpe.estado),
+        error: onError,
+      });
+      return;
+    }
+    this.api.generarTicketGasoil(despachoId, viajeId).subscribe({
+      next: (adj) => this.notifications.success('Ticket de gasoil generado', adj.nombre),
+      error: onError,
+    });
   }
 
   private actualizarTarifaLlena(): void {
@@ -614,6 +676,7 @@ export class CrearDespachoPage {
   }
 
   private crearFila(base?: {
+    id?: string;
     choferId: string;
     dominio: string;
     destino: string;
@@ -621,6 +684,7 @@ export class CrearDespachoPage {
     estado?: EstadoViaje;
   }): ViajeGroup {
     return this.fb.group({
+      id: [base?.id ?? ''],
       choferId: [base?.choferId ?? ''],
       dominio: [base?.dominio ?? ''],
       destino: [base?.destino ?? ''],

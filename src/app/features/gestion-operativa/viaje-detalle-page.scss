@@ -1,0 +1,144 @@
+@use 'tokens' as t;
+@use 'typography' as ty;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-lg;
+  padding: t.$space-lg;
+  font-family: ty.$font-family-base;
+
+  &__header {
+    h1 {
+      margin: 0;
+      font-size: ty.$font-size-3xl;
+      font-weight: ty.$font-weight-bold;
+      color: t.$color-text;
+    }
+
+    p {
+      margin: t.$space-xs 0 0;
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__nav {
+    margin-bottom: t.$space-sm;
+  }
+
+  &__back {
+    display: inline-flex;
+    align-items: center;
+    gap: t.$space-xs;
+    color: t.$color-text-muted;
+    text-decoration: none;
+    font-size: ty.$font-size-sm;
+
+    &:hover {
+      color: t.$color-text;
+    }
+  }
+}
+
+.detalle {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-lg;
+  padding: t.$space-lg;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-md;
+  background: t.$color-surface;
+
+  &__cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: t.$space-md;
+  }
+
+  &__id {
+    font-size: ty.$font-size-xl;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: t.$space-md;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: t.$space-xs;
+    }
+  }
+
+  &__full {
+    grid-column: 1 / -1;
+  }
+
+  &__label {
+    font-size: ty.$font-size-sm;
+    color: t.$color-text-muted;
+  }
+
+  &__progreso {
+    display: flex;
+    flex-direction: column;
+    gap: t.$space-xs;
+  }
+
+  &__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: t.$space-sm;
+  }
+}
+
+.adjuntos {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-md;
+
+  h2 {
+    margin: 0;
+    font-size: ty.$font-size-lg;
+  }
+
+  &__vacio {
+    margin: 0;
+    color: t.$color-text-muted;
+  }
+
+  &__lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: t.$space-sm;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: t.$space-md;
+    padding: t.$space-sm t.$space-md;
+    border-radius: t.$radius-md;
+    background: t.$color-background;
+
+    strong {
+      display: block;
+    }
+
+    span {
+      font-size: ty.$font-size-sm;
+      color: t.$color-text-muted;
+    }
+  }
+
+  &__btns {
+    display: flex;
+    gap: t.$space-xs;
+  }
+}
