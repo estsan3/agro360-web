@@ -51,6 +51,11 @@ export const routes: Routes = [
           import('./features/lista-espera/lista-espera-page').then((m) => m.ListaEsperaPage),
       },
       {
+        path: 'cartas-porte',
+        loadComponent: () =>
+          import('./features/cartas-porte/cartas-porte-page').then((m) => m.CartasPortePage),
+      },
+      {
         path: 'transportistas',
         canActivate: [adminGuard],
         loadComponent: () =>

@@ -37,7 +37,7 @@ const COLUMNS: TableColumn[] = [
   { key: 'tipoUnidad', label: 'Tipo', width: '100px' },
   { key: 'estado', label: 'Estado', width: '120px' },
   { key: 'anotadoEn', label: 'Anotado', width: '160px' },
-  { key: 'acciones', label: '', align: 'center', width: '140px' },
+  { key: 'acciones', label: '', align: 'right', width: '80px' },
 ];
 
 @Component({

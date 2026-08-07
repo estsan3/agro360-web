@@ -98,6 +98,12 @@ export class DespachoStore {
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 
+  editarParaIntencionCpe(id: string, input: NuevoDespacho): Observable<Despacho> {
+    return this.api
+      .editarParaIntencionCpe(id, input)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
   buscarTransportistas(
     despachoId: string,
     oferta?: { destino: string; toneladas: number },

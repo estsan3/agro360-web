@@ -644,6 +644,8 @@ El config levanta (o reutiliza) `npm start` en `http://localhost:4200` y corre e
 
 ## 14. Estado actual y deuda conocida
 
+**Producto — rediseño Crear despacho (definiciones, sin implementar):** ver [`docs/crear-despacho.md`](docs/crear-despacho.md).
+
 El proyecto es una **implementación temprana sólida** de la arquitectura objetivo. Puntos a tener en cuenta al leer el código:
 
 | Área                        | Situación                                                                                                |

@@ -55,19 +55,27 @@ export interface EmitirCartaPorteDto {
   viaje_id: string;
 }
 
+export type EstadoCartaPorteDto = 'pendiente' | 'error' | 'procesada' | 'autorizada' | 'anulada';
+
 export interface CartaPorteDto {
   id: string;
   despacho_id: string;
   viaje_id: string;
+  tipo_cpe: number;
   nro_carta_porte: string | null;
   nro_ctg: string | null;
-  estado: string;
+  estado: EstadoCartaPorteDto;
   material: string;
   origen: string;
   destino: string;
   dominio: string;
   toneladas: number;
+  payload_afip: Record<string, unknown>;
+  intentos: number;
   error_detalle: string;
+  tiene_documento: boolean;
+  creada_en: string;
+  actualizada_en?: string | null;
 }
 
 export interface DespachoDto {
@@ -90,6 +98,32 @@ export interface DespachoDto {
   distancia_km?: number | null;
   cuando?: 'ahora' | 'manana' | 'fecha';
   cuando_fecha?: string | null;
+  cpe_habilitada?: boolean;
+  cpe_tipo?: number | null;
+  cpe_sucursal?: number | null;
+  cpe_cosecha?: number | null;
+  cpe_cuit_solicitante?: string | null;
+  cpe_origen_cod_provincia?: number | null;
+  cpe_origen_cod_localidad?: number | null;
+  cpe_origen_planta?: number | null;
+  cpe_corresponde_retiro_productor?: boolean;
+  cpe_es_solicitante_campo?: boolean;
+  cpe_destino_cuit?: string | null;
+  cpe_destino_es_campo?: boolean;
+  cpe_destino_cod_provincia?: number | null;
+  cpe_destino_cod_localidad?: number | null;
+  cpe_destino_planta?: number | null;
+  cpe_peso_tara_kg_default?: number | null;
+  cpe_mercaderia_fumigada?: boolean;
+  cpe_cuit_pagador_flete?: string | null;
+  cpe_cuit_intermediario_flete?: string | null;
+  cpe_cuit_remitente_comercial_vp?: string | null;
+  cpe_cuit_remitente_comercial_vs?: string | null;
+  cpe_cuit_mercado_a_termino?: string | null;
+  cpe_cuit_corredor_vp?: string | null;
+  cpe_cuit_corredor_vs?: string | null;
+  cpe_cuit_representante_entregador?: string | null;
+  cpe_cuit_representante_recibidor?: string | null;
   viajes: ViajeDto[];
 }
 
@@ -102,6 +136,7 @@ export interface TarifaNacionalDto {
 }
 
 export interface CrearViajeDto {
+  id?: string;
   chofer_id?: string | null;
   dominio?: string | null;
   destino: string;
@@ -129,6 +164,7 @@ export interface CrearDespachoDto {
   vendedor_id: string;
   fecha_inicio: string;
   fecha_llegada_estimada: string;
+  observaciones?: string;
   estado: 'borrador' | 'activo';
   dador_viaje?: string;
   tarifa_llena?: boolean;
@@ -136,7 +172,34 @@ export interface CrearDespachoDto {
   distancia_km?: number | null;
   cuando?: 'ahora' | 'manana' | 'fecha';
   cuando_fecha?: string | null;
+  cpe_habilitada?: boolean;
+  cpe_tipo?: number | null;
+  cpe_sucursal?: number | null;
+  cpe_cosecha?: number | null;
+  cpe_cuit_solicitante?: string | null;
+  cpe_origen_cod_provincia?: number | null;
+  cpe_origen_cod_localidad?: number | null;
+  cpe_origen_planta?: number | null;
+  cpe_corresponde_retiro_productor?: boolean;
+  cpe_es_solicitante_campo?: boolean;
+  cpe_destino_cuit?: string | null;
+  cpe_destino_es_campo?: boolean;
+  cpe_destino_cod_provincia?: number | null;
+  cpe_destino_cod_localidad?: number | null;
+  cpe_destino_planta?: number | null;
+  cpe_peso_tara_kg_default?: number | null;
+  cpe_mercaderia_fumigada?: boolean;
+  cpe_cuit_pagador_flete?: string | null;
+  cpe_cuit_intermediario_flete?: string | null;
+  cpe_cuit_remitente_comercial_vp?: string | null;
+  cpe_cuit_remitente_comercial_vs?: string | null;
+  cpe_cuit_mercado_a_termino?: string | null;
+  cpe_cuit_corredor_vp?: string | null;
+  cpe_cuit_corredor_vs?: string | null;
+  cpe_cuit_representante_entregador?: string | null;
+  cpe_cuit_representante_recibidor?: string | null;
   viajes: {
+    id?: string;
     chofer_id?: string | null;
     dominio?: string;
     destino: string;
@@ -172,12 +235,15 @@ export interface CamionCatalogoDto {
   id: string;
   dominio: string;
   modelo: string;
+  tipo?: string;
+  acoplado_dominio?: string;
 }
 
 export interface ChoferCatalogoDto {
   id: string;
   nombre: string;
   transportista_id?: string | null;
+  camion_id?: string | null;
   dominio: string;
   modelo: string;
   camiones?: CamionCatalogoDto[];

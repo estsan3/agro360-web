@@ -34,6 +34,12 @@ export class DespachoService {
     return this.http.get<DespachoDto[]>(this.base).pipe(map((dtos) => dtos.map(toDespacho)));
   }
 
+  getDespacho(id: string): Observable<Despacho> {
+    return this.http
+      .get<DespachoDto>(`${this.base}/${encodeURIComponent(id)}`)
+      .pipe(map(toDespacho));
+  }
+
   crearDespacho(input: NuevoDespacho): Observable<Despacho> {
     return this.http.post<DespachoDto>(this.base, toCrearDespachoDto(input)).pipe(map(toDespacho));
   }
@@ -41,6 +47,13 @@ export class DespachoService {
   actualizarDespacho(id: string, input: NuevoDespacho): Observable<Despacho> {
     return this.http
       .put<DespachoDto>(`${this.base}/${id}`, toCrearDespachoDto(input))
+      .pipe(map(toDespacho));
+  }
+
+  /** Corrige campaña/viajes existentes para regenerar una intención CPE. */
+  editarParaIntencionCpe(id: string, input: NuevoDespacho): Observable<Despacho> {
+    return this.http
+      .patch<DespachoDto>(`${this.base}/${id}/para-intencion-cpe`, toCrearDespachoDto(input))
       .pipe(map(toDespacho));
   }
 
@@ -246,6 +259,30 @@ export class DespachoService {
   emitirCartaPorte(despachoId: string, viajeId: string): Observable<CartaPorteDto> {
     const body: EmitirCartaPorteDto = { despacho_id: despachoId, viaje_id: viajeId };
     return this.http.post<CartaPorteDto>(`${environment.apiBaseUrl}/cartas-porte`, body);
+  }
+
+  listarCartasPorte(despachoId?: string): Observable<CartaPorteDto[]> {
+    const params = despachoId ? `?despacho_id=${encodeURIComponent(despachoId)}` : '';
+    return this.http.get<CartaPorteDto[]>(`${environment.apiBaseUrl}/cartas-porte${params}`);
+  }
+
+  obtenerCartaPorte(cartaId: string): Observable<CartaPorteDto> {
+    return this.http.get<CartaPorteDto>(
+      `${environment.apiBaseUrl}/cartas-porte/${encodeURIComponent(cartaId)}`,
+    );
+  }
+
+  reintentarCartaPorte(cartaId: string): Observable<CartaPorteDto> {
+    return this.http.post<CartaPorteDto>(
+      `${environment.apiBaseUrl}/cartas-porte/${encodeURIComponent(cartaId)}/reintentar`,
+      {},
+    );
+  }
+
+  eliminarCartaPorte(cartaId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${environment.apiBaseUrl}/cartas-porte/${encodeURIComponent(cartaId)}`,
+    );
   }
 
   resolverTarifaNacional(distanciaKm: number): Observable<{ precioPorTn: number }> {
