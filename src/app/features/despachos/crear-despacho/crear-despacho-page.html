@@ -13,49 +13,42 @@
     [error]="catalogos().error ?? ''"
     [skeletonRows]="5"
   >
-    @if (editando(); as edicion) {
+    @if (modoIntencion(); as intencion) {
+      <div class="editando">
+        <app-icon name="file-text" />
+        Editando pedido para regenerar carta de porte:
+        <strong>{{ intencion.nombre }}</strong>
+        · viaje {{ intencion.viajeId }}
+      </div>
+    } @else if (editando(); as edicion) {
       <div class="editando">
         <app-icon name="file-text" />
         Editando borrador: <strong>{{ edicion.nombre }}</strong>
       </div>
     }
-    <!-- ============ MASTER: Información General ============ -->
-    <div class="card">
-      <h2 class="card__title">Información General del Despacho</h2>
 
+    <div class="card">
       <nav class="tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          class="tabs__tab"
-          [class.tabs__tab--active]="tab() === 1"
-          [attr.aria-selected]="tab() === 1"
-          (click)="tab.set(1)"
-        >
-          Información 1
-        </button>
-        <button
-          type="button"
-          role="tab"
-          class="tabs__tab"
-          [class.tabs__tab--active]="tab() === 2"
-          [attr.aria-selected]="tab() === 2"
-          (click)="tab.set(2)"
-        >
-          Información 2
-        </button>
+        @for (t of tabs; track t.id) {
+          <button
+            type="button"
+            role="tab"
+            class="tabs__tab"
+            [class.tabs__tab--active]="tab() === t.id"
+            [attr.aria-selected]="tab() === t.id"
+            (click)="irTab(t.id)"
+          >
+            {{ t.label }}
+          </button>
+        }
       </nav>
 
-      @if (tab() === 1) {
+      <!-- —— Origen —— -->
+      @if (tab() === 'origen') {
         <form class="grid" [formGroup]="form">
-          <div class="grid__full">
-            <app-text-input
-              label="Nombre de Campaña / Despacho *"
-              placeholder="Campaña Soja 2026"
-              formControlName="nombre"
-              [error]="fieldError('nombre')"
-            />
-          </div>
+          <p class="grid__full card__hint">
+            Productor, campo y códigos ARCA de origen. Los viajes heredan estos defaults.
+          </p>
           <app-select-input
             label="Productor *"
             [options]="productorOptions()"
@@ -70,48 +63,341 @@
             [error]="fieldError('campoId')"
           />
           <app-text-input
-            label="Origen *"
-            placeholder="Rosario, Santa Fe"
+            label="Descripción origen *"
+            placeholder="Intendente Alvear, La Pampa"
             formControlName="origen"
             [error]="fieldError('origen')"
           />
           <app-select-input
-            label="Entrada Campo *"
+            label="Entrada campo *"
             [options]="entradaOptions()"
             formControlName="entradaCampo"
             [error]="fieldError('entradaCampo')"
           />
           <app-select-input
-            label="Tipo de Material a Transportar *"
+            label="Provincia origen ARCA *"
+            [options]="arcaProvincias"
+            formControlName="cpeOrigenCodProvincia"
+            hint="Código de provincia del padrón ARCA (no el nombre postal)."
+          />
+          <app-select-input
+            label="Localidad origen ARCA *"
+            [options]="localidadesOrigenOptions()"
+            formControlName="cpeOrigenCodLocalidad"
+            hint="Localidad del padrón ARCA desde donde sale el camión."
+          />
+          <app-text-input
+            label="Planta RUCA origen"
+            type="number"
+            formControlName="cpeOrigenPlanta"
+            placeholder="Opcional si origen es campo"
+            hint="Código de planta en RUCA. Solo si el origen no es un campo."
+          />
+          <app-text-input
+            label="N° RENSPA"
+            formControlName="cpeNroRenspa"
+            placeholder="Ej. 12.345.6.78901/00"
+            hint="Identificador SENASA del establecimiento de origen. Va en la carta de porte como procedencia sanitaria del grano."
+          />
+          <div class="cpe-toggle">
+            <label class="cpe-toggle__check">
+              <input type="checkbox" formControlName="cpeCorrespondeRetiroProductor" />
+              Corresponde retiro productor
+            </label>
+            <p class="cpe-toggle__hint">
+              Marcalo si el grano se retira del campo de un productor (retiro primario).
+            </p>
+          </div>
+          <div class="cpe-toggle">
+            <label class="cpe-toggle__check">
+              <input type="checkbox" formControlName="cpeEsSolicitanteCampo" />
+              Solicitante campo (usa GPS del punto de entrada)
+            </label>
+            <p class="cpe-toggle__hint">
+              Marcalo si quien pide la CPE es el productor en origen. ARCA usa el GPS de la entrada
+              al campo.
+            </p>
+          </div>
+        </form>
+      }
+
+      <!-- —— Cereal —— -->
+      @if (tab() === 'cereal') {
+        <form class="grid" [formGroup]="form">
+          <app-select-input
+            label="Cereal / material *"
             [options]="materialOptions()"
             formControlName="material"
             [error]="fieldError('material')"
+            hint="El código AFIP del grano se infiere del material (soja, maíz, etc.)."
+          />
+          <app-text-input
+            label="Cosecha *"
+            type="number"
+            formControlName="cpeCosecha"
+            placeholder="Ej. 2526"
+            hint="Campaña agrícola en formato AAAA (2526 = 2025/2026). Lo pide ARCA en la CPE."
+          />
+          <app-text-input
+            label="Toneladas del pedido *"
+            type="number"
+            formControlName="toneladasPedido"
+            placeholder="Ej. 200000"
+          />
+          <app-text-input
+            label="Tn por cupo (default)"
+            type="number"
+            formControlName="toneladasOferta"
+            placeholder="Ej. 30"
+          />
+          <app-text-input
+            label="Peso tara default (kg)"
+            type="number"
+            formControlName="cpePesoTaraKgDefault"
+            placeholder="Ej. 15000"
+            hint="Peso del camión vacío. Se usa para calcular el neto de la CPE si el viaje no carga otro valor."
+          />
+          <div class="cpe-toggle">
+            <label class="cpe-toggle__check">
+              <input type="checkbox" formControlName="cpeMercaderiaFumigada" />
+              Mercadería fumigada
+            </label>
+            <p class="cpe-toggle__hint">Indicá si el grano fue fumigado antes de salir.</p>
+          </div>
+        </form>
+      }
+
+      <!-- —— Destino —— -->
+      @if (tab() === 'destino') {
+        <form class="grid" [formGroup]="form">
+          <app-text-input
+            label="Destino (etiqueta) *"
+            placeholder="COFCO — Puerto Gral. San Martín"
+            formControlName="destinoOferta"
+          />
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT destinatario *"
+              formControlName="cpeDestinoCuit"
+              placeholder="11 dígitos"
+              hint="CUIT de quien recibe el grano (planta, acopio o comprador)."
+            />
+            @if (razonSocial(form.controls.cpeDestinoCuit.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <app-select-input
+            label="Provincia destino ARCA *"
+            [options]="arcaProvincias"
+            formControlName="cpeDestinoCodProvincia"
+            hint="Código de provincia del padrón ARCA del destino."
           />
           <app-select-input
-            label="Administrador *"
+            label="Localidad destino ARCA *"
+            [options]="localidadesDestinoOptions()"
+            formControlName="cpeDestinoCodLocalidad"
+            hint="Localidad ARCA donde descarga el camión."
+          />
+          <app-text-input
+            label="Planta RUCA destino"
+            type="number"
+            formControlName="cpeDestinoPlanta"
+            placeholder="Ej. 512428"
+            hint="Código RUCA de la planta (puerto, acopio o industria). Obligatorio si no es destino a campo."
+          />
+          <div class="cpe-toggle">
+            <label class="cpe-toggle__check">
+              <input type="checkbox" formControlName="cpeDestinoEsCampo" />
+              Destino a campo (sin planta)
+            </label>
+            <p class="cpe-toggle__hint">
+              Marcalo si el grano va a un campo y no a una planta RUCA.
+            </p>
+          </div>
+          <app-text-input
+            label="Fecha de llegada estimada"
+            type="date"
+            formControlName="fechaLlegadaEstimada"
+          />
+        </form>
+      }
+
+      <!-- —— Intervinientes —— -->
+      @if (tab() === 'intervinientes') {
+        <form class="grid" [formGroup]="form">
+          <p class="grid__full card__hint">
+            CUIT + razón social (padrón local / ARCA). Completá solo los que intervienen en esta
+            operación.
+          </p>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT solicitante CPE"
+              formControlName="cpeCuitSolicitante"
+              placeholder="Si vacío, usa CUIT del productor"
+              hint="Quien emite la carta de porte ante ARCA. Si lo dejás vacío, se usa el CUIT del productor."
+            />
+            @if (razonSocial(form.controls.cpeCuitSolicitante.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT pagador flete"
+              formControlName="cpeCuitPagadorFlete"
+              hint="Quién paga el flete al transportista. Si vacío, suele tomarse el solicitante."
+            />
+            @if (razonSocial(form.controls.cpeCuitPagadorFlete.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT intermediario flete"
+              formControlName="cpeCuitIntermediarioFlete"
+              hint="Empresa que arma el flete si no contratás directo al transportista."
+            />
+            @if (razonSocial(form.controls.cpeCuitIntermediarioFlete.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT remitente comercial VP"
+              formControlName="cpeCuitRemitenteComercialVp"
+              hint="Quien compra el grano al productor (primer eslabón comercial)."
+            />
+            @if (razonSocial(form.controls.cpeCuitRemitenteComercialVp.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT remitente comercial VS"
+              formControlName="cpeCuitRemitenteComercialVs"
+              hint="Quien revende en el mercado secundario, si interviene."
+            />
+            @if (razonSocial(form.controls.cpeCuitRemitenteComercialVs.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT remitente comercial VS2"
+              formControlName="cpeCuitRemitenteComercialVs2"
+              hint="Segundo remitente comercial de venta secundaria, si hay dos cadenas de comercialización."
+            />
+            @if (razonSocial(form.controls.cpeCuitRemitenteComercialVs2.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT rte. comercial productor / retiro"
+              formControlName="cpeCuitRemitenteComercialProductor"
+              hint="Remitente comercial cuando el retiro es del productor. Se envía a ARCA en el bloque de retiro."
+            />
+            @if (razonSocial(form.controls.cpeCuitRemitenteComercialProductor.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT mercado a término"
+              formControlName="cpeCuitMercadoATermino"
+              hint="Cámara o mercado a término donde está concertada la operación, si aplica."
+            />
+            @if (razonSocial(form.controls.cpeCuitMercadoATermino.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT corredor VP"
+              formControlName="cpeCuitCorredorVp"
+              hint="Corredor de granos que intermedia la venta primaria."
+            />
+            @if (razonSocial(form.controls.cpeCuitCorredorVp.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT corredor VS"
+              formControlName="cpeCuitCorredorVs"
+              hint="Corredor de granos que intermedia la venta secundaria."
+            />
+            @if (razonSocial(form.controls.cpeCuitCorredorVs.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT representante entregador"
+              formControlName="cpeCuitRepresentanteEntregador"
+              hint="Apoderado en origen que firma la entrega de la mercadería."
+            />
+            @if (razonSocial(form.controls.cpeCuitRepresentanteEntregador.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+          <div class="cuit-field">
+            <app-text-input
+              label="CUIT representante recibidor"
+              formControlName="cpeCuitRepresentanteRecibidor"
+              hint="Apoderado en destino que firma la recepción del grano."
+            />
+            @if (razonSocial(form.controls.cpeCuitRepresentanteRecibidor.value); as rs) {
+              <small class="cuit-field__rs">{{ rs }}</small>
+            }
+          </div>
+        </form>
+      }
+
+      <!-- —— Vendedor / comercial —— -->
+      @if (tab() === 'vendedor') {
+        <form class="grid" [formGroup]="form">
+          <p class="grid__full card__hint">
+            Datos comerciales del pedido. El operador de esta pantalla es logística, no el vendedor.
+          </p>
+          <div class="grid__full">
+            <app-text-input
+              label="Nombre del pedido *"
+              placeholder="Pedido Soja campo Alvear → COFCO"
+              formControlName="nombre"
+              [error]="fieldError('nombre')"
+            />
+          </div>
+          <app-select-input
+            label="Vendedor *"
+            [options]="vendedorOptions()"
+            formControlName="vendedorId"
+            [error]="fieldError('vendedorId')"
+          />
+          <app-select-input
+            label="Administrador / ops *"
             [options]="administradorOptions()"
             formControlName="administradorId"
             [error]="fieldError('administradorId')"
           />
-          <div class="grid__full grid__tres">
-            <app-select-input
-              label="Vendedor *"
-              [options]="vendedorOptions()"
-              formControlName="vendedorId"
-              [error]="fieldError('vendedorId')"
-            />
+          <app-text-input
+            label="Fecha de inicio *"
+            type="date"
+            formControlName="fechaInicio"
+            [error]="fieldError('fechaInicio')"
+          />
+          <div class="grid__full">
             <app-text-input
-              label="Fecha de Inicio *"
-              type="date"
-              formControlName="fechaInicio"
-              [error]="fieldError('fechaInicio')"
-            />
-            <app-text-input
-              label="Fecha de Llegada Estimada"
-              type="date"
-              formControlName="fechaLlegadaEstimada"
+              label="Observaciones"
+              formControlName="observaciones"
+              placeholder="Notas operativas del pedido"
             />
           </div>
+        </form>
+      }
+
+      <!-- —— Transporte / tarifas —— -->
+      @if (tab() === 'transporte') {
+        <form class="grid" [formGroup]="form">
           <app-select-input
             label="Dador de viaje *"
             [options]="dadorOptions"
@@ -125,10 +411,16 @@
             <app-text-input label="Fecha de carga *" type="date" formControlName="cuandoFecha" />
           }
           <app-text-input
+            label="Hora de partida"
+            type="time"
+            formControlName="cpeHoraPartida"
+            hint="Hora local de salida del campo. Se envía a ARCA junto con la fecha de carga."
+          />
+          <app-text-input
             label="Distancia (km)"
             type="number"
             formControlName="distanciaKm"
-            placeholder="Ej. 250"
+            placeholder="Ej. 450"
           />
           <div class="tarifa-campo">
             <app-text-input
@@ -147,230 +439,364 @@
               </small>
             }
           </div>
-          <app-text-input
-            label="Destino (oferta) *"
-            placeholder="Ej. Rosario / Timbúes"
-            formControlName="destinoOferta"
-          />
-          <app-text-input
-            label="Toneladas (oferta) *"
-            type="number"
-            formControlName="toneladasOferta"
-            placeholder="Ej. 30"
-          />
+
+          <div class="grid__full"><h3 class="cpe-subtitle">Carta de porte (pedido)</h3></div>
+          <p class="grid__full card__hint">
+            Tipo y sucursal valen para todo el pedido. Origen, destino, cosecha e intervinientes se
+            cargan en sus tabs. La CPE se emite por viaje cuando hay transportista + dominio.
+          </p>
+          <div class="grid__full cpe-toggle">
+            <label class="cpe-toggle__check">
+              <input type="checkbox" formControlName="cpeHabilitada" />
+              Habilitar Carta de Porte Electrónica (ARCA)
+            </label>
+          </div>
+          @if (form.controls.cpeHabilitada.value) {
+            <app-select-input
+              label="Tipo CPE *"
+              [options]="cpeTipoOptions"
+              formControlName="cpeTipo"
+              hint="74 es el camión estándar. 274 es flete corto (recorrido reducido)."
+            />
+            <app-text-input
+              label="Sucursal / talonario *"
+              type="number"
+              formControlName="cpeSucursal"
+              placeholder="Ej. 1"
+              hint="Punto de emisión de la CPE ante ARCA. Lo define el solicitante (suele ser 1)."
+            />
+            <app-text-input
+              label="Código de turno"
+              formControlName="cpeCodigoTurno"
+              placeholder="Ej. COSM6752-14082025"
+              hint="Número que asigna la planta de destino (puerto/acopio) para ese camión y día. Si cada viaje tiene un turno distinto, cargalo en la tabla de transportistas."
+            />
+          }
         </form>
-      } @else {
-        <div class="tab-pendiente">
-          <p>Información 2 — contenido a definir</p>
+      }
+
+      <!-- —— Transportistas (agente + tabla de viajes manual) —— -->
+      @if (tab() === 'transportistas') {
+        <div class="viajes-panel">
+          <div class="agente-box">
+            <div>
+              <h2 class="card__title">Transportistas</h2>
+              <p class="card__hint">
+                Indicá cuántos viajes necesitás. El agente buscará esa cantidad de transportistas y
+                llenará la tabla. También podés cargar viajes a mano abajo.
+              </p>
+            </div>
+            <div class="agente-box__controles">
+              <label class="generar-n">
+                Cantidad de viajes requeridos
+                <input
+                  type="number"
+                  min="1"
+                  max="200"
+                  [value]="viajesRequeridos()"
+                  (input)="viajesRequeridos.set(+$any($event.target).value || 1)"
+                />
+              </label>
+              <app-button
+                variant="primary"
+                size="md"
+                [disabled]="buscandoAgente()"
+                (clicked)="buscarConAgente()"
+              >
+                <app-icon name="search" />
+                {{ buscandoAgente() ? 'Buscando…' : 'Buscar con agente IA' }}
+              </app-button>
+            </div>
+            <div class="totales">
+              <app-icon name="info" />
+              <span>
+                Requeridos: <strong>{{ viajesRequeridos() }}</strong>
+              </span>
+              <span class="totales__sep"></span>
+              <span>
+                En tabla: <strong>{{ totalViajes() }}</strong>
+              </span>
+              <span class="totales__sep"></span>
+              <span>
+                Tn: <strong>{{ totalToneladas() | number: '1.0-2' }}</strong>
+              </span>
+            </div>
+          </div>
+
+          <div class="viajes-head">
+            <div>
+              <h3 class="card__subtitle">Viajes del despacho</h3>
+              <p class="card__hint">
+                Carga manual: chofer, dominio, destino y toneladas. Destino/tn se heredan del pedido
+                al agregar. Canal: directo, lista de espera o IA.
+              </p>
+            </div>
+            @if (!modoIntencion()) {
+              <app-button variant="primary" size="md" (clicked)="agregarViaje()">
+                <app-icon name="plus" />
+                Agregar Viaje
+              </app-button>
+            }
+          </div>
+
+          @if (!modoIntencion()) {
+            <div class="viajes-acciones">
+              <div class="viajes-acciones__masivas">
+                <app-button
+                  variant="primary"
+                  size="md"
+                  class="btn-carta"
+                  (clicked)="accionMasiva('carta de porte')"
+                >
+                  <app-icon name="file-text" />
+                  Crear Carta de Porte
+                </app-button>
+                <app-button
+                  variant="primary"
+                  size="md"
+                  (clicked)="accionMasiva('ticket de gasoil')"
+                >
+                  <app-icon name="fuel" />
+                  Ticket Gasoil
+                </app-button>
+                <app-button variant="outline" size="md" (clicked)="agregarViaje()">
+                  <app-icon name="plus" />
+                  Agregar Viaje
+                </app-button>
+              </div>
+            </div>
+          }
+
+          <div class="vtable vtable--wide">
+            <div class="vtable__row vtable__row--head">
+              <input
+                type="checkbox"
+                aria-label="Seleccionar todos"
+                [checked]="todosSeleccionados()"
+                (change)="toggleTodos()"
+              />
+              <span>ID</span>
+              <span>Estado</span>
+              <span>Transportista</span>
+              <span>Chofer</span>
+              <span>Camión</span>
+              <span>Acoplado</span>
+              <span title="Código de turno que asigna la planta destino para ese camión"
+                >Turno</span
+              >
+              <span>Destino</span>
+              <span>Toneladas</span>
+              <span>Acciones</span>
+            </div>
+
+            @for (grupo of viajes.controls; track grupo; let i = $index) {
+              <div class="vtable__row">
+                <input
+                  type="checkbox"
+                  [attr.aria-label]="'Seleccionar viaje ' + (i + 1)"
+                  [checked]="seleccionados().has(i)"
+                  (change)="toggleSeleccion(i)"
+                />
+                <span class="vtable__id">{{ grupo.controls.id.value || '#' + (i + 1) }}</span>
+                <div class="vtable__estado">
+                  <app-badge
+                    [variant]="
+                      varianteEstado(grupo.controls.estado.value, grupo.controls.choferId.value)
+                    "
+                  >
+                    {{ etiquetaEstado(grupo.controls.estado.value, grupo.controls.choferId.value) }}
+                  </app-badge>
+                </div>
+                <select
+                  class="vtable__input"
+                  [attr.aria-label]="'Transportista viaje ' + (i + 1)"
+                  [formControl]="grupo.controls.transportistaId"
+                  (change)="transportistaElegido(i, $event)"
+                >
+                  <option value="">Transportista…</option>
+                  @for (op of transportistaOptions(); track op.value) {
+                    <option [value]="op.value">{{ op.label }}</option>
+                  }
+                </select>
+                <select
+                  class="vtable__input"
+                  [attr.aria-label]="'Chofer del viaje ' + (i + 1)"
+                  [formControl]="grupo.controls.choferId"
+                  (change)="choferElegido(i, $event)"
+                >
+                  <option value="">Chofer…</option>
+                  @for (
+                    chofer of choferesDeTransportista(grupo.controls.transportistaId.value);
+                    track chofer.id
+                  ) {
+                    <option [value]="chofer.id">{{ chofer.nombre }}</option>
+                  }
+                </select>
+                <select
+                  class="vtable__input"
+                  [attr.aria-label]="'Camión del viaje ' + (i + 1)"
+                  [formControl]="grupo.controls.camionId"
+                  (change)="camionElegido(i, $event)"
+                >
+                  <option value="">Camión…</option>
+                  @for (
+                    camion of camionesDeFila(
+                      grupo.controls.transportistaId.value,
+                      grupo.controls.choferId.value
+                    );
+                    track camion.id
+                  ) {
+                    <option [value]="camion.id">
+                      {{ camion.dominio }}
+                      @if (camion.modelo) {
+                        · {{ camion.modelo }}
+                      }
+                    </option>
+                  }
+                </select>
+                <input
+                  class="vtable__input"
+                  [attr.aria-label]="'Dominio acoplado viaje ' + (i + 1)"
+                  placeholder="Acoplado"
+                  title="Dominio del acoplado / semi"
+                  [formControl]="grupo.controls.acoplado"
+                />
+                <input
+                  class="vtable__input"
+                  [attr.aria-label]="'Código de turno viaje ' + (i + 1)"
+                  placeholder="Turno planta"
+                  title="Código que asigna la planta de destino para ese camión y día"
+                  [formControl]="grupo.controls.codigoTurno"
+                />
+                <input
+                  class="vtable__input"
+                  [attr.aria-label]="'Destino del viaje ' + (i + 1)"
+                  placeholder="Puerto San Martín"
+                  [formControl]="grupo.controls.destino"
+                />
+                <input
+                  class="vtable__input"
+                  type="number"
+                  [attr.aria-label]="'Toneladas del viaje ' + (i + 1)"
+                  placeholder="28.5"
+                  [formControl]="grupo.controls.toneladas"
+                />
+                <div class="vtable__acciones">
+                  <button
+                    type="button"
+                    class="vtable__accion vtable__accion--verde"
+                    title="Ticket de combustible"
+                    aria-label="Ticket de combustible"
+                    (click)="accionFila(i, 'ticket de gasoil')"
+                  >
+                    <app-icon name="fuel" />
+                  </button>
+                  <button
+                    type="button"
+                    class="vtable__accion vtable__accion--verde"
+                    title="Generar carta de porte"
+                    aria-label="Generar carta de porte"
+                    (click)="accionFila(i, 'carta de porte')"
+                  >
+                    <app-icon name="file-text" />
+                  </button>
+                  @if (!modoIntencion()) {
+                    <button
+                      type="button"
+                      class="vtable__accion"
+                      title="Duplicar viaje"
+                      aria-label="Duplicar viaje"
+                      (click)="duplicarViaje(i)"
+                    >
+                      <app-icon name="copy" />
+                    </button>
+                    <button
+                      type="button"
+                      class="vtable__accion vtable__accion--rojo"
+                      title="Eliminar viaje"
+                      aria-label="Eliminar viaje"
+                      (click)="eliminarViaje(i)"
+                    >
+                      <app-icon name="trash" />
+                    </button>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <div class="vtable__vacio">
+                Sin viajes — usá “Agregar Viaje”, “Buscar con agente IA” o publicá en búsqueda
+              </div>
+            }
+          </div>
         </div>
       }
 
       <footer class="card__nav">
-        <app-button variant="outline" size="md" [disabled]="tab() === 1" (clicked)="volverTab()">
+        <app-button
+          variant="outline"
+          size="md"
+          [disabled]="tab() === 'origen'"
+          (clicked)="tabAnterior()"
+        >
           Volver
         </app-button>
-        <app-button variant="primary" size="md" [disabled]="tab() === 2" (clicked)="siguienteTab()">
-          Siguiente paso
+        <app-button
+          variant="primary"
+          size="md"
+          [disabled]="tab() === 'transportistas'"
+          (clicked)="tabSiguiente()"
+        >
+          Siguiente
         </app-button>
       </footer>
     </div>
 
-    <!-- ============ DETALLE: Viajes del Despacho ============ -->
-    <div class="card">
-      <div class="viajes-head">
-        <div>
-          <h2 class="card__title">Viajes del Despacho</h2>
-          <p class="card__hint">
-            Opcional al buscar transportistas: el viaje se genera automáticamente. Usá la tabla
-            cuando ya tengas chofer/patente asignados.
-          </p>
-        </div>
-        <div class="totales">
-          <app-icon name="info" />
-          <span>
-            Total de viajes: <strong>{{ totalViajes() }}</strong>
-          </span>
-          <span class="totales__sep"></span>
-          <span>
-            Total toneladas: <strong>{{ totalToneladas() | number: '1.0-2' }} tn</strong>
-          </span>
-        </div>
-      </div>
-
-      <div class="viajes-acciones">
-        <div class="viajes-acciones__masivas">
-          <app-button
-            variant="primary"
-            size="md"
-            class="btn-carta"
-            (clicked)="accionMasiva('carta de porte')"
-          >
-            <app-icon name="file-text" />
-            Crear Carta de Porte
-          </app-button>
-          <app-button variant="primary" size="md" (clicked)="accionMasiva('ticket de gasoil')">
-            <app-icon name="fuel" />
-            Ticket Gasoil
-          </app-button>
-        </div>
-        <app-button variant="primary" size="md" (clicked)="agregarViaje()">
-          <app-icon name="plus" />
-          Agregar Viaje
-        </app-button>
-      </div>
-
-      <div class="vtable">
-        <div class="vtable__row vtable__row--head">
-          <input
-            type="checkbox"
-            aria-label="Seleccionar todos"
-            [checked]="todosSeleccionados()"
-            (change)="toggleTodos()"
-          />
-          <span>ID</span>
-          <span>Estado</span>
-          <span>Chofer</span>
-          <span>Dominio</span>
-          <span>Destino</span>
-          <span>Toneladas</span>
-          <span>Acciones</span>
-        </div>
-
-        @for (grupo of viajes.controls; track grupo; let i = $index) {
-          <div class="vtable__row">
-            <input
-              type="checkbox"
-              [attr.aria-label]="'Seleccionar viaje ' + (i + 1)"
-              [checked]="seleccionados().has(i)"
-              (change)="toggleSeleccion(i)"
-            />
-            <span class="vtable__id">#{{ i + 1 }}</span>
-            <div class="vtable__estado">
-              @if (esBusqueda(grupo.controls.estado.value)) {
-                <app-badge variant="info">En búsqueda de transportistas</app-badge>
-              } @else {
-                <app-badge variant="warning">Borrador</app-badge>
-              }
-            </div>
-            <select
-              class="vtable__input"
-              [attr.aria-label]="'Chofer del viaje ' + (i + 1)"
-              [formControl]="grupo.controls.choferId"
-              (change)="choferElegido(i, $event)"
-            >
-              <option value="">Chofer…</option>
-              @for (chofer of catalogos().data?.choferes ?? []; track chofer.id) {
-                <option [value]="chofer.id">
-                  @if (nombreTransportista(chofer.id)) {
-                    {{ nombreTransportista(chofer.id) }} ·
-                  }
-                  {{ chofer.nombre }}
-                </option>
-              }
-            </select>
-            @if (patentesChofer(grupo.controls.choferId.value).length > 0) {
-              <select
-                class="vtable__input"
-                [attr.aria-label]="'Patente del viaje ' + (i + 1)"
-                [formControl]="grupo.controls.dominio"
-              >
-                <option value="">Patente…</option>
-                @for (patente of patentesChofer(grupo.controls.choferId.value); track patente) {
-                  <option [value]="patente">{{ patente }}</option>
-                }
-              </select>
-            } @else {
-              <input
-                class="vtable__input"
-                [attr.aria-label]="'Dominio del viaje ' + (i + 1)"
-                placeholder="AA123BB"
-                [formControl]="grupo.controls.dominio"
-              />
-            }
-            <input
-              class="vtable__input"
-              [attr.aria-label]="'Destino del viaje ' + (i + 1)"
-              placeholder="Puerto San Martín"
-              [formControl]="grupo.controls.destino"
-            />
-            <input
-              class="vtable__input"
-              type="number"
-              [attr.aria-label]="'Toneladas del viaje ' + (i + 1)"
-              placeholder="28.5"
-              [formControl]="grupo.controls.toneladas"
-            />
-            <div class="vtable__acciones">
-              <button
-                type="button"
-                class="vtable__accion vtable__accion--verde"
-                title="Ticket de combustible"
-                aria-label="Ticket de combustible"
-                (click)="accionFila(i, 'ticket de gasoil')"
-              >
-                <app-icon name="fuel" />
-              </button>
-              <button
-                type="button"
-                class="vtable__accion vtable__accion--verde"
-                title="Generar carta de porte"
-                aria-label="Generar carta de porte"
-                (click)="accionFila(i, 'carta de porte')"
-              >
-                <app-icon name="file-text" />
-              </button>
-              <button
-                type="button"
-                class="vtable__accion"
-                title="Duplicar viaje"
-                aria-label="Duplicar viaje"
-                (click)="duplicarViaje(i)"
-              >
-                <app-icon name="copy" />
-              </button>
-              <button
-                type="button"
-                class="vtable__accion vtable__accion--rojo"
-                title="Eliminar viaje"
-                aria-label="Eliminar viaje"
-                (click)="eliminarViaje(i)"
-              >
-                <app-icon name="trash" />
-              </button>
-            </div>
-          </div>
-        } @empty {
-          <div class="vtable__vacio">Sin viajes — usá "Agregar Viaje"</div>
-        }
-      </div>
-    </div>
-
     <footer class="actions">
-      <app-button
-        variant="outline"
-        size="md"
-        [disabled]="guardando()"
-        (clicked)="guardar('borrador')"
-      >
-        Guardar borrador
-      </app-button>
-      <app-button
-        variant="outline"
-        size="md"
-        [disabled]="guardando()"
-        (clicked)="buscarTransportistas()"
-      >
-        <app-icon name="search" />
-        Buscar transportistas
-      </app-button>
-      <app-button
-        variant="primary"
-        size="md"
-        [disabled]="guardando()"
-        (clicked)="guardar('activo')"
-      >
-        {{ guardando() ? 'Creando…' : 'Crear Despacho' }}
-      </app-button>
+      @if (modoIntencion()) {
+        <app-button
+          variant="outline"
+          size="md"
+          [disabled]="guardando()"
+          (clicked)="cancelarEdicionIntencion()"
+        >
+          Cancelar
+        </app-button>
+        <app-button
+          variant="primary"
+          size="md"
+          [disabled]="guardando()"
+          (clicked)="guardarYRegenerarIntencion()"
+        >
+          <app-icon name="play" />
+          {{ guardando() ? 'Regenerando…' : 'Guardar y regenerar intención' }}
+        </app-button>
+      } @else {
+        <app-button
+          variant="outline"
+          size="md"
+          [disabled]="guardando()"
+          (clicked)="guardar('borrador')"
+        >
+          Guardar borrador
+        </app-button>
+        <app-button
+          variant="outline"
+          size="md"
+          [disabled]="guardando()"
+          (clicked)="buscarTransportistas()"
+        >
+          <app-icon name="search" />
+          Publicar en búsqueda
+        </app-button>
+        <app-button
+          variant="primary"
+          size="md"
+          [disabled]="guardando()"
+          (clicked)="guardar('activo')"
+        >
+          {{ guardando() ? 'Guardando…' : 'Activar pedido' }}
+        </app-button>
+      }
     </footer>
   </app-state-wrapper>
 </section>

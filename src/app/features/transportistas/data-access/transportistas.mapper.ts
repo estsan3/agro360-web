@@ -37,6 +37,7 @@ function mapCamion(dto: CamionTransportistaDto): CamionTransportista {
     marca: dto.marca,
     modelo: dto.modelo,
     tipo: dto.tipo,
+    capacidadTn: dto.capacidad_tn ?? null,
     nroChasis: dto.nro_chasis,
     nroMotor: dto.nro_motor,
     fotoTarjetaVerde: mapArchivo(dto.foto_tarjeta_verde),
@@ -77,6 +78,7 @@ export function mapTransportista(dto: TransportistaDto): Transportista {
     email: dto.email,
     telefono: dto.telefono,
     paginaWeb: dto.pagina_web,
+    esFlotaPropia: Boolean(dto.es_flota_propia),
   };
 }
 
@@ -94,6 +96,7 @@ export function toCamionDto(camion: Partial<CamionTransportista>): Record<string
     marca: camion.marca ?? '',
     modelo: camion.modelo ?? '',
     tipo: camion.tipo ?? '',
+    capacidad_tn: camion.capacidadTn ?? null,
     nro_chasis: camion.nroChasis ?? '',
     nro_motor: camion.nroMotor ?? '',
     foto_tarjeta_verde: toArchivoDto(camion.fotoTarjetaVerde),
@@ -131,5 +134,6 @@ export function toTransportistaDto(transportista: Partial<Transportista>): Recor
     email: transportista.email ?? '',
     telefono: transportista.telefono ?? '',
     pagina_web: transportista.paginaWeb ?? '',
+    es_flota_propia: Boolean(transportista.esFlotaPropia),
   };
 }

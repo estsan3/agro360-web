@@ -3,19 +3,26 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
+  ActualizarMetadatosDespachoDto,
+  ActualizarViajeDto,
+  CartaPorteDto,
   CatalogosDto,
   CrearViajeDto,
   DespachoDto,
-  ActualizarMetadatosDespachoDto,
   DuplicarDespachoDto,
+  EmitirCartaPorteDto,
+  SubirAdjuntoViajeDto,
+  ViajeAdjuntoDto,
 } from './despacho.dto';
-import { toCatalogos, toCrearDespachoDto, toDespacho } from './despacho.mapper';
+import { toCatalogos, toCrearDespachoDto, toDespacho, toViajeAdjunto } from './despacho.mapper';
 import {
   ActualizarMetadatosDespachoInput,
   AgregarViajeInput,
   Catalogos,
   Despacho,
   NuevoDespacho,
+  TipoAdjuntoViaje,
+  ViajeAdjunto,
 } from './despacho.model';
 
 @Injectable({ providedIn: 'root' })
@@ -25,6 +32,12 @@ export class DespachoService {
 
   getDespachos(): Observable<Despacho[]> {
     return this.http.get<DespachoDto[]>(this.base).pipe(map((dtos) => dtos.map(toDespacho)));
+  }
+
+  getDespacho(id: string): Observable<Despacho> {
+    return this.http
+      .get<DespachoDto>(`${this.base}/${encodeURIComponent(id)}`)
+      .pipe(map(toDespacho));
   }
 
   crearDespacho(input: NuevoDespacho): Observable<Despacho> {
@@ -37,15 +50,29 @@ export class DespachoService {
       .pipe(map(toDespacho));
   }
 
+  /** Corrige campaña/viajes existentes para regenerar una intención CPE. */
+  editarParaIntencionCpe(id: string, input: NuevoDespacho): Observable<Despacho> {
+    return this.http
+      .patch<DespachoDto>(`${this.base}/${id}/para-intencion-cpe`, toCrearDespachoDto(input))
+      .pipe(map(toDespacho));
+  }
+
   eliminarDespacho(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
-  iniciarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+  iniciarViaje(
+    despachoId: string,
+    viajeId: string,
+    checklist: { checklistGasoil: boolean; checklistEfectivo: boolean },
+  ): Observable<Despacho> {
     return this.http
       .post<DespachoDto>(
         `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/iniciar`,
-        {},
+        {
+          checklist_gasoil: checklist.checklistGasoil,
+          checklist_efectivo: checklist.checklistEfectivo,
+        },
       )
       .pipe(map(toDespacho));
   }
@@ -84,6 +111,12 @@ export class DespachoService {
       .pipe(map(toDespacho));
   }
 
+  activarDespacho(despachoId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(`${this.base}/${despachoId}/activar`, {})
+      .pipe(map(toDespacho));
+  }
+
   actualizarMetadatos(
     despachoId: string,
     input: ActualizarMetadatosDespachoInput,
@@ -118,6 +151,145 @@ export class DespachoService {
     return this.http
       .post<DespachoDto>(`${this.base}/${despachoId}/buscar-transportistas`, body)
       .pipe(map(toDespacho));
+  }
+
+  asignarPorLista(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/asignar-por-lista`,
+        {},
+      )
+      .pipe(map(toDespacho));
+  }
+
+  aceptarOfertaLista(despachoId: string, viajeId: string, entradaId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/aceptar-oferta-lista`,
+        {},
+        { params: { entrada_id: entradaId } },
+      )
+      .pipe(map(toDespacho));
+  }
+
+  rechazarOfertaLista(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/rechazar-oferta-lista`,
+        {},
+      )
+      .pipe(map(toDespacho));
+  }
+
+  actualizarViaje(
+    despachoId: string,
+    viajeId: string,
+    datos: { choferId?: string; estado?: string; progreso?: number; observaciones?: string },
+  ): Observable<Despacho> {
+    const body: ActualizarViajeDto = {};
+    if (datos.choferId !== undefined) {
+      body.chofer_id = datos.choferId;
+    }
+    if (datos.estado !== undefined) {
+      body.estado = datos.estado as ActualizarViajeDto['estado'];
+    }
+    if (datos.progreso !== undefined) {
+      body.progreso = datos.progreso;
+    }
+    if (datos.observaciones !== undefined) {
+      body.observaciones = datos.observaciones;
+    }
+    return this.http
+      .patch<DespachoDto>(`${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}`, body)
+      .pipe(map(toDespacho));
+  }
+
+  cancelarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.http
+      .post<DespachoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/cancelar`,
+        {},
+      )
+      .pipe(map(toDespacho));
+  }
+
+  listarAdjuntos(despachoId: string, viajeId: string): Observable<ViajeAdjunto[]> {
+    return this.http
+      .get<ViajeAdjuntoDto[]>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/adjuntos`,
+      )
+      .pipe(map((items) => items.map(toViajeAdjunto)));
+  }
+
+  obtenerAdjunto(despachoId: string, viajeId: string, adjuntoId: string): Observable<ViajeAdjunto> {
+    return this.http
+      .get<ViajeAdjuntoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/adjuntos/${encodeURIComponent(adjuntoId)}`,
+      )
+      .pipe(map(toViajeAdjunto));
+  }
+
+  subirAdjunto(
+    despachoId: string,
+    viajeId: string,
+    input: { tipo: TipoAdjuntoViaje; nombre: string; mime: string; dataUrl: string },
+  ): Observable<ViajeAdjunto> {
+    const body: SubirAdjuntoViajeDto = {
+      tipo: input.tipo,
+      nombre: input.nombre,
+      mime: input.mime,
+      data_url: input.dataUrl,
+    };
+    return this.http
+      .post<ViajeAdjuntoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/adjuntos`,
+        body,
+      )
+      .pipe(map(toViajeAdjunto));
+  }
+
+  eliminarAdjunto(despachoId: string, viajeId: string, adjuntoId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/adjuntos/${encodeURIComponent(adjuntoId)}`,
+    );
+  }
+
+  generarTicketGasoil(despachoId: string, viajeId: string): Observable<ViajeAdjunto> {
+    return this.http
+      .post<ViajeAdjuntoDto>(
+        `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/generar-ticket-gasoil`,
+        {},
+      )
+      .pipe(map(toViajeAdjunto));
+  }
+
+  emitirCartaPorte(despachoId: string, viajeId: string): Observable<CartaPorteDto> {
+    const body: EmitirCartaPorteDto = { despacho_id: despachoId, viaje_id: viajeId };
+    return this.http.post<CartaPorteDto>(`${environment.apiBaseUrl}/cartas-porte`, body);
+  }
+
+  listarCartasPorte(despachoId?: string): Observable<CartaPorteDto[]> {
+    const params = despachoId ? `?despacho_id=${encodeURIComponent(despachoId)}` : '';
+    return this.http.get<CartaPorteDto[]>(`${environment.apiBaseUrl}/cartas-porte${params}`);
+  }
+
+  obtenerCartaPorte(cartaId: string): Observable<CartaPorteDto> {
+    return this.http.get<CartaPorteDto>(
+      `${environment.apiBaseUrl}/cartas-porte/${encodeURIComponent(cartaId)}`,
+    );
+  }
+
+  reintentarCartaPorte(cartaId: string): Observable<CartaPorteDto> {
+    return this.http.post<CartaPorteDto>(
+      `${environment.apiBaseUrl}/cartas-porte/${encodeURIComponent(cartaId)}/reintentar`,
+      {},
+    );
+  }
+
+  eliminarCartaPorte(cartaId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${environment.apiBaseUrl}/cartas-porte/${encodeURIComponent(cartaId)}`,
+    );
   }
 
   resolverTarifaNacional(distanciaKm: number): Observable<{ precioPorTn: number }> {

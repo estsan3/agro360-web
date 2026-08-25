@@ -2,9 +2,16 @@
  * Modelo de dominio del front (camelCase, fechas como Date).
  */
 export type EstadoViaje =
-  'borrador' | 'en-busqueda-transportistas' | 'pendiente' | 'en-viaje' | 'retrasado' | 'completado';
+  | 'borrador'
+  | 'en-busqueda-transportistas'
+  | 'pendiente'
+  | 'en-viaje'
+  | 'retrasado'
+  | 'completado'
+  | 'cancelado';
 export type EstadoDespacho = 'borrador' | 'activo' | 'cerrado';
 export type CuandoDespacho = 'ahora' | 'manana' | 'fecha';
+export type TipoAdjuntoViaje = 'ticket_gasoil' | 'cpe_escaneada' | 'otro';
 
 export interface Viaje {
   id: string;
@@ -16,6 +23,18 @@ export interface Viaje {
   estado: EstadoViaje;
   progreso: number; // 0-100
   observaciones: string;
+  cpeCodigoTurno: string | null;
+  cpeDominioAcoplado: string | null;
+}
+
+export interface ViajeAdjunto {
+  id: string;
+  viajeId: string;
+  tipo: TipoAdjuntoViaje;
+  nombre: string;
+  mime: string;
+  creadoEn: string;
+  dataUrl?: string;
 }
 
 export interface Despacho {
@@ -38,14 +57,49 @@ export interface Despacho {
   distanciaKm: number | null;
   cuando: CuandoDespacho;
   cuandoFecha: string | null;
+  cpeHabilitada: boolean;
+  cpeTipo: number | null;
+  cpeSucursal: number | null;
+  cpeCosecha: number | null;
+  cpeCuitSolicitante: string | null;
+  cpeOrigenCodProvincia: number | null;
+  cpeOrigenCodLocalidad: number | null;
+  cpeOrigenPlanta: number | null;
+  cpeNroRenspa: string | null;
+  cpeCodigoTurno: string | null;
+  cpeHoraPartida: string | null;
+  cpeCorrespondeRetiroProductor: boolean;
+  cpeEsSolicitanteCampo: boolean;
+  cpeDestinoCuit: string | null;
+  cpeDestinoEsCampo: boolean;
+  cpeDestinoCodProvincia: number | null;
+  cpeDestinoCodLocalidad: number | null;
+  cpeDestinoPlanta: number | null;
+  cpePesoTaraKgDefault: number | null;
+  cpeMercaderiaFumigada: boolean;
+  cpeCuitPagadorFlete: string | null;
+  cpeCuitIntermediarioFlete: string | null;
+  cpeCuitRemitenteComercialVp: string | null;
+  cpeCuitRemitenteComercialVs: string | null;
+  cpeCuitMercadoATermino: string | null;
+  cpeCuitCorredorVp: string | null;
+  cpeCuitCorredorVs: string | null;
+  cpeCuitRepresentanteEntregador: string | null;
+  cpeCuitRepresentanteRecibidor: string | null;
+  cpeCuitRemitenteComercialVs2: string | null;
+  cpeCuitRemitenteComercialProductor: string | null;
   viajes: Viaje[];
 }
 
 export interface NuevoViaje {
+  /** Presente al editar para regenerar una intención CPE (preserva el id). */
+  id?: string;
   choferId: string;
   dominio: string;
   destino: string;
   toneladas: number;
+  codigoTurno?: string | null;
+  dominioAcoplado?: string | null;
 }
 
 /** Alta de un viaje en campaña ya activa (chofer opcional). */
@@ -73,6 +127,7 @@ export interface NuevoDespacho {
   vendedorId: string;
   fechaInicio: string;
   fechaLlegadaEstimada: string;
+  observaciones?: string;
   estado: EstadoDespacho;
   dadorViaje?: string;
   tarifaLlena?: boolean;
@@ -80,6 +135,37 @@ export interface NuevoDespacho {
   distanciaKm?: number | null;
   cuando?: CuandoDespacho;
   cuandoFecha?: string | null;
+  cpeHabilitada?: boolean;
+  cpeTipo?: number | null;
+  cpeSucursal?: number | null;
+  cpeCosecha?: number | null;
+  cpeCuitSolicitante?: string | null;
+  cpeOrigenCodProvincia?: number | null;
+  cpeOrigenCodLocalidad?: number | null;
+  cpeOrigenPlanta?: number | null;
+  cpeNroRenspa?: string | null;
+  cpeCodigoTurno?: string | null;
+  cpeHoraPartida?: string | null;
+  cpeCorrespondeRetiroProductor?: boolean;
+  cpeEsSolicitanteCampo?: boolean;
+  cpeDestinoCuit?: string | null;
+  cpeDestinoEsCampo?: boolean;
+  cpeDestinoCodProvincia?: number | null;
+  cpeDestinoCodLocalidad?: number | null;
+  cpeDestinoPlanta?: number | null;
+  cpePesoTaraKgDefault?: number | null;
+  cpeMercaderiaFumigada?: boolean;
+  cpeCuitPagadorFlete?: string | null;
+  cpeCuitIntermediarioFlete?: string | null;
+  cpeCuitRemitenteComercialVp?: string | null;
+  cpeCuitRemitenteComercialVs?: string | null;
+  cpeCuitMercadoATermino?: string | null;
+  cpeCuitCorredorVp?: string | null;
+  cpeCuitCorredorVs?: string | null;
+  cpeCuitRepresentanteEntregador?: string | null;
+  cpeCuitRepresentanteRecibidor?: string | null;
+  cpeCuitRemitenteComercialVs2?: string | null;
+  cpeCuitRemitenteComercialProductor?: string | null;
   viajes: NuevoViaje[];
 }
 
@@ -95,12 +181,15 @@ export interface CamionCatalogo {
   id: string;
   dominio: string;
   modelo: string;
+  tipo: string;
+  acopladoDominio: string;
 }
 
 export interface ChoferCatalogo {
   id: string;
   nombre: string;
   transportistaId: string | null;
+  camionId: string | null;
   dominio: string;
   modelo: string;
   camiones: CamionCatalogo[];
@@ -125,6 +214,7 @@ export interface PuntoEntradaCatalogo {
 export interface CampoCatalogo {
   id: string;
   nombre: string;
+  nroRenspa?: string | null;
   puntosEntrada?: PuntoEntradaCatalogo[];
   /** Alias snake_case del mock API */
   puntos_entrada?: PuntoEntradaCatalogo[];

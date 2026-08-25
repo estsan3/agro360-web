@@ -80,6 +80,7 @@ const RESPONSABLES_COLUMNS: TableColumn[] = [
 const CAMPOS_COLUMNS: TableColumn[] = [
   { key: 'codigo', label: 'Código', width: '80px' },
   { key: 'nombre', label: 'Nombre', width: '120px' },
+  { key: 'nroRenspa', label: 'RENSPA', width: '140px' },
   { key: 'localidad', label: 'Localidad', width: '100px' },
   { key: 'provincia', label: 'Provincia', width: '100px' },
   { key: 'superficieHa', label: 'Ha', width: '56px' },
@@ -171,6 +172,7 @@ export class ProductoresPage {
   protected readonly campoForm = this.fb.group({
     nombre: [''],
     codigo: [''],
+    nroRenspa: [''],
     superficieHa: [0],
     localidad: [''],
     provincia: [''],
@@ -248,7 +250,7 @@ export class ProductoresPage {
       this.filtroCampos(),
       this.busquedaCampos(),
       (c) =>
-        `${c.nombre} ${c.codigo} ${c.localidad} ${c.provincia} ${c.direccion} ${c.contactoNombre}`,
+        `${c.nombre} ${c.codigo} ${c.nroRenspa ?? ''} ${c.localidad} ${c.provincia} ${c.direccion} ${c.contactoNombre}`,
     ).map(
       (c) =>
         ({
@@ -654,6 +656,7 @@ export class ProductoresPage {
     const body: Partial<CampoProductor> = {
       nombre: raw.nombre ?? '',
       codigo: raw.codigo ?? '',
+      nroRenspa: raw.nroRenspa?.trim() || null,
       superficieHa: Number(raw.superficieHa ?? 0),
       localidad: raw.localidad ?? '',
       provincia: raw.provincia ?? '',
@@ -755,6 +758,7 @@ export class ProductoresPage {
       this.campoForm.reset({
         nombre: '',
         codigo: '',
+        nroRenspa: '',
         superficieHa: 0,
         localidad: '',
         provincia: '',
@@ -775,6 +779,7 @@ export class ProductoresPage {
     this.campoForm.reset({
       nombre: c.nombre,
       codigo: c.codigo,
+      nroRenspa: c.nroRenspa ?? '',
       superficieHa: c.superficieHa,
       localidad: c.localidad,
       provincia: c.provincia,

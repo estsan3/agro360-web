@@ -43,6 +43,7 @@ const ESTADO_LABEL: Record<EstadoViaje, string> = {
   'en-viaje': 'En viaje',
   retrasado: 'Retrasado',
   completado: 'Completado',
+  cancelado: 'Cancelado',
 };
 
 interface FilaReporte {

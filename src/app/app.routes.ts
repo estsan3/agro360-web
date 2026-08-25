@@ -23,7 +23,13 @@ export const routes: Routes = [
           import('./features/despachos/despachos.routes').then((m) => m.BORRADORES_ROUTES),
       },
       {
+        path: 'gestion-operativa/viajes/:despachoId/:viajeId',
+        loadComponent: () =>
+          import('./features/gestion-operativa/viaje-detalle-page').then((m) => m.ViajeDetallePage),
+      },
+      {
         path: 'gestion-operativa',
+        pathMatch: 'full',
         loadComponent: () =>
           import('./features/gestion-operativa/gestion-operativa-page').then(
             (m) => m.GestionOperativaPage,
@@ -38,6 +44,16 @@ export const routes: Routes = [
         path: 'mensajeria',
         loadComponent: () =>
           import('./features/mensajeria/mensajeria-page').then((m) => m.MensajeriaPage),
+      },
+      {
+        path: 'lista-espera',
+        loadComponent: () =>
+          import('./features/lista-espera/lista-espera-page').then((m) => m.ListaEsperaPage),
+      },
+      {
+        path: 'cartas-porte',
+        loadComponent: () =>
+          import('./features/cartas-porte/cartas-porte-page').then((m) => m.CartasPortePage),
       },
       {
         path: 'transportistas',

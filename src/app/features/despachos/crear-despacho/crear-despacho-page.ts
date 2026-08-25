@@ -16,6 +16,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { concatMap, from, switchMap, toArray } from 'rxjs';
 import { NotificationStore } from '../../../notifications/state/notification.store';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -24,6 +25,7 @@ import { SelectInput, SelectOption } from '../../../shared/ui/select/select-inpu
 import { StateWrapper } from '../../../shared/ui/state-wrapper/state-wrapper';
 import { TextInput } from '../../../shared/ui/input/text-input';
 import { Toast } from '../../../shared/ui/toast/toast';
+import { CartasPorteService } from '../../cartas-porte/data-access/cartas-porte.service';
 import {
   CuandoDespacho,
   Despacho,
@@ -34,6 +36,16 @@ import {
 } from '../data-access/despacho.model';
 import { DespachoService } from '../data-access/despacho.service';
 import { DespachoStore } from '../data-access/despacho.store';
+import {
+  ARCA_PROVINCIAS,
+  CANAL_OPTIONS,
+  CanalAsignacion,
+  CODIGO_GRANO_AFIP,
+  localidadesDeProvincia,
+  razonSocialCuit,
+  TabDespacho,
+  TABS_DESPACHO,
+} from './arca-catalogo';
 
 function puntosDeCampo(campo: {
   puntosEntrada?: PuntoEntradaCatalogo[];
@@ -43,16 +55,22 @@ function puntosDeCampo(campo: {
 }
 
 type ViajeGroup = FormGroup<{
+  id: FormControl<string>;
+  transportistaId: FormControl<string>;
   choferId: FormControl<string>;
+  camionId: FormControl<string>;
   dominio: FormControl<string>;
+  acoplado: FormControl<string>;
+  codigoTurno: FormControl<string>;
+  canal: FormControl<CanalAsignacion>;
   destino: FormControl<string>;
   toneladas: FormControl<string>;
   estado: FormControl<EstadoViaje>;
 }>;
 
 /**
- * Pantalla Crear despacho v2 (Figma): información general con tabs +
- * tabla editable de viajes (master-detail) con acciones masivas.
+ * Pantalla Crear / editar pedido (despacho): tabs por dominio
+ * (Origen → … → Transporte → Transportistas). Ver docs/crear-despacho.md.
  */
 @Component({
   selector: 'app-crear-despacho-page',
@@ -75,6 +93,7 @@ export class CrearDespachoPage {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly store = inject(DespachoStore);
   private readonly api = inject(DespachoService);
+  private readonly cartasApi = inject(CartasPorteService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly notifications = inject(NotificationStore);
@@ -105,10 +124,22 @@ export class CrearDespachoPage {
 
   /** Modo edición de borrador (?borrador=<id>) */
   protected readonly editando = signal<{ id: string; nombre: string } | null>(null);
+  /** Modo corrección para regenerar intención CPE (?editar=&carta=&viaje=) */
+  protected readonly modoIntencion = signal<{
+    despachoId: string;
+    cartaId: string;
+    viajeId: string;
+    nombre: string;
+  } | null>(null);
   private precargado = false;
 
-  /** Tab activa de Información General (contenido de la 2 aún sin definir) */
-  protected readonly tab = signal<1 | 2>(1);
+  protected readonly tab = signal<TabDespacho>('origen');
+  protected readonly tabs = TABS_DESPACHO;
+  protected readonly arcaProvincias = ARCA_PROVINCIAS;
+  protected readonly canalOptions = CANAL_OPTIONS;
+  /** Cantidad de viajes que el agente debe buscar / cubrir. */
+  protected readonly viajesRequeridos = signal(30);
+  protected readonly buscandoAgente = signal(false);
 
   protected readonly form = this.fb.group({
     nombre: ['', Validators.required],
@@ -121,6 +152,7 @@ export class CrearDespachoPage {
     vendedorId: ['', Validators.required],
     fechaInicio: ['', Validators.required],
     fechaLlegadaEstimada: [''],
+    observaciones: [''],
     dadorViaje: ['FEDEA', Validators.required],
     dadorOtro: [''],
     distanciaKm: [null as number | null],
@@ -128,9 +160,43 @@ export class CrearDespachoPage {
     tarifaLlena: [false],
     cuando: ['ahora' as CuandoDespacho, Validators.required],
     cuandoFecha: [''],
-    /** Destino/tn de la oferta (búsqueda); no requieren fila en la tabla de viajes. */
+    cpeHoraPartida: [''],
+    /** Destino/tn del pedido (heredan los cupos). */
     destinoOferta: [''],
     toneladasOferta: [null as number | null],
+    toneladasPedido: [null as number | null],
+    // CPE / ARCA
+    cpeHabilitada: [false],
+    cpeTipo: ['74'],
+    cpeSucursal: [null as number | null],
+    cpeCosecha: [2526 as number | null],
+    cpeCuitSolicitante: [''],
+    /** Códigos ARCA como string para app-select-input; se parsean al guardar. */
+    cpeOrigenCodProvincia: [''],
+    cpeOrigenCodLocalidad: [''],
+    cpeOrigenPlanta: [null as number | null],
+    cpeNroRenspa: [''],
+    cpeCodigoTurno: [''],
+    cpeCorrespondeRetiroProductor: [true],
+    cpeEsSolicitanteCampo: [true],
+    cpeDestinoCuit: [''],
+    cpeDestinoEsCampo: [false],
+    cpeDestinoCodProvincia: [''],
+    cpeDestinoCodLocalidad: [''],
+    cpeDestinoPlanta: [null as number | null],
+    cpePesoTaraKgDefault: [null as number | null],
+    cpeMercaderiaFumigada: [false],
+    cpeCuitPagadorFlete: [''],
+    cpeCuitIntermediarioFlete: [''],
+    cpeCuitRemitenteComercialVp: [''],
+    cpeCuitRemitenteComercialVs: [''],
+    cpeCuitRemitenteComercialVs2: [''],
+    cpeCuitRemitenteComercialProductor: [''],
+    cpeCuitMercadoATermino: [''],
+    cpeCuitCorredorVp: [''],
+    cpeCuitCorredorVs: [''],
+    cpeCuitRepresentanteEntregador: [''],
+    cpeCuitRepresentanteRecibidor: [''],
   });
 
   protected readonly dadorOptions: SelectOption[] = [
@@ -143,6 +209,11 @@ export class CrearDespachoPage {
     { value: 'ahora', label: 'Ahora' },
     { value: 'manana', label: 'Mañana' },
     { value: 'fecha', label: 'Fecha específica' },
+  ];
+
+  protected readonly cpeTipoOptions: SelectOption[] = [
+    { value: '74', label: '74 — Automotor' },
+    { value: '274', label: '274 — Automotor flete corto' },
   ];
 
   protected readonly tarifaResuelta = signal<number | null>(null);
@@ -170,7 +241,21 @@ export class CrearDespachoPage {
     (this.catalogos().data?.vendedores ?? []).map((v) => ({ value: v.id, label: v.nombre })),
   );
   protected readonly materialOptions = computed<SelectOption[]>(() =>
-    (this.catalogos().data?.materiales ?? []).map((m) => ({ value: m, label: m })),
+    (this.catalogos().data?.materiales ?? []).map((m) => {
+      const cod = CODIGO_GRANO_AFIP[m];
+      return { value: m, label: cod ? `${m} (AFIP ${cod})` : m };
+    }),
+  );
+
+  private readonly formValue = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue(),
+  });
+
+  protected readonly localidadesOrigenOptions = computed(() =>
+    localidadesDeProvincia(this.numONull(this.formValue()?.cpeOrigenCodProvincia)),
+  );
+  protected readonly localidadesDestinoOptions = computed(() =>
+    localidadesDeProvincia(this.numONull(this.formValue()?.cpeDestinoCodProvincia)),
   );
 
   private readonly productorSeleccionado = toSignal(this.form.controls.productorId.valueChanges, {
@@ -197,8 +282,9 @@ export class CrearDespachoPage {
       this.form.controls.entradaCampo.reset('');
     });
 
-    this.form.controls.campoId.valueChanges.subscribe(() => {
+    this.form.controls.campoId.valueChanges.subscribe((campoId) => {
       this.form.controls.entradaCampo.reset('');
+      this.heredarRenspaCampo(campoId);
     });
 
     this.form.controls.tarifaLlena.valueChanges.subscribe((llena) => {
@@ -218,7 +304,12 @@ export class CrearDespachoPage {
       }
     });
 
-    this.agregarViaje();
+    this.form.controls.cpeOrigenCodProvincia.valueChanges.subscribe(() => {
+      this.form.controls.cpeOrigenCodLocalidad.setValue('');
+    });
+    this.form.controls.cpeDestinoCodProvincia.valueChanges.subscribe(() => {
+      this.form.controls.cpeDestinoCodLocalidad.setValue('');
+    });
 
     // Precarga del borrador a editar cuando llegan despachos + catálogos
     effect(() => {
@@ -235,43 +326,143 @@ export class CrearDespachoPage {
       this.precargado = true;
       this.precargarBorrador(despacho);
     });
+
+    // Precarga desde una intención CPE no procesada
+    effect(() => {
+      const params = this.route.snapshot.queryParamMap;
+      const editarId = params.get('editar');
+      const cartaId = params.get('carta');
+      const viajeId = params.get('viaje');
+      const catalogos = this.catalogos().data;
+      if (this.precargado || !editarId || !cartaId || !viajeId || !catalogos) {
+        return;
+      }
+      this.precargado = true;
+      this.api.getDespacho(editarId).subscribe({
+        next: (despacho) => this.precargarParaIntencion(despacho, cartaId, viajeId),
+        error: () => {
+          this.precargado = false;
+          this.notifications.error(
+            'No se pudo cargar el despacho',
+            'Revisá que la intención siga asociada a una campaña existente',
+          );
+          this.router.navigate(['/cartas-porte']);
+        },
+      });
+    });
   }
 
   private precargarBorrador(despacho: Despacho): void {
     this.editando.set({ id: despacho.id, nombre: despacho.nombre });
+    this.aplicarDespachoAlFormulario(
+      despacho,
+      despacho.viajes.filter(
+        (v) => v.estado === 'borrador' || v.estado === 'en-busqueda-transportistas',
+      ),
+    );
+  }
+
+  private precargarParaIntencion(despacho: Despacho, cartaId: string, viajeId: string): void {
+    const viaje = despacho.viajes.find((v) => v.id === viajeId);
+    if (!viaje) {
+      this.notifications.error(
+        'Viaje no encontrado',
+        'La intención apunta a un viaje que ya no existe en el despacho',
+      );
+      this.router.navigate(['/cartas-porte']);
+      return;
+    }
+    this.modoIntencion.set({
+      despachoId: despacho.id,
+      cartaId,
+      viajeId,
+      nombre: despacho.nombre,
+    });
+    this.editando.set({ id: despacho.id, nombre: despacho.nombre });
+    // Prioriza el viaje de la intención; mantiene el resto para no perder contexto.
+    const ordenados = [viaje, ...despacho.viajes.filter((v) => v.id !== viajeId)];
+    this.aplicarDespachoAlFormulario(despacho, ordenados);
+    this.tab.set('transporte');
+  }
+
+  private aplicarDespachoAlFormulario(despacho: Despacho, viajes: Despacho['viajes']): void {
     this.entradaExtra.set(despacho.entradaCampo || null);
 
     const fecha = (valor: Date) =>
       `${valor.getFullYear()}-${String(valor.getMonth() + 1).padStart(2, '0')}-${String(valor.getDate()).padStart(2, '0')}`;
 
-    // productorId dispara el reset/enable de campoId: setear campo después
     const dadoresConocidos = ['FEDEA', 'COFCO'];
     const dador = despacho.dadorViaje || 'FEDEA';
-    const dadorEsOtro = dador && !dadoresConocidos.includes(dador);
+    const dadorEsOtro = Boolean(dador && !dadoresConocidos.includes(dador));
 
-    this.form.patchValue({
-      nombre: despacho.nombre,
-      productorId: despacho.productorId,
-      origen: despacho.origen,
-      entradaCampo: despacho.entradaCampo,
-      material: despacho.material,
-      administradorId: despacho.administradorId,
-      vendedorId: despacho.vendedorId,
-      fechaInicio: fecha(despacho.fechaInicio),
-      fechaLlegadaEstimada: despacho.fechaLlegadaEstimada
-        ? fecha(despacho.fechaLlegadaEstimada)
-        : '',
-      dadorViaje: dadorEsOtro ? 'Otro' : dador,
-      dadorOtro: dadorEsOtro ? dador : '',
-      distanciaKm: despacho.distanciaKm,
-      tarifaPorTn: despacho.tarifaPorTn,
-      tarifaLlena: despacho.tarifaLlena,
-      cuando: despacho.cuando,
-      cuandoFecha: despacho.cuandoFecha ?? '',
-      destinoOferta: despacho.viajes[0]?.destino ?? '',
-      toneladasOferta: despacho.viajes[0]?.toneladas ?? null,
-    });
-    this.form.controls.campoId.setValue(despacho.campoId);
+    this.form.patchValue(
+      {
+        nombre: despacho.nombre,
+        productorId: despacho.productorId,
+        origen: despacho.origen,
+        entradaCampo: despacho.entradaCampo,
+        material: despacho.material,
+        administradorId: despacho.administradorId,
+        vendedorId: despacho.vendedorId,
+        fechaInicio: fecha(despacho.fechaInicio),
+        fechaLlegadaEstimada: despacho.fechaLlegadaEstimada
+          ? fecha(despacho.fechaLlegadaEstimada)
+          : '',
+        dadorViaje: dadorEsOtro ? 'Otro' : dador,
+        dadorOtro: dadorEsOtro ? dador : '',
+        distanciaKm: despacho.distanciaKm,
+        tarifaPorTn: despacho.tarifaPorTn,
+        tarifaLlena: despacho.tarifaLlena,
+        cuando: despacho.cuando,
+        cuandoFecha: despacho.cuandoFecha ?? '',
+        cpeHoraPartida: despacho.cpeHoraPartida ?? '',
+        destinoOferta: viajes[0]?.destino ?? '',
+        toneladasOferta: viajes[0]?.toneladas ?? null,
+        toneladasPedido: viajes.reduce((s, v) => s + (v.toneladas || 0), 0) || null,
+        observaciones: despacho.observaciones ?? '',
+        cpeHabilitada: despacho.cpeHabilitada,
+        cpeTipo: String(despacho.cpeTipo ?? 74),
+        cpeSucursal: despacho.cpeSucursal,
+        cpeCosecha: despacho.cpeCosecha ?? 2526,
+        cpeCuitSolicitante: despacho.cpeCuitSolicitante ?? '',
+        cpeOrigenCodProvincia: despacho.cpeOrigenCodProvincia
+          ? String(despacho.cpeOrigenCodProvincia)
+          : '',
+        cpeOrigenCodLocalidad: despacho.cpeOrigenCodLocalidad
+          ? String(despacho.cpeOrigenCodLocalidad)
+          : '',
+        cpeOrigenPlanta: despacho.cpeOrigenPlanta,
+        cpeNroRenspa: despacho.cpeNroRenspa ?? '',
+        cpeCodigoTurno: despacho.cpeCodigoTurno ?? '',
+        cpeCorrespondeRetiroProductor: despacho.cpeCorrespondeRetiroProductor,
+        cpeEsSolicitanteCampo: despacho.cpeEsSolicitanteCampo,
+        cpeDestinoCuit: despacho.cpeDestinoCuit ?? '',
+        cpeDestinoEsCampo: despacho.cpeDestinoEsCampo,
+        cpeDestinoCodProvincia: despacho.cpeDestinoCodProvincia
+          ? String(despacho.cpeDestinoCodProvincia)
+          : '',
+        cpeDestinoCodLocalidad: despacho.cpeDestinoCodLocalidad
+          ? String(despacho.cpeDestinoCodLocalidad)
+          : '',
+        cpeDestinoPlanta: despacho.cpeDestinoPlanta,
+        cpePesoTaraKgDefault: despacho.cpePesoTaraKgDefault,
+        cpeMercaderiaFumigada: despacho.cpeMercaderiaFumigada,
+        cpeCuitPagadorFlete: despacho.cpeCuitPagadorFlete ?? '',
+        cpeCuitIntermediarioFlete: despacho.cpeCuitIntermediarioFlete ?? '',
+        cpeCuitRemitenteComercialVp: despacho.cpeCuitRemitenteComercialVp ?? '',
+        cpeCuitRemitenteComercialVs: despacho.cpeCuitRemitenteComercialVs ?? '',
+        cpeCuitRemitenteComercialVs2: despacho.cpeCuitRemitenteComercialVs2 ?? '',
+        cpeCuitRemitenteComercialProductor: despacho.cpeCuitRemitenteComercialProductor ?? '',
+        cpeCuitMercadoATermino: despacho.cpeCuitMercadoATermino ?? '',
+        cpeCuitCorredorVp: despacho.cpeCuitCorredorVp ?? '',
+        cpeCuitCorredorVs: despacho.cpeCuitCorredorVs ?? '',
+        cpeCuitRepresentanteEntregador: despacho.cpeCuitRepresentanteEntregador ?? '',
+        cpeCuitRepresentanteRecibidor: despacho.cpeCuitRepresentanteRecibidor ?? '',
+      },
+      { emitEvent: false },
+    );
+    this.form.controls.campoId.enable({ emitEvent: false });
+    this.form.controls.campoId.setValue(despacho.campoId, { emitEvent: false });
     if (despacho.tarifaLlena) {
       this.form.controls.tarifaPorTn.disable({ emitEvent: false });
       this.tarifaResuelta.set(despacho.tarifaPorTn);
@@ -279,26 +470,34 @@ export class CrearDespachoPage {
 
     const choferes = this.catalogos().data?.choferes ?? [];
     this.viajes.clear();
-    for (const viaje of despacho.viajes.filter(
-      (v) => v.estado === 'borrador' || v.estado === 'en-busqueda-transportistas',
-    )) {
+    for (const viaje of viajes) {
       const choferId =
         viaje.choferId ??
         choferes.find((ch) => ch.dominio === viaje.dominio)?.id ??
         choferes.find((ch) => ch.nombre === viaje.chofer)?.id ??
         '';
+      const choferCat = choferes.find((ch) => ch.id === choferId);
+      const camionId =
+        choferCat?.camionId ??
+        choferCat?.camiones.find((c) => c.dominio === viaje.dominio)?.id ??
+        choferCat?.camiones[0]?.id ??
+        '';
+      const camion = choferCat?.camiones.find((c) => c.id === camionId);
       this.viajes.push(
         this.crearFila({
+          id: viaje.id,
+          transportistaId: choferCat?.transportistaId ?? '',
           choferId,
-          dominio: viaje.dominio,
+          camionId,
+          dominio: viaje.dominio || camion?.dominio || '',
+          acoplado: (viaje.cpeDominioAcoplado || camion?.acopladoDominio || '').toUpperCase(),
+          codigoTurno: viaje.cpeCodigoTurno ?? '',
           destino: viaje.destino,
           toneladas: String(viaje.toneladas),
           estado: viaje.estado,
+          canal: viaje.choferId ? 'directo' : '',
         }),
       );
-    }
-    if (this.viajes.length === 0) {
-      this.agregarViaje();
     }
   }
 
@@ -308,17 +507,87 @@ export class CrearDespachoPage {
   }
 
   // --- Tabs ---
-  protected siguienteTab(): void {
-    this.tab.set(2);
+  protected irTab(id: TabDespacho): void {
+    this.tab.set(id);
   }
 
-  protected volverTab(): void {
-    this.tab.set(1);
+  protected tabAnterior(): void {
+    const i = TABS_DESPACHO.findIndex((t) => t.id === this.tab());
+    if (i > 0) {
+      this.tab.set(TABS_DESPACHO[i - 1].id);
+    }
   }
 
-  // --- Filas de viajes ---
+  protected tabSiguiente(): void {
+    const i = TABS_DESPACHO.findIndex((t) => t.id === this.tab());
+    if (i >= 0 && i < TABS_DESPACHO.length - 1) {
+      this.tab.set(TABS_DESPACHO[i + 1].id);
+    }
+  }
+
+  protected razonSocial(cuit: string | null | undefined): string {
+    return razonSocialCuit(cuit);
+  }
+
+  // --- Filas de viajes (carga manual o vía agente) ---
   protected agregarViaje(): void {
-    this.viajes.push(this.crearFila());
+    const form = this.form.getRawValue();
+    this.viajes.push(
+      this.crearFila({
+        transportistaId: '',
+        choferId: '',
+        camionId: '',
+        dominio: '',
+        acoplado: '',
+        destino: form.destinoOferta || '',
+        toneladas: form.toneladasOferta ? String(form.toneladasOferta) : '',
+        canal: 'directo',
+      }),
+    );
+    this.tab.set('transportistas');
+  }
+
+  /**
+   * Solicita al agente IA buscar N transportistas y deja N filas en la tabla
+   * (canal = ia). La asignación real del agente se conectará después.
+   */
+  protected buscarConAgente(): void {
+    const n = Math.min(Math.max(1, Number(this.viajesRequeridos()) || 1), 200);
+    const form = this.form.getRawValue();
+    if (!(form.destinoOferta || '').trim()) {
+      this.notifications.warning(
+        'Destino requerido',
+        'Completá el destino del pedido (tab Destino) antes de buscar transportistas',
+      );
+      this.tab.set('destino');
+      return;
+    }
+    this.buscandoAgente.set(true);
+    // Placeholder: genera N viajes en búsqueda con canal IA.
+    // Cuando exista el agente, aquí se dispara la búsqueda y se rellenan chofer/dominio.
+    this.viajes.clear();
+    for (let i = 0; i < n; i++) {
+      this.viajes.push(
+        this.crearFila({
+          transportistaId: '',
+          choferId: '',
+          camionId: '',
+          dominio: '',
+          acoplado: '',
+          destino: form.destinoOferta || '',
+          toneladas: form.toneladasOferta ? String(form.toneladasOferta) : '',
+          canal: 'ia',
+          estado: 'en-busqueda-transportistas',
+        }),
+      );
+    }
+    this.seleccionados.set(new Set());
+    this.buscandoAgente.set(false);
+    this.tab.set('transportistas');
+    this.notifications.success(
+      'Búsqueda con agente iniciada',
+      `${n} viaje(s) en la tabla — el agente buscará transportistas (asignación automática pendiente de integrar)`,
+    );
   }
 
   protected duplicarViaje(index: number): void {
@@ -332,29 +601,80 @@ export class CrearDespachoPage {
     this.seleccionados.set(new Set());
   }
 
+  protected transportistaOptions(): SelectOption[] {
+    return (this.catalogos().data?.transportistas ?? []).map((t) => ({
+      value: t.id,
+      label: t.nombre,
+    }));
+  }
+
+  protected choferesDeTransportista(transportistaId: string) {
+    const todos = this.catalogos().data?.choferes ?? [];
+    if (!transportistaId) {
+      return todos;
+    }
+    return todos.filter((ch) => ch.transportistaId === transportistaId);
+  }
+
+  protected camionesDeFila(transportistaId: string, choferId: string) {
+    const chofer = this.catalogos().data?.choferes.find((ch) => ch.id === choferId);
+    if (chofer?.camiones?.length) {
+      return chofer.camiones.filter(
+        (c) => !['acoplado', 'semi', 'semirremolque', 'trailer'].includes(c.tipo),
+      );
+    }
+    const t = this.catalogos().data?.transportistas.find((x) => x.id === transportistaId);
+    return (t?.camiones ?? []).filter(
+      (c) => !['acoplado', 'semi', 'semirremolque', 'trailer'].includes(c.tipo),
+    );
+  }
+
+  protected transportistaElegido(index: number, event: Event): void {
+    const transportistaId = (event.target as HTMLSelectElement).value;
+    const grupo = this.viajes.at(index);
+    grupo.patchValue({
+      transportistaId,
+      choferId: '',
+      camionId: '',
+      dominio: '',
+      acoplado: '',
+      canal: transportistaId ? 'directo' : grupo.controls.canal.value,
+    });
+  }
+
   protected choferElegido(index: number, event: Event): void {
     const choferId = (event.target as HTMLSelectElement).value;
     const grupo = this.viajes.at(index);
-    grupo.controls.choferId.setValue(choferId, { emitEvent: false });
-    const chofer = this.catalogos().data?.choferes.find((ch) => ch.id === choferId);
-    if (chofer) {
-      const patente = chofer.camiones[0]?.dominio ?? chofer.dominio;
-      if (patente) {
-        grupo.controls.dominio.setValue(patente);
-      }
-    }
-  }
-
-  protected patentesChofer(choferId: string): string[] {
     const chofer = this.catalogos().data?.choferes.find((ch) => ch.id === choferId);
     if (!chofer) {
-      return [];
+      grupo.patchValue({ choferId: '', camionId: '', dominio: '', acoplado: '' });
+      return;
     }
-    const patentes = chofer.camiones.map((c) => c.dominio);
-    if (chofer.dominio && !patentes.includes(chofer.dominio)) {
-      patentes.unshift(chofer.dominio);
-    }
-    return patentes;
+    const camion =
+      chofer.camiones.find((c) => c.id === chofer.camionId) ?? chofer.camiones[0] ?? null;
+    grupo.patchValue({
+      choferId,
+      transportistaId: chofer.transportistaId ?? grupo.controls.transportistaId.value,
+      camionId: camion?.id ?? '',
+      dominio: (camion?.dominio ?? chofer.dominio ?? '').toUpperCase(),
+      acoplado: (camion?.acopladoDominio ?? '').toUpperCase(),
+      canal: grupo.controls.canal.value || 'directo',
+    });
+  }
+
+  protected camionElegido(index: number, event: Event): void {
+    const camionId = (event.target as HTMLSelectElement).value;
+    const grupo = this.viajes.at(index);
+    const camiones = this.camionesDeFila(
+      grupo.controls.transportistaId.value,
+      grupo.controls.choferId.value,
+    );
+    const camion = camiones.find((c) => c.id === camionId);
+    grupo.patchValue({
+      camionId,
+      dominio: (camion?.dominio ?? '').toUpperCase(),
+      acoplado: (camion?.acopladoDominio ?? '').toUpperCase(),
+    });
   }
 
   protected nombreTransportista(choferId: string): string {
@@ -393,24 +713,86 @@ export class CrearDespachoPage {
     );
   }
 
-  // --- Acciones masivas y por fila (TODO backend: generación real) ---
+  // --- Generación real de documentos (requiere viaje ya persistido) ---
   protected accionMasiva(accion: 'carta de porte' | 'ticket de gasoil'): void {
-    const cantidad = this.seleccionados().size;
-    if (cantidad === 0) {
+    const indices = [...this.seleccionados()];
+    if (indices.length === 0) {
       this.notifications.warning('Sin viajes seleccionados', 'Marcá al menos un viaje');
       return;
     }
-    this.notifications.success(
-      accion === 'carta de porte' ? 'Cartas de porte generadas' : 'Tickets de gasoil asignados',
-      `${cantidad} ${cantidad === 1 ? 'viaje' : 'viajes'}`,
-    );
+    const despachoId = this.editando()?.id;
+    if (!despachoId) {
+      this.notifications.warning(
+        'Guardá el despacho',
+        'Primero guardá el borrador para generar documentos',
+      );
+      return;
+    }
+    const viajeIds = indices
+      .map((i) => this.viajes.at(i)?.controls.id.value)
+      .filter((id): id is string => !!id);
+    if (viajeIds.length === 0) {
+      this.notifications.warning(
+        'Sin viajes guardados',
+        'Los viajes seleccionados aún no tienen ID; guardá el despacho',
+      );
+      return;
+    }
+    from(viajeIds)
+      .pipe(
+        concatMap((viajeId) =>
+          accion === 'carta de porte'
+            ? this.api.emitirCartaPorte(despachoId, viajeId)
+            : this.api.generarTicketGasoil(despachoId, viajeId),
+        ),
+        toArray(),
+      )
+      .subscribe({
+        next: (resultados) =>
+          this.notifications.success(
+            accion === 'carta de porte'
+              ? 'Intenciones de carta de porte creadas'
+              : 'Tickets de gasoil generados',
+            `${resultados.length} ${resultados.length === 1 ? 'viaje' : 'viajes'}`,
+          ),
+        error: (err) =>
+          this.notifications.error(
+            'Error al generar documentos',
+            err?.error?.error?.mensaje ?? 'Error de negocio',
+          ),
+      });
   }
 
   protected accionFila(index: number, accion: 'carta de porte' | 'ticket de gasoil'): void {
-    this.notifications.success(
-      accion === 'carta de porte' ? 'Carta de porte generada' : 'Ticket de gasoil asignado',
-      `Viaje #${index + 1}`,
-    );
+    const despachoId = this.editando()?.id;
+    const viajeId = this.viajes.at(index)?.controls.id.value;
+    if (!despachoId || !viajeId) {
+      this.notifications.warning(
+        'Guardá el despacho',
+        'Primero guardá el borrador para generar documentos',
+      );
+      return;
+    }
+    const onError = (err: { error?: { error?: { mensaje?: string } } }) =>
+      this.notifications.error(
+        'Error al generar documento',
+        err?.error?.error?.mensaje ?? 'Error de negocio',
+      );
+    if (accion === 'carta de porte') {
+      this.api.emitirCartaPorte(despachoId, viajeId).subscribe({
+        next: (cpe) =>
+          this.notifications.success(
+            'Intención de CPE creada',
+            `Tipo ${cpe.tipo_cpe} · ${cpe.estado}`,
+          ),
+        error: onError,
+      });
+      return;
+    }
+    this.api.generarTicketGasoil(despachoId, viajeId).subscribe({
+      next: (adj) => this.notifications.success('Ticket de gasoil generado', adj.nombre),
+      error: onError,
+    });
   }
 
   private actualizarTarifaLlena(): void {
@@ -437,7 +819,7 @@ export class CrearDespachoPage {
     this.mensajeExito.set('');
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.tab.set(1);
+      this.tab.set(this.primerTabInvalido());
       return null;
     }
 
@@ -445,19 +827,27 @@ export class CrearDespachoPage {
       .map((grupo) => grupo.getRawValue())
       .filter((viaje) => viaje.destino && Number(viaje.toneladas) > 0)
       .map((viaje) => ({
+        ...(viaje.id ? { id: viaje.id } : {}),
         choferId: viaje.choferId,
         dominio: viaje.dominio.trim().toUpperCase(),
         destino: viaje.destino,
         toneladas: Number(viaje.toneladas),
+        ...(viaje.codigoTurno?.trim() ? { codigoTurno: viaje.codigoTurno.trim() } : {}),
+        ...(viaje.acoplado?.trim() ? { dominioAcoplado: viaje.acoplado.trim().toUpperCase() } : {}),
       }));
 
     if (exigirViajes && viajes.length === 0) {
-      this.notifications.warning('Sin viajes', 'Agregá al menos un viaje con destino y toneladas');
+      this.notifications.warning(
+        'Sin cupos',
+        'Agregá al menos un cupo/viaje con destino y toneladas, o publicá en búsqueda',
+      );
+      this.tab.set('transportistas');
       return null;
     }
 
     if (exigirChofer && viajes.some((viaje) => !viaje.choferId)) {
-      this.notifications.warning('Chofer requerido', 'Debe seleccionar un chofer');
+      this.notifications.warning('Chofer requerido', 'Asigná un chofer a cada viaje');
+      this.tab.set('transportistas');
       return null;
     }
 
@@ -467,7 +857,7 @@ export class CrearDespachoPage {
 
     if (form.tarifaLlena && (!form.distanciaKm || Number(form.distanciaKm) <= 0)) {
       this.notifications.warning('Distancia requerida', 'Indicá km para tarifa llena');
-      this.tab.set(1);
+      this.tab.set('transporte');
       return null;
     }
     if (
@@ -476,14 +866,45 @@ export class CrearDespachoPage {
       estado === 'activo'
     ) {
       this.notifications.warning('Tarifa requerida', 'Indicá tarifa o marcá tarifa llena');
-      this.tab.set(1);
+      this.tab.set('transporte');
       return null;
     }
     if (form.cuando === 'fecha' && !form.cuandoFecha) {
       this.notifications.warning('Fecha requerida', 'Indicá la fecha de carga');
-      this.tab.set(1);
+      this.tab.set('transporte');
       return null;
     }
+
+    if (form.cpeHabilitada) {
+      const faltantes: string[] = [];
+      if (!form.cpeSucursal) faltantes.push('sucursal');
+      if (!form.cpeCosecha) faltantes.push('cosecha');
+      if (!form.cpeOrigenCodProvincia) faltantes.push('provincia origen');
+      if (!form.cpeOrigenCodLocalidad) faltantes.push('localidad origen');
+      if (!form.cpeDestinoCuit?.trim()) faltantes.push('CUIT destinatario');
+      if (!form.cpeDestinoCodProvincia) faltantes.push('provincia destino');
+      if (!form.cpeDestinoCodLocalidad) faltantes.push('localidad destino');
+      if (!form.cpeDestinoEsCampo && !form.cpeDestinoPlanta) faltantes.push('planta destino');
+      if (!form.distanciaKm || Number(form.distanciaKm) <= 0) faltantes.push('distancia km');
+      if (faltantes.length) {
+        this.notifications.warning(
+          'Carta de porte incompleta',
+          `Completá: ${faltantes.join(', ')}`,
+        );
+        this.tab.set(
+          faltantes.some((f) => f.includes('origen'))
+            ? 'origen'
+            : faltantes.some((f) => f.includes('destino') || f.includes('CUIT'))
+              ? 'destino'
+              : faltantes.includes('cosecha')
+                ? 'cereal'
+                : 'transporte',
+        );
+        return null;
+      }
+    }
+
+    const vacioANull = (v: string) => (v?.trim() ? v.trim() : null);
 
     return {
       nombre: form.nombre,
@@ -496,6 +917,7 @@ export class CrearDespachoPage {
       vendedorId: form.vendedorId,
       fechaInicio: form.fechaInicio,
       fechaLlegadaEstimada: form.fechaLlegadaEstimada,
+      observaciones: form.observaciones?.trim() || '',
       estado,
       dadorViaje: dador,
       tarifaLlena: form.tarifaLlena,
@@ -503,13 +925,99 @@ export class CrearDespachoPage {
       distanciaKm: form.distanciaKm,
       cuando: form.cuando,
       cuandoFecha: form.cuandoFecha || null,
+      cpeHabilitada: form.cpeHabilitada,
+      cpeTipo: form.cpeHabilitada ? Number(form.cpeTipo) || 74 : null,
+      cpeSucursal: form.cpeHabilitada ? form.cpeSucursal : null,
+      cpeCosecha: form.cpeHabilitada ? form.cpeCosecha : null,
+      cpeCuitSolicitante: vacioANull(form.cpeCuitSolicitante),
+      cpeOrigenCodProvincia: this.numONull(form.cpeOrigenCodProvincia),
+      cpeOrigenCodLocalidad: this.numONull(form.cpeOrigenCodLocalidad),
+      cpeOrigenPlanta: form.cpeOrigenPlanta,
+      cpeNroRenspa: vacioANull(form.cpeNroRenspa),
+      cpeCodigoTurno: vacioANull(form.cpeCodigoTurno),
+      cpeHoraPartida: vacioANull(form.cpeHoraPartida),
+      cpeCorrespondeRetiroProductor: form.cpeCorrespondeRetiroProductor,
+      cpeEsSolicitanteCampo: form.cpeEsSolicitanteCampo,
+      cpeDestinoCuit: vacioANull(form.cpeDestinoCuit),
+      cpeDestinoEsCampo: form.cpeDestinoEsCampo,
+      cpeDestinoCodProvincia: this.numONull(form.cpeDestinoCodProvincia),
+      cpeDestinoCodLocalidad: this.numONull(form.cpeDestinoCodLocalidad),
+      cpeDestinoPlanta: form.cpeDestinoPlanta,
+      cpePesoTaraKgDefault: form.cpePesoTaraKgDefault,
+      cpeMercaderiaFumigada: form.cpeMercaderiaFumigada,
+      cpeCuitPagadorFlete: vacioANull(form.cpeCuitPagadorFlete),
+      cpeCuitIntermediarioFlete: vacioANull(form.cpeCuitIntermediarioFlete),
+      cpeCuitRemitenteComercialVp: vacioANull(form.cpeCuitRemitenteComercialVp),
+      cpeCuitRemitenteComercialVs: vacioANull(form.cpeCuitRemitenteComercialVs),
+      cpeCuitRemitenteComercialVs2: vacioANull(form.cpeCuitRemitenteComercialVs2),
+      cpeCuitRemitenteComercialProductor: vacioANull(form.cpeCuitRemitenteComercialProductor),
+      cpeCuitMercadoATermino: vacioANull(form.cpeCuitMercadoATermino),
+      cpeCuitCorredorVp: vacioANull(form.cpeCuitCorredorVp),
+      cpeCuitCorredorVs: vacioANull(form.cpeCuitCorredorVs),
+      cpeCuitRepresentanteEntregador: vacioANull(form.cpeCuitRepresentanteEntregador),
+      cpeCuitRepresentanteRecibidor: vacioANull(form.cpeCuitRepresentanteRecibidor),
       viajes,
     };
   }
 
+  protected cancelarEdicionIntencion(): void {
+    this.router.navigate(['/cartas-porte']);
+  }
+
+  protected guardarYRegenerarIntencion(): void {
+    const modo = this.modoIntencion();
+    if (!modo) {
+      return;
+    }
+    const payload = this.armarPayload('activo', true);
+    if (!payload) {
+      return;
+    }
+    if (!payload.cpeHabilitada) {
+      this.notifications.warning(
+        'CPE requerida',
+        'La intención necesita la carta de porte habilitada',
+      );
+      this.tab.set('transporte');
+      return;
+    }
+    const viajeVinculado = payload.viajes.find((v) => v.id === modo.viajeId);
+    if (!viajeVinculado) {
+      this.notifications.warning(
+        'Viaje requerido',
+        'No se puede regenerar la intención sin el viaje asociado',
+      );
+      return;
+    }
+
+    this.guardando.set(true);
+    this.store
+      .editarParaIntencionCpe(modo.despachoId, payload)
+      .pipe(switchMap(() => this.cartasApi.reintentar(modo.cartaId)))
+      .subscribe({
+        next: (carta) => {
+          this.guardando.set(false);
+          this.notifications.success(
+            'Intención regenerada',
+            `Payload actualizado (intento #${carta.intentos})`,
+          );
+          this.router.navigate(['/cartas-porte']);
+        },
+        error: (err) => {
+          this.guardando.set(false);
+          this.notifications.error(
+            'No se pudo regenerar',
+            err?.message ?? err?.error?.error?.mensaje ?? 'Error de negocio',
+          );
+        },
+      });
+  }
+
   // --- Guardado ---
   protected guardar(estado: EstadoDespacho): void {
-    const payload = this.armarPayload(estado, estado === 'activo');
+    const payload = this.armarPayload(estado, estado === 'activo', {
+      exigirViajes: estado === 'activo',
+    });
     if (!payload) {
       return;
     }
@@ -537,15 +1045,23 @@ export class CrearDespachoPage {
           this.router.navigate(['/borradores']);
           return;
         }
-        this.mensajeExito.set(`Despacho "${despacho.nombre}" creado correctamente`);
-        this.form.reset({ dadorViaje: 'FEDEA', tarifaLlena: false, cuando: 'ahora' });
+        this.mensajeExito.set(`Pedido "${despacho.nombre}" creado correctamente`);
+        this.form.reset({
+          dadorViaje: 'FEDEA',
+          tarifaLlena: false,
+          cuando: 'ahora',
+          cpeHabilitada: false,
+          cpeTipo: '74',
+          cpeCosecha: 2526,
+          cpeCorrespondeRetiroProductor: true,
+          cpeEsSolicitanteCampo: true,
+        });
         this.form.controls.campoId.disable();
         this.form.controls.tarifaPorTn.enable({ emitEvent: false });
         this.tarifaResuelta.set(null);
         this.viajes.clear();
-        this.agregarViaje();
         this.seleccionados.set(new Set());
-        this.tab.set(1);
+        this.tab.set('origen');
       },
       error: () => this.guardando.set(false),
     });
@@ -577,10 +1093,10 @@ export class CrearDespachoPage {
     const toneladas = viajeTabla?.toneladas || Number(form.toneladasOferta) || 0;
     if (!destino || toneladas <= 0) {
       this.notifications.warning(
-        'Oferta incompleta',
-        'Indicá destino y toneladas (en Información General) para buscar transportistas',
+        'Pedido incompleto',
+        'Indicá destino y toneladas (tab Destino / Cereal) para publicar en búsqueda',
       );
-      this.tab.set(1);
+      this.tab.set(!destino ? 'destino' : 'cereal');
       return;
     }
 
@@ -613,16 +1129,106 @@ export class CrearDespachoPage {
     return estado === 'en-busqueda-transportistas';
   }
 
+  protected etiquetaEstado(estado: EstadoViaje, choferId: string): string {
+    if (estado === 'en-busqueda-transportistas') {
+      return 'En búsqueda';
+    }
+    if (estado === 'en-viaje') {
+      return 'Iniciado';
+    }
+    if (estado === 'pendiente' && choferId) {
+      return 'Asignado';
+    }
+    if (choferId) {
+      return 'Asignado';
+    }
+    if (estado === 'borrador') {
+      return 'Sin asignar';
+    }
+    return estado;
+  }
+
+  protected varianteEstado(
+    estado: EstadoViaje,
+    choferId: string,
+  ): 'info' | 'warning' | 'success' | 'danger' | 'neutral' {
+    if (estado === 'en-busqueda-transportistas') {
+      return 'info';
+    }
+    if (choferId || estado === 'pendiente') {
+      return 'success';
+    }
+    if (estado === 'en-viaje') {
+      return 'success';
+    }
+    return 'warning';
+  }
+
+  private numONull(v: string | number | null | undefined): number | null {
+    if (v === null || v === undefined || v === '') {
+      return null;
+    }
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  private primerTabInvalido(): TabDespacho {
+    const c = this.form.controls;
+    if (c.productorId.invalid || c.campoId.invalid || c.origen.invalid || c.entradaCampo.invalid) {
+      return 'origen';
+    }
+    if (c.material.invalid) {
+      return 'cereal';
+    }
+    if (
+      c.vendedorId.invalid ||
+      c.administradorId.invalid ||
+      c.nombre.invalid ||
+      c.fechaInicio.invalid
+    ) {
+      return 'vendedor';
+    }
+    if (c.dadorViaje.invalid || c.cuando.invalid) {
+      return 'transporte';
+    }
+    return 'origen';
+  }
+
+  private heredarRenspaCampo(campoId: string | null): void {
+    if (!campoId) {
+      return;
+    }
+    const productor = (this.catalogos().data?.productores ?? []).find(
+      (p) => p.id === this.form.controls.productorId.value,
+    );
+    const renspa = productor?.campos.find((c) => c.id === campoId)?.nroRenspa?.trim();
+    if (renspa) {
+      this.form.controls.cpeNroRenspa.setValue(renspa);
+    }
+  }
+
   private crearFila(base?: {
+    id?: string;
+    transportistaId?: string;
     choferId: string;
+    camionId?: string;
     dominio: string;
+    acoplado?: string;
+    codigoTurno?: string;
+    canal?: CanalAsignacion;
     destino: string;
     toneladas: string;
     estado?: EstadoViaje;
   }): ViajeGroup {
     return this.fb.group({
+      id: [base?.id ?? ''],
+      transportistaId: [base?.transportistaId ?? ''],
       choferId: [base?.choferId ?? ''],
+      camionId: [base?.camionId ?? ''],
       dominio: [base?.dominio ?? ''],
+      acoplado: [base?.acoplado ?? ''],
+      codigoTurno: [base?.codigoTurno ?? ''],
+      canal: [(base?.canal ?? '') as CanalAsignacion],
       destino: [base?.destino ?? ''],
       toneladas: [base?.toneladas ?? ''],
       estado: [base?.estado ?? ('borrador' as EstadoViaje)],

@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { concatMap, from, toArray } from 'rxjs';
+import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
 import { NotificationStore } from '../../notifications/state/notification.store';
 import { KpiCard } from '../../shared/ui/kpi-card/kpi-card';
 import { MensajeriaStore } from '../mensajeria/data-access/mensajeria.store';
@@ -18,9 +19,21 @@ import { SelectInput, SelectOption } from '../../shared/ui/select/select-input';
 import { StateWrapper } from '../../shared/ui/state-wrapper/state-wrapper';
 import { Table, TableColumn } from '../../shared/ui/table/table';
 import { TableCellDef } from '../../shared/ui/table/table-cell-def';
-import { Despacho, EstadoViaje, Viaje } from '../despachos/data-access/despacho.model';
+import { DespachoService } from '../despachos/data-access/despacho.service';
+import { CartaPorteDto } from '../despachos/data-access/despacho.dto';
+import {
+  CHECKLIST_INICIO_OK,
+  confirmarInicioViaje,
+} from '../despachos/data-access/checklist-iniciar';
+import {
+  Despacho,
+  EstadoViaje,
+  TipoAdjuntoViaje,
+  Viaje,
+} from '../despachos/data-access/despacho.model';
 import { DespachoStore } from '../despachos/data-access/despacho.store';
 import { ReportExportService } from '../despachos/reportes-despachos/report-export.service';
+import { ListaEsperaService } from '../lista-espera/data-access/lista-espera.service';
 
 function viajesOperativos(viajes: Viaje[]): Viaje[] {
   return viajes.filter((viaje) => viaje.estado !== 'borrador');
@@ -65,6 +78,7 @@ const PROGRESS_VARIANT: Record<EstadoViaje, ProgressVariant> = {
   'en-viaje': 'info',
   retrasado: 'danger',
   pendiente: 'neutral',
+  cancelado: 'neutral',
 };
 
 const ESTADO_LABEL: Record<EstadoViaje, string> = {
@@ -74,6 +88,7 @@ const ESTADO_LABEL: Record<EstadoViaje, string> = {
   'en-viaje': 'En viaje',
   retrasado: 'Retrasado',
   completado: 'Completado',
+  cancelado: 'Cancelado',
 };
 
 interface CampaniaDetalleVm {
@@ -126,10 +141,13 @@ interface CampaniaDetalleVm {
 })
 export class GestionOperativaPage {
   private readonly store = inject(DespachoStore);
+  private readonly api = inject(DespachoService);
+  private readonly listaEsperaApi = inject(ListaEsperaService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly notifications = inject(NotificationStore);
   private readonly mensajeriaStore = inject(MensajeriaStore);
+  private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly fb = inject(FormBuilder);
   private readonly datePipe = inject(DatePipe);
   private readonly exportService = inject(ReportExportService);
@@ -144,14 +162,20 @@ export class GestionOperativaPage {
   protected readonly detalleCampaniaId = signal<string | null>(null);
   protected readonly agregarViajeCampaniaId = signal<string | null>(null);
   protected readonly metadatosCampaniaId = signal<string | null>(null);
+  protected readonly reasignarCtx = signal<{ campaniaId: string; viajeId: string } | null>(null);
   protected readonly guardandoViaje = signal(false);
   protected readonly guardandoMetadatos = signal(false);
+  protected readonly guardandoReasignacion = signal(false);
 
   protected readonly agregarViajeForm = this.fb.group({
     choferId: [''],
     dominio: [''],
     destino: ['', Validators.required],
     toneladas: ['', [Validators.required, Validators.min(0.01), Validators.max(100)]],
+  });
+
+  protected readonly reasignarForm = this.fb.group({
+    choferId: ['', Validators.required],
   });
 
   protected readonly metadatosForm = this.fb.group({
@@ -208,6 +232,7 @@ export class GestionOperativaPage {
     { value: 'pendiente', label: 'Pendiente' },
     { value: 'retrasado', label: 'Incidentes' },
     { value: 'completado', label: 'Finalizado' },
+    { value: 'cancelado', label: 'Cancelado' },
   ]);
 
   protected readonly choferOptions = computed<SelectOption[]>(() => {
@@ -517,6 +542,7 @@ export class GestionOperativaPage {
   protected viajesRows(campania: CampaniaVm): Record<string, unknown>[] {
     return campania.viajes.map((viaje) => ({
       ...viaje,
+      campaniaId: campania.id,
       modelo: this.modeloPorDominio().get(viaje.dominio) ?? '',
     }));
   }
@@ -575,7 +601,9 @@ export class GestionOperativaPage {
     return (
       campania.estado === 'activo' &&
       campania.viajes.length > 0 &&
-      campania.viajes.every((viaje) => viaje.estado === 'completado')
+      campania.viajes.every(
+        (viaje) => viaje.estado === 'completado' || viaje.estado === 'cancelado',
+      )
     );
   }
 
@@ -744,21 +772,45 @@ export class GestionOperativaPage {
       );
       return;
     }
-    from(pendientes)
-      .pipe(
-        concatMap((viaje) => this.store.iniciarViaje(campaniaId, viaje.id)),
-        toArray(),
-      )
-      .subscribe({
-        next: () => {
-          this.expandidas.update((set) => new Set(set).add(campaniaId));
-          this.notifications.success(
-            'Viajes iniciados',
-            `${pendientes.length} viaje(s) salieron a ruta`,
-          );
-        },
-        error: (error: Error) => this.notifications.error('Error al iniciar viajes', error.message),
+    const arrancar = (cartas: CartaPorteDto[]) => {
+      void confirmarInicioViaje(
+        this.confirmDialog,
+        despacho,
+        pendientes,
+        cartas,
+        `Vas a iniciar ${pendientes.length} viaje(s) de "${despacho.nombre}". Confirmá gasoil y efectivo antes de salir.`,
+      ).then((ok) => {
+        if (!ok) {
+          return;
+        }
+        from(pendientes)
+          .pipe(
+            concatMap((viaje) =>
+              this.store.iniciarViaje(campaniaId, viaje.id, CHECKLIST_INICIO_OK),
+            ),
+            toArray(),
+          )
+          .subscribe({
+            next: () => {
+              this.expandidas.update((set) => new Set(set).add(campaniaId));
+              this.notifications.success(
+                'Viajes iniciados',
+                `${pendientes.length} viaje(s) salieron a ruta`,
+              );
+            },
+            error: (error: Error) =>
+              this.notifications.error('Error al iniciar viajes', error.message),
+          });
       });
+    };
+    if (!despacho.cpeHabilitada) {
+      arrancar([]);
+      return;
+    }
+    this.api.listarCartasPorte(campaniaId).subscribe({
+      next: arrancar,
+      error: () => arrancar([]),
+    });
   }
 
   protected contactarChoferesCampania(campania: CampaniaVm): void {
@@ -782,24 +834,34 @@ export class GestionOperativaPage {
     tipo: 'ticket de gasoil' | 'carta de porte',
   ): void {
     this.cerrarMenuCampania();
-    const viajes = campania.viajes.filter((viaje) => viaje.estado !== 'completado');
+    const viajes = campania.viajes.filter(
+      (viaje) => viaje.estado !== 'completado' && viaje.estado !== 'cancelado',
+    );
     if (viajes.length === 0) {
-      this.notifications.warning('Sin viajes', 'No hay viajes activos para adjuntar documentos');
+      this.notifications.warning('Sin viajes', 'No hay viajes activos para generar documentos');
       return;
     }
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = tipo === 'carta de porte' ? '.pdf,image/*' : 'image/*,.pdf';
-    input.onchange = () => {
-      const archivo = input.files?.[0];
-      if (archivo) {
-        this.notifications.success(
-          `Adjunto masivo: ${tipo}`,
-          `${archivo.name} → ${viajes.length} viaje(s) de "${campania.nombre}"`,
-        );
-      }
-    };
-    input.click();
+    from(viajes)
+      .pipe(
+        concatMap((viaje) =>
+          tipo === 'carta de porte'
+            ? this.api.emitirCartaPorte(campania.id, viaje.id)
+            : this.api.generarTicketGasoil(campania.id, viaje.id),
+        ),
+        toArray(),
+      )
+      .subscribe({
+        next: (resultados) =>
+          this.notifications.success(
+            tipo === 'carta de porte' ? 'Cartas de porte emitidas' : 'Tickets de gasoil generados',
+            `${resultados.length} viaje(s) de "${campania.nombre}"`,
+          ),
+        error: (err) =>
+          this.notifications.error(
+            'Error al generar documentos',
+            err?.error?.error?.mensaje ?? 'Error de negocio',
+          ),
+      });
   }
 
   protected abrirEditarMetadatos(campaniaId: string): void {
@@ -948,23 +1010,39 @@ export class GestionOperativaPage {
     });
   }
 
-  private adjuntoPendiente: { viajeId: string; tipo: string } | null = null;
-
-  protected adjuntar(viajeId: string, tipo: 'ticket de gasoil' | 'carta de porte'): void {
-    // TODO(backend): subir el archivo al viaje; hoy solo se simula la carga
-    this.adjuntoPendiente = { viajeId, tipo };
+  protected adjuntar(
+    campaniaId: string,
+    viajeId: string,
+    tipo: 'ticket de gasoil' | 'carta de porte',
+  ): void {
+    const tipoAdjunto: TipoAdjuntoViaje =
+      tipo === 'carta de porte' ? 'cpe_escaneada' : 'ticket_gasoil';
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = tipo === 'carta de porte' ? '.pdf,image/*' : 'image/*,.pdf';
     input.onchange = () => {
       const archivo = input.files?.[0];
-      if (archivo && this.adjuntoPendiente) {
-        this.notifications.success(
-          `Se adjuntó ${this.adjuntoPendiente.tipo}`,
-          `${archivo.name} → viaje ${this.adjuntoPendiente.viajeId}`,
-        );
+      if (!archivo) {
+        return;
       }
-      this.adjuntoPendiente = null;
+      leerArchivoComoDataUrl(archivo).then((dataUrl) => {
+        this.api
+          .subirAdjunto(campaniaId, viajeId, {
+            tipo: tipoAdjunto,
+            nombre: archivo.name,
+            mime: archivo.type || 'application/octet-stream',
+            dataUrl,
+          })
+          .subscribe({
+            next: (adj) =>
+              this.notifications.success(`Se adjuntó ${tipo}`, `${adj.nombre} → viaje ${viajeId}`),
+            error: (err) =>
+              this.notifications.error(
+                'No se pudo adjuntar',
+                err?.error?.error?.mensaje ?? 'Error de negocio',
+              ),
+          });
+      });
     };
     input.click();
   }
@@ -978,8 +1056,153 @@ export class GestionOperativaPage {
     this.menuAbierto.update((actual) => (actual === viajeId ? null : viajeId));
   }
 
-  protected opcionMenu(opcion: string, viajeId: string): void {
+  protected verDetalleViaje(campaniaId: string, viajeId: string): void {
     this.menuAbierto.set(null);
-    this.notifications.warning(opcion, `Viaje ${viajeId} — disponible próximamente`);
+    this.router.navigate(['/gestion-operativa/viajes', campaniaId, viajeId]);
   }
+
+  protected abrirReasignar(campaniaId: string, viajeId: string): void {
+    this.menuAbierto.set(null);
+    const despacho = this.buscarDespacho(campaniaId);
+    const viaje = despacho?.viajes.find((v) => v.id === viajeId);
+    if (!viaje || viaje.estado === 'completado' || viaje.estado === 'cancelado') {
+      this.notifications.warning('No disponible', 'No se puede reasignar chofer en este estado');
+      return;
+    }
+    this.reasignarForm.reset({ choferId: viaje.choferId ?? '' });
+    this.reasignarCtx.set({ campaniaId, viajeId });
+  }
+
+  protected cerrarReasignar(): void {
+    this.reasignarCtx.set(null);
+  }
+
+  protected guardarReasignacion(): void {
+    const ctx = this.reasignarCtx();
+    if (!ctx || this.reasignarForm.invalid) {
+      this.reasignarForm.markAllAsTouched();
+      return;
+    }
+    const choferId = this.reasignarForm.controls.choferId.value!;
+    this.guardandoReasignacion.set(true);
+    this.store.actualizarViaje(ctx.campaniaId, ctx.viajeId, { choferId }).subscribe({
+      next: (despacho) => {
+        const viaje = despacho.viajes.find((v) => v.id === ctx.viajeId);
+        this.notifications.success(
+          'Chofer reasignado',
+          viaje ? `${viaje.chofer} / ${viaje.dominio}` : ctx.viajeId,
+        );
+        this.guardandoReasignacion.set(false);
+        this.cerrarReasignar();
+      },
+      error: (err) => {
+        this.guardandoReasignacion.set(false);
+        this.notifications.error(
+          'No se pudo reasignar',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        );
+      },
+    });
+  }
+
+  protected async cancelarViaje(campaniaId: string, viajeId: string): Promise<void> {
+    this.menuAbierto.set(null);
+    const ok = await this.confirmDialog.abrir({
+      titulo: 'Cancelar viaje',
+      mensaje: `¿Confirmás cancelar el viaje ${viajeId}? Esta acción no se puede deshacer.`,
+      textoConfirmar: 'Cancelar viaje',
+      textoCancelar: 'Volver',
+      variant: 'danger',
+    });
+    if (!ok) {
+      return;
+    }
+    this.store.cancelarViaje(campaniaId, viajeId).subscribe({
+      next: () => this.notifications.warning('Viaje cancelado', viajeId),
+      error: (err) =>
+        this.notifications.error(
+          'No se pudo cancelar',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        ),
+    });
+  }
+
+  protected asignarPorLista(campaniaId: string, viajeId: string): void {
+    this.menuAbierto.set(null);
+    this.store.asignarPorLista(campaniaId, viajeId).subscribe({
+      next: (despacho) => {
+        const viaje = despacho.viajes.find((v) => v.id === viajeId);
+        if (viaje?.chofer && viaje.chofer !== 'Sin asignar') {
+          this.notifications.success(
+            'Asignado (flota propia o lista)',
+            `${viaje.chofer} → ${viaje.dominio}`,
+          );
+        } else {
+          this.notifications.success(
+            'Oferta enviada',
+            'Se ofreció el viaje al siguiente de la lista de espera',
+          );
+        }
+      },
+      error: (err) =>
+        this.notifications.error(
+          'No se pudo asignar',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        ),
+    });
+  }
+
+  protected aceptarOfertaLista(campaniaId: string, viajeId: string): void {
+    this.menuAbierto.set(null);
+    this.listaEsperaApi.listar().subscribe({
+      next: (entradas) => {
+        const oferta = entradas.find(
+          (e) => e.estado === 'ofertado' && e.viajeOfertadoId === viajeId,
+        );
+        if (!oferta) {
+          this.notifications.warning('Sin oferta', 'No hay oferta activa para este viaje');
+          return;
+        }
+        this.store.aceptarOfertaLista(campaniaId, viajeId, oferta.id).subscribe({
+          next: (despacho) => {
+            const viaje = despacho.viajes.find((v) => v.id === viajeId);
+            this.notifications.success(
+              'Oferta aceptada',
+              viaje ? `${viaje.chofer} / ${viaje.dominio}` : viajeId,
+            );
+          },
+          error: (err) =>
+            this.notifications.error(
+              'No se pudo aceptar',
+              err?.error?.error?.mensaje ?? 'Error de negocio',
+            ),
+        });
+      },
+    });
+  }
+
+  protected rechazarOfertaLista(campaniaId: string, viajeId: string): void {
+    this.menuAbierto.set(null);
+    this.store.rechazarOfertaLista(campaniaId, viajeId).subscribe({
+      next: () =>
+        this.notifications.success(
+          'Oferta rechazada',
+          'La unidad fue al fondo; se ofreció al siguiente',
+        ),
+      error: (err) =>
+        this.notifications.error(
+          'No se pudo rechazar',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        ),
+    });
+  }
+}
+
+function leerArchivoComoDataUrl(archivo: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(archivo);
+  });
 }

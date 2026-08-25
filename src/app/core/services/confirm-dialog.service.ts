@@ -2,16 +2,28 @@ import { Injectable, signal } from '@angular/core';
 
 export type ConfirmDialogVariant = 'default' | 'danger';
 
+export interface ConfirmChecklistItem {
+  id: string;
+  label: string;
+  hint?: string;
+  required?: boolean;
+  /** Si false, el ítem bloquea el inicio (falta un requisito). */
+  ok?: boolean;
+  checked?: boolean;
+  locked?: boolean;
+}
+
 export interface ConfirmDialogOptions {
   titulo?: string;
   mensaje: string;
   textoConfirmar?: string;
   textoCancelar?: string;
   variant?: ConfirmDialogVariant;
+  items?: ConfirmChecklistItem[];
 }
 
 /**
- * Diálogo de confirmación global (reemplaza window.confirm).
+ * Diálogo de confirmación global (sustituye window.confirm).
  */
 @Injectable({ providedIn: 'root' })
 export class ConfirmDialogService {
@@ -21,6 +33,7 @@ export class ConfirmDialogService {
   readonly textoConfirmar = signal('Confirmar');
   readonly textoCancelar = signal('Cancelar');
   readonly variant = signal<ConfirmDialogVariant>('default');
+  readonly items = signal<ConfirmChecklistItem[]>([]);
 
   private resolver: ((value: boolean) => void) | null = null;
 
@@ -34,6 +47,13 @@ export class ConfirmDialogService {
     this.textoConfirmar.set(options.textoConfirmar ?? 'Confirmar');
     this.textoCancelar.set(options.textoCancelar ?? 'Cancelar');
     this.variant.set(options.variant ?? 'default');
+    this.items.set(
+      (options.items ?? []).map((item) => ({
+        ...item,
+        checked: item.ok === false ? false : (item.checked ?? item.ok === true),
+        locked: item.locked ?? item.ok !== undefined,
+      })),
+    );
     this.abierto.set(true);
 
     return new Promise((resolve) => {
@@ -50,7 +70,26 @@ export class ConfirmDialogService {
     });
   }
 
+  toggleItem(id: string): void {
+    this.items.update((items) =>
+      items.map((item) =>
+        item.id === id && !item.locked ? { ...item, checked: !item.checked } : item,
+      ),
+    );
+  }
+
+  puedeConfirmar(): boolean {
+    const items = this.items();
+    if (items.some((item) => item.ok === false)) {
+      return false;
+    }
+    return items.every((item) => !item.required || item.checked);
+  }
+
   confirmar(): void {
+    if (!this.puedeConfirmar()) {
+      return;
+    }
     this.cerrar(true);
   }
 

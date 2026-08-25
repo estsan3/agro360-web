@@ -35,6 +35,7 @@ function mapCampo(dto: CampoProductorDto): CampoProductor {
     eliminado: dto.eliminado,
     nombre: dto.nombre,
     codigo: dto.codigo,
+    nroRenspa: dto.nro_renspa ?? null,
     superficieHa: dto.superficie_ha,
     localidad: dto.localidad,
     provincia: dto.provincia,
@@ -113,6 +114,7 @@ export function toCampoDto(campo: Partial<CampoProductor>): Record<string, unkno
   return {
     nombre: campo.nombre ?? '',
     codigo: campo.codigo ?? '',
+    nro_renspa: campo.nroRenspa ?? '',
     superficie_ha: campo.superficieHa ?? 0,
     localidad: campo.localidad ?? '',
     provincia: campo.provincia ?? '',

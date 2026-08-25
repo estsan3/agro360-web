@@ -13,6 +13,7 @@ export interface CamionTransportistaDto {
   marca: string;
   modelo: string;
   tipo: string;
+  capacidad_tn?: number | null;
   nro_chasis: string;
   nro_motor: string;
   foto_tarjeta_verde?: ArchivoAdjuntoDto;
@@ -49,6 +50,7 @@ export interface TransportistaDto {
   email: string;
   telefono: string;
   pagina_web: string;
+  es_flota_propia?: boolean;
 }
 
 export interface TransportistaDetalleDto extends TransportistaDto {

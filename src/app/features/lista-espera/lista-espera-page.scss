@@ -18,6 +18,7 @@
   &__subtitle {
     margin: 0;
     color: t.$color-text-muted;
+    max-width: 40rem;
   }
 }
 
@@ -28,43 +29,23 @@
   border-radius: t.$radius-lg;
 }
 
-.toolbar {
-  display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: t.$space-md;
-  align-items: end;
-
-  @media (max-width: t.$breakpoint-tablet) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.tabla-scroll {
-  overflow-x: auto;
-}
-
-.paginacion {
+.anotar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: t.$space-md;
-  margin-top: t.$space-md;
-  padding-top: t.$space-sm;
-  border-top: 1px solid t.$color-border;
-  font-size: ty.$font-size-sm;
-  color: t.$color-text-muted;
 
-  &__controles {
-    display: flex;
-    align-items: center;
-    gap: t.$space-sm;
+  &__titulo {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: ty.$font-weight-semibold;
+    color: t.$color-text;
   }
 
-  &__pagina {
-    min-width: 120px;
-    text-align: center;
-    color: t.$color-text;
-    font-weight: ty.$font-weight-medium;
+  &__form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem 1rem;
+    align-items: end;
   }
 }
 
@@ -90,34 +71,19 @@
       background-color 0.12s ease,
       color 0.12s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: t.$color-primary-light;
       color: t.$color-primary-dark;
     }
 
-    &--config:hover {
-      background: t.$color-primary-light;
-      color: t.$color-primary-dark;
+    &:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
-    &--on:hover {
-      background: t.$color-success-bg;
-      color: t.$color-primary-dark;
-    }
-
-    &--danger:hover {
+    &--danger:hover:not(:disabled) {
       background: t.$color-danger-bg;
       color: t.$color-danger-strong;
     }
   }
 }
-
-.form-check {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  margin-top: 0.35rem;
-}
-
-@import 'config-modal';

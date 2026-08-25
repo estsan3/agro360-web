@@ -1,0 +1,79 @@
+<section class="page">
+  <header class="page__header">
+    <p class="page__subtitle">
+      Cola FIFO de unidades de terceros. La flota propia no se anota: tiene prioridad al asignar.
+    </p>
+    <app-button variant="outline" size="md" (clicked)="cargar()">
+      <app-icon name="list" />
+      Actualizar
+    </app-button>
+  </header>
+
+  <section class="card anotar">
+    <h3 class="anotar__titulo">Anotar unidad</h3>
+    <form class="anotar__form" [formGroup]="formAnotar">
+      <app-select-input
+        label="Transportista"
+        [options]="transportistaOptions()"
+        formControlName="transportistaId"
+      />
+      <app-select-input label="Chofer" [options]="choferOptions()" formControlName="choferId" />
+      <app-select-input label="Camión" [options]="camionOptions()" formControlName="camionId" />
+      <app-button variant="primary" size="md" (clicked)="anotar()">
+        <app-icon name="plus" />
+        Anotar
+      </app-button>
+    </form>
+  </section>
+
+  <app-state-wrapper
+    [status]="listaState().status"
+    [error]="listaState().error ?? ''"
+    [empty]="listaState().status === 'success' && rows().length === 0"
+    emptyMessage="Lista vacía — anotá una unidad para empezar la cola"
+    [skeletonRows]="6"
+  >
+    <app-table
+      [columns]="columns"
+      [rows]="rows()"
+      headerVariant="soft"
+      layout="fixed"
+      [striped]="true"
+    >
+      <ng-template appTableCell="estado" let-row>
+        <app-badge [variant]="badgeVariant($any(row)['estado'])">
+          {{ $any(row)['estado'] }}
+        </app-badge>
+      </ng-template>
+      <ng-template appTableCell="anotadoEn" let-row>
+        {{ $any(row)['anotadoEn'] | date: 'dd/MM/yyyy HH:mm' }}
+      </ng-template>
+      <ng-template appTableCell="acciones" let-row>
+        <div class="fila-acciones">
+          @if ($any(row)['estado'] === 'ofertado') {
+            <button
+              type="button"
+              class="fila-acciones__btn fila-acciones__btn--danger"
+              title="Rechazar oferta"
+              aria-label="Rechazar oferta"
+              (click)="rechazar($any(row))"
+            >
+              <app-icon name="x" />
+            </button>
+          }
+          @if ($any(row)['estado'] === 'en_espera') {
+            <button
+              type="button"
+              class="fila-acciones__btn fila-acciones__btn--danger"
+              title="Quitar de la lista"
+              aria-label="Quitar de la lista"
+              (click)="quitar($any(row))"
+            >
+              <app-icon name="trash" />
+            </button>
+          }
+        </div>
+      </ng-template>
+    </app-table>
+  </app-state-wrapper>
+</section>

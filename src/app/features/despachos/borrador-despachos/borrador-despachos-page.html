@@ -149,15 +149,47 @@
               >
                 <app-icon name="trash" />
               </button>
-              <button
-                class="draft__icono"
-                type="button"
-                title="Más opciones"
-                aria-label="Más opciones"
-                (click)="masOpciones()"
-              >
-                <app-icon name="more-vertical" />
-              </button>
+              <div class="draft__menu-wrap">
+                <button
+                  class="draft__icono"
+                  type="button"
+                  title="Más opciones"
+                  aria-label="Más opciones"
+                  (click)="toggleMenu(borrador.id)"
+                >
+                  <app-icon name="more-vertical" />
+                </button>
+                @if (menuAbierto() === borrador.id) {
+                  <button
+                    class="draft__backdrop"
+                    type="button"
+                    aria-label="Cerrar menú"
+                    (click)="menuAbierto.set(null)"
+                  ></button>
+                  <div class="draft__menu" role="menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      (click)="activarBorrador(borrador.id, borrador.nombre)"
+                    >
+                      Activar campaña
+                    </button>
+                    <button type="button" role="menuitem" (click)="duplicarBorrador(borrador.id)">
+                      Duplicar borrador
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      (click)="buscarTransportistasBorrador(borrador.id)"
+                    >
+                      Buscar transportistas
+                    </button>
+                    <button type="button" role="menuitem" (click)="editar(borrador.id)">
+                      Editar en crear despacho
+                    </button>
+                  </div>
+                }
+              </div>
             </div>
           </div>
 

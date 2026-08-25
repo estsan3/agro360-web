@@ -208,6 +208,50 @@
       }
     }
   }
+
+  &__menu-wrap {
+    position: relative;
+  }
+
+  &__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    border: none;
+    background: transparent;
+    cursor: default;
+  }
+
+  &__menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 901;
+    min-width: 220px;
+    padding: t.$space-xs;
+    background: t.$color-surface;
+    border: 1px solid t.$color-border;
+    border-radius: t.$radius-md;
+    box-shadow: t.$shadow-md;
+    display: flex;
+    flex-direction: column;
+
+    button {
+      padding: t.$space-sm t.$space-md;
+      border: none;
+      background: transparent;
+      text-align: left;
+      font: inherit;
+      color: t.$color-text;
+      border-radius: t.$radius-sm;
+      cursor: pointer;
+      white-space: nowrap;
+
+      &:hover {
+        background: t.$color-background-alt;
+      }
+    }
+  }
 }
 
 // --- Tabla interna de viajes en borrador ---

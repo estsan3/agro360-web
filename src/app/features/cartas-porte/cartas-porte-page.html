@@ -1,0 +1,296 @@
+<section class="page">
+  <header class="page__header">
+    <p class="page__subtitle">
+      Intenciones con payload AFIP (74 y 274). Enviá a ARCA las pendientes; las procesadas incluyen
+      el PDF para visualizar y descargar.
+    </p>
+    <app-button variant="outline" size="md" (clicked)="cargar()">
+      <app-icon name="list" />
+      Actualizar
+    </app-button>
+  </header>
+
+  <div class="toolbar">
+    <app-search-bar
+      class="toolbar__search"
+      placeholder="Buscar por despacho, patente, CTG, origen, destino…"
+      (valueChange)="busqueda.set($event)"
+    />
+    <div class="toolbar__actions">
+      <app-button
+        variant="outline"
+        size="md"
+        [class.toolbar__filtros-btn--activo]="filtrosAbiertos() || hayFiltrosActivos()"
+        (clicked)="toggleFiltros()"
+      >
+        <app-icon name="filter" />
+        Filtros
+      </app-button>
+      @if (hayFiltrosActivos() || busqueda()) {
+        <app-button variant="outline" size="md" (clicked)="limpiarFiltros()"> Limpiar </app-button>
+      }
+    </div>
+  </div>
+
+  @if (filtrosAbiertos()) {
+    <section class="filtros-panel card">
+      <header class="filtros-panel__head">
+        <div>
+          <h2>Filtrar intenciones</h2>
+          <p>Refiná por estado, tipo CPE, despacho, ruta o documento</p>
+        </div>
+        <app-button variant="outline" size="sm" (clicked)="limpiarFiltros()">
+          Limpiar filtros
+        </app-button>
+      </header>
+      <form class="filtros-panel__grid" [formGroup]="filtrosForm">
+        <app-select-input
+          label="Estado"
+          placeholder="Todos"
+          [options]="estadoOptions"
+          formControlName="estado"
+        />
+        <app-select-input
+          label="Tipo CPE"
+          placeholder="Todos"
+          [options]="tipoOptions"
+          formControlName="tipoCpe"
+        />
+        <app-select-input
+          label="Material"
+          placeholder="Todos"
+          [options]="materialOptions()"
+          formControlName="material"
+        />
+        <app-select-input
+          label="Despacho"
+          placeholder="Todos"
+          [options]="despachoOptions()"
+          formControlName="despachoId"
+        />
+        <app-text-input label="Patente" placeholder="Ej. AB123CD" formControlName="dominio" />
+        <app-select-input
+          label="Origen"
+          placeholder="Todos"
+          [options]="origenOptions()"
+          formControlName="origen"
+        />
+        <app-select-input
+          label="Destino"
+          placeholder="Todos"
+          [options]="destinoOptions()"
+          formControlName="destino"
+        />
+        <app-text-input label="CTG" placeholder="Nro. CTG" formControlName="nroCtg" />
+        <app-select-input
+          label="Documento PDF"
+          placeholder="Todos"
+          [options]="documentoOptions"
+          formControlName="documento"
+        />
+        <app-text-input label="Creada desde" type="date" formControlName="fechaDesde" />
+        <app-text-input label="Creada hasta" type="date" formControlName="fechaHasta" />
+      </form>
+    </section>
+  }
+
+  <app-state-wrapper
+    [status]="state().status"
+    [error]="state().error ?? ''"
+    [empty]="state().status === 'success' && rows().length === 0"
+    [emptyMessage]="emptyMessage()"
+    [skeletonRows]="6"
+  >
+    <app-table
+      [columns]="columns"
+      [rows]="rows()"
+      headerVariant="soft"
+      layout="fixed"
+      [striped]="true"
+    >
+      <ng-template appTableCell="tipoCpe" let-row>
+        {{ tipoEtiqueta($any(row)['tipoCpe']) }}
+      </ng-template>
+      <ng-template appTableCell="estado" let-row>
+        <app-badge [variant]="badgeVariant($any(row)['estado'])">
+          {{ $any(row)['estado'] }}
+        </app-badge>
+      </ng-template>
+      <ng-template appTableCell="nroCtg" let-row>
+        {{ $any(row)['nroCtg'] || '—' }}
+      </ng-template>
+      <ng-template appTableCell="creadaEn" let-row>
+        {{ $any(row)['creadaEn'] | date: 'dd/MM/yyyy HH:mm' }}
+      </ng-template>
+      <ng-template appTableCell="acciones" let-row>
+        <div class="fila-acciones">
+          <button
+            type="button"
+            class="fila-acciones__btn"
+            title="Ver detalle"
+            aria-label="Ver detalle"
+            (click)="ver($any(row))"
+          >
+            <app-icon name="search" />
+          </button>
+          @if (esEditable($any(row)['estado'])) {
+            <button
+              type="button"
+              class="fila-acciones__btn"
+              title="Enviar a ARCA"
+              aria-label="Enviar a ARCA"
+              [disabled]="busyId() === $any(row)['id']"
+              (click)="enviar($any(row))"
+            >
+              <app-icon name="send" />
+            </button>
+            <button
+              type="button"
+              class="fila-acciones__btn"
+              title="Editar despacho y regenerar intención"
+              aria-label="Editar despacho y regenerar intención"
+              (click)="editarIntencion($any(row))"
+            >
+              <app-icon name="pencil" />
+            </button>
+          }
+          @if (esProcesada($any(row)['estado'])) {
+            <button
+              type="button"
+              class="fila-acciones__btn fila-acciones__btn--danger"
+              title="Anular CPE"
+              aria-label="Anular CPE"
+              [disabled]="busyId() === $any(row)['id']"
+              (click)="anular($any(row))"
+            >
+              <app-icon name="x" />
+            </button>
+          }
+          @if ($any(row)['tieneDocumento']) {
+            <button
+              type="button"
+              class="fila-acciones__btn"
+              title="Ver PDF"
+              aria-label="Ver PDF"
+              [disabled]="busyId() === $any(row)['id']"
+              (click)="verDocumento($any(row))"
+            >
+              <app-icon name="file-text" />
+            </button>
+            <button
+              type="button"
+              class="fila-acciones__btn"
+              title="Descargar PDF"
+              aria-label="Descargar PDF"
+              [disabled]="busyId() === $any(row)['id']"
+              (click)="descargarDocumento($any(row))"
+            >
+              <app-icon name="copy" />
+            </button>
+          }
+          @if (esEditable($any(row)['estado'])) {
+            <button
+              type="button"
+              class="fila-acciones__btn"
+              title="Reintentar"
+              aria-label="Reintentar"
+              [disabled]="busyId() === $any(row)['id']"
+              (click)="reintentar($any(row))"
+            >
+              <app-icon name="play" />
+            </button>
+            <button
+              type="button"
+              class="fila-acciones__btn fila-acciones__btn--danger"
+              title="Eliminar"
+              aria-label="Eliminar"
+              [disabled]="busyId() === $any(row)['id']"
+              (click)="eliminar($any(row))"
+            >
+              <app-icon name="trash" />
+            </button>
+          }
+        </div>
+      </ng-template>
+    </app-table>
+  </app-state-wrapper>
+
+  @if (seleccionada(); as carta) {
+    <section class="detalle card">
+      <header class="detalle__head">
+        <div>
+          <h3>
+            {{ tipoEtiqueta(carta.tipoCpe) }} · {{ carta.estado }}
+            @if (carta.nroCtg) {
+              · CTG {{ carta.nroCtg }}
+            }
+          </h3>
+          <p>
+            Despacho {{ carta.despachoId }} · viaje {{ carta.viajeId }} · {{ carta.dominio }} ·
+            {{ carta.origen }} → {{ carta.destino }} · {{ carta.toneladas }} tn
+          </p>
+          @if (carta.errorDetalle) {
+            <p class="detalle__error">{{ carta.errorDetalle }}</p>
+          }
+        </div>
+        <div class="detalle__acciones">
+          @if (esEditable(carta.estado)) {
+            <app-button
+              variant="primary"
+              size="sm"
+              (clicked)="enviar(carta)"
+              [disabled]="busyId() === carta.id"
+            >
+              <app-icon name="send" />
+              Enviar a ARCA
+            </app-button>
+          }
+          @if (carta.tieneDocumento) {
+            <app-button
+              variant="primary"
+              size="sm"
+              (clicked)="verDocumento(carta)"
+              [disabled]="busyId() === carta.id"
+            >
+              <app-icon name="file-text" />
+              Ver PDF
+            </app-button>
+            <app-button
+              variant="outline"
+              size="sm"
+              (clicked)="descargarDocumento(carta)"
+              [disabled]="busyId() === carta.id"
+            >
+              <app-icon name="copy" />
+              Descargar
+            </app-button>
+          }
+          @if (esProcesada(carta.estado)) {
+            <app-button
+              variant="outline"
+              size="sm"
+              (clicked)="anular(carta)"
+              [disabled]="busyId() === carta.id"
+            >
+              <app-icon name="x" />
+              Anular
+            </app-button>
+          }
+          <app-button variant="outline" size="sm" (clicked)="cerrarDetalle()">
+            <app-icon name="x" />
+            Cerrar
+          </app-button>
+        </div>
+      </header>
+
+      @if (pdfUrl(); as url) {
+        <iframe class="detalle__pdf" [src]="url" title="Carta de porte PDF"></iframe>
+      }
+
+      <details class="detalle__payload">
+        <summary>Payload AFIP (JSON)</summary>
+        <pre class="detalle__json">{{ carta.payloadAfip | json }}</pre>
+      </details>
+    </section>
+  }
+</section>

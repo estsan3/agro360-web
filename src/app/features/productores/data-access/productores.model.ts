@@ -17,6 +17,7 @@ export interface CampoProductor {
   eliminado: boolean;
   nombre: string;
   codigo: string;
+  nroRenspa: string | null;
   superficieHa: number;
   localidad: string;
   provincia: string;

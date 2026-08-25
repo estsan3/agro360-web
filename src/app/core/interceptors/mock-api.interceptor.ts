@@ -147,13 +147,25 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
       modelo?: string;
     };
     const dominio = body.dominio ?? '';
+    const camionId = dominio ? `cm-${nextCatalogoId}` : '';
     const nuevo = {
       id: `ch-${nextCatalogoId++}`,
       nombre: body.nombre,
       transportista_id: body.transportista_id ?? 't-1',
+      camion_id: camionId,
       dominio,
       modelo: body.modelo ?? 'Sin modelo',
-      camiones: dominio ? [{ id: `cm-${nextCatalogoId}`, dominio, modelo: body.modelo ?? '' }] : [],
+      camiones: dominio
+        ? [
+            {
+              id: camionId,
+              dominio,
+              modelo: body.modelo ?? '',
+              tipo: 'tractor',
+              acoplado_dominio: '',
+            },
+          ]
+        : [],
     };
     catalogosDb.choferes.push(nuevo);
     return ok(nuevo);

@@ -364,6 +364,9 @@
                     @case ('completado') {
                       <app-badge variant="success" size="md">Completado</app-badge>
                     }
+                    @case ('cancelado') {
+                      <app-badge variant="neutral" size="md">Cancelado</app-badge>
+                    }
                   }
                 </ng-template>
                 <ng-template appTableCell="progreso" let-row>
@@ -416,7 +419,9 @@
                       type="button"
                       title="Adjuntar ticket de gasoil"
                       aria-label="Adjuntar ticket de gasoil"
-                      (click)="adjuntar($any(row)['id'], 'ticket de gasoil')"
+                      (click)="
+                        adjuntar($any(row)['campaniaId'], $any(row)['id'], 'ticket de gasoil')
+                      "
                     >
                       <app-icon name="ticket" />
                     </button>
@@ -425,7 +430,7 @@
                       type="button"
                       title="Adjuntar carta de porte"
                       aria-label="Adjuntar carta de porte"
-                      (click)="adjuntar($any(row)['id'], 'carta de porte')"
+                      (click)="adjuntar($any(row)['campaniaId'], $any(row)['id'], 'carta de porte')"
                     >
                       <app-icon name="file-text" />
                     </button>
@@ -462,21 +467,42 @@
                           <button
                             type="button"
                             role="menuitem"
-                            (click)="opcionMenu('Ver detalle del viaje', $any(row)['id'])"
+                            (click)="verDetalleViaje($any(row)['campaniaId'], $any(row)['id'])"
                           >
                             Ver detalle del viaje
                           </button>
                           <button
                             type="button"
                             role="menuitem"
-                            (click)="opcionMenu('Reasignar chofer', $any(row)['id'])"
+                            (click)="asignarPorLista($any(row)['campaniaId'], $any(row)['id'])"
+                          >
+                            Asignar por lista
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="aceptarOfertaLista($any(row)['campaniaId'], $any(row)['id'])"
+                          >
+                            Aceptar oferta lista
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="rechazarOfertaLista($any(row)['campaniaId'], $any(row)['id'])"
+                          >
+                            Rechazar oferta lista
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            (click)="abrirReasignar($any(row)['campaniaId'], $any(row)['id'])"
                           >
                             Reasignar chofer
                           </button>
                           <button
                             type="button"
                             role="menuitem"
-                            (click)="opcionMenu('Cancelar viaje', $any(row)['id'])"
+                            (click)="cancelarViaje($any(row)['campaniaId'], $any(row)['id'])"
                           >
                             Cancelar viaje
                           </button>
@@ -746,6 +772,40 @@
             Guardando…
           } @else {
             Guardar cambios
+          }
+        </app-button>
+      </div>
+    </form>
+  </app-modal>
+
+  <app-modal
+    [abierto]="!!reasignarCtx()"
+    titulo="Reasignar chofer"
+    ancho="480px"
+    (cerrar)="cerrarReasignar()"
+  >
+    <form class="agregar-viaje" [formGroup]="reasignarForm" (ngSubmit)="guardarReasignacion()">
+      <app-select-input
+        label="Nuevo chofer"
+        placeholder="Seleccionar chofer"
+        [options]="choferOptionsAgregar()"
+        formControlName="choferId"
+      />
+      <div class="agregar-viaje__footer">
+        <app-button variant="outline" size="md" type="button" (clicked)="cerrarReasignar()">
+          Cancelar
+        </app-button>
+        <app-button
+          variant="primary"
+          size="md"
+          type="button"
+          [disabled]="guardandoReasignacion()"
+          (clicked)="guardarReasignacion()"
+        >
+          @if (guardandoReasignacion()) {
+            Guardando…
+          } @else {
+            Reasignar
           }
         </app-button>
       </div>

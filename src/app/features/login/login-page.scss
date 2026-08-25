@@ -149,4 +149,29 @@
       text-decoration: underline;
     }
   }
+
+  &__demo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: t.$space-md;
+    padding: t.$space-sm t.$space-md;
+    border-radius: 8px;
+    background: t.$color-background-alt;
+    color: t.$color-text-muted;
+    font-size: ty.$font-size-sm;
+    line-height: 1.4;
+
+    strong {
+      color: t.$color-text;
+      font-weight: ty.$font-weight-semibold;
+      margin-bottom: 0.15rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85em;
+      color: t.$color-text;
+    }
+  }
 }

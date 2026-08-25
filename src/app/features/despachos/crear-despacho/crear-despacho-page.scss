@@ -65,22 +65,25 @@
   }
 }
 
-// --- Tabs de información general ---
+// --- Tabs por dominio ---
 .tabs {
   display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
   border-bottom: 1px solid t.$color-border;
 
   &__tab {
-    padding: t.$space-sm t.$space-lg;
+    padding: t.$space-sm t.$space-md;
     border: 1px solid transparent;
     border-bottom: none;
     border-radius: t.$radius-md t.$radius-md 0 0;
     background: transparent;
     font-family: inherit;
-    font-size: ty.$font-size-md;
+    font-size: ty.$font-size-lg; // 1rem — un poco más grande que el body, sin pasarse
     font-weight: ty.$font-weight-medium;
     color: t.$color-text-muted;
     cursor: pointer;
+    white-space: nowrap;
 
     &--active {
       background: #f0faec;
@@ -88,6 +91,86 @@
       color: t.$color-primary-dark;
     }
   }
+}
+
+.cuit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  &__rs {
+    color: t.$color-primary-dark;
+    font-size: ty.$font-size-sm;
+  }
+}
+
+.viajes-panel {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-md;
+}
+
+.agente-box {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-md;
+  padding: t.$space-md;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-md;
+  background: t.$color-background-alt;
+
+  &__controles {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: t.$space-md;
+  }
+}
+
+.card__subtitle {
+  margin: 0;
+  font-size: ty.$font-size-lg;
+  font-weight: ty.$font-weight-semibold;
+  color: t.$color-text;
+}
+
+.generar-n {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: t.$space-xs;
+  font-size: ty.$font-size-sm;
+  color: t.$color-text-muted;
+
+  input {
+    width: 120px;
+    height: 38px;
+    padding: 0 t.$space-sm;
+    border: 1px solid t.$color-border;
+    border-radius: t.$radius-md;
+    font-family: inherit;
+  }
+}
+
+.arca-resumen {
+  ul {
+    margin: t.$space-sm 0 0;
+    padding-left: 1.2rem;
+    color: t.$color-text-muted;
+    font-size: ty.$font-size-sm;
+    line-height: 1.6;
+  }
+}
+
+.linkish {
+  margin-left: t.$space-sm;
+  border: none;
+  background: none;
+  color: t.$color-primary-dark;
+  font: inherit;
+  font-weight: ty.$font-weight-medium;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .tab-pendiente {
@@ -180,10 +263,19 @@
   border-radius: t.$radius-md;
   overflow-x: auto;
 
+  &--wide &__row {
+    // ☐ | ID | Estado | Transportista | Chofer | Camión | Acoplado | Turno | Destino | Tn | Acciones
+    grid-template-columns:
+      32px minmax(56px, 0.6fr) minmax(90px, 0.8fr) minmax(140px, 1.2fr)
+      minmax(120px, 1.1fr) minmax(120px, 1.1fr) 0.75fr minmax(110px, 0.9fr)
+      minmax(110px, 1fr) 0.55fr 120px;
+    min-width: 1280px;
+  }
+
   &__row {
     display: grid;
-    // checkbox | ID | Estado (texto largo) | Chofer | Dominio | Destino | Tn | Acciones
-    grid-template-columns: 32px 48px minmax(220px, 1.5fr) 1.2fr 0.9fr 1.3fr 0.7fr 130px;
+    // checkbox | ID | Estado | Chofer | Dominio | Destino | Tn | Acciones (legacy)
+    grid-template-columns: 32px 48px minmax(140px, 1.2fr) 1.2fr 0.9fr 1.3fr 0.7fr 130px;
     align-items: center;
     gap: t.$space-sm;
     padding: t.$space-sm t.$space-md;
@@ -311,4 +403,31 @@
   color: t.$color-warning-text;
   font-size: ty.$font-size-md;
   align-self: flex-start;
+}
+
+.cpe-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cpe-toggle__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.cpe-toggle__hint {
+  margin: 0;
+  font-size: ty.$font-size-sm;
+  line-height: 1.35;
+  color: t.$color-text-muted;
+}
+
+.cpe-subtitle {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
 }

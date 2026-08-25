@@ -98,6 +98,12 @@ export class DespachoStore {
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 
+  editarParaIntencionCpe(id: string, input: NuevoDespacho): Observable<Despacho> {
+    return this.api
+      .editarParaIntencionCpe(id, input)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
   buscarTransportistas(
     despachoId: string,
     oferta?: { destino: string; toneladas: number },
@@ -107,9 +113,13 @@ export class DespachoStore {
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 
-  iniciarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+  iniciarViaje(
+    despachoId: string,
+    viajeId: string,
+    checklist: { checklistGasoil: boolean; checklistEfectivo: boolean },
+  ): Observable<Despacho> {
     return this.api
-      .iniciarViaje(despachoId, viajeId)
+      .iniciarViaje(despachoId, viajeId, checklist)
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 
@@ -137,6 +147,12 @@ export class DespachoStore {
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 
+  activarDespacho(despachoId: string): Observable<Despacho> {
+    return this.api
+      .activarDespacho(despachoId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
   actualizarMetadatos(
     despachoId: string,
     input: ActualizarMetadatosDespachoInput,
@@ -155,6 +171,40 @@ export class DespachoStore {
         }
       }),
     );
+  }
+
+  asignarPorLista(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.api
+      .asignarPorLista(despachoId, viajeId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  aceptarOfertaLista(despachoId: string, viajeId: string, entradaId: string): Observable<Despacho> {
+    return this.api
+      .aceptarOfertaLista(despachoId, viajeId, entradaId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  rechazarOfertaLista(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.api
+      .rechazarOfertaLista(despachoId, viajeId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  actualizarViaje(
+    despachoId: string,
+    viajeId: string,
+    datos: { choferId?: string; estado?: string; progreso?: number; observaciones?: string },
+  ): Observable<Despacho> {
+    return this.api
+      .actualizarViaje(despachoId, viajeId, datos)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
+  }
+
+  cancelarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+    return this.api
+      .cancelarViaje(despachoId, viajeId)
+      .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 
   private reemplazar(despacho: Despacho): void {
