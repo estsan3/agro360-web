@@ -25,12 +25,55 @@
     </header>
     <div class="confirm-dialog__body">
       <p id="confirm-dialog-message">{{ dialog.mensaje() }}</p>
+      @if (items().length) {
+        <ul class="confirm-dialog__checklist">
+          @for (item of items(); track item.id) {
+            <li
+              class="confirm-dialog__item"
+              [class.confirm-dialog__item--ok]="item.ok === true"
+              [class.confirm-dialog__item--fail]="item.ok === false"
+            >
+              @if (item.ok === undefined) {
+                <label>
+                  <input
+                    type="checkbox"
+                    [checked]="item.checked"
+                    [disabled]="item.locked"
+                    (change)="dialog.toggleItem(item.id)"
+                  />
+                  <span>
+                    {{ item.label }}
+                    @if (item.hint) {
+                      <small>{{ item.hint }}</small>
+                    }
+                  </span>
+                </label>
+              } @else {
+                <span class="confirm-dialog__estado">
+                  {{ item.ok ? 'OK' : 'Falta' }}
+                </span>
+                <span>
+                  {{ item.label }}
+                  @if (item.hint) {
+                    <small>{{ item.hint }}</small>
+                  }
+                </span>
+              }
+            </li>
+          }
+        </ul>
+      }
     </div>
     <footer class="confirm-dialog__footer">
       <app-button variant="outline" size="md" (clicked)="dialog.cancelar()">
         {{ dialog.textoCancelar() }}
       </app-button>
-      <app-button [variant]="confirmVariant()" size="md" (clicked)="dialog.confirmar()">
+      <app-button
+        [variant]="confirmVariant()"
+        size="md"
+        [disabled]="!puedeConfirmar()"
+        (clicked)="dialog.confirmar()"
+      >
         {{ dialog.textoConfirmar() }}
       </app-button>
     </footer>

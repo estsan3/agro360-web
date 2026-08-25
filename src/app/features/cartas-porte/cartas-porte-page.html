@@ -1,8 +1,8 @@
 <section class="page">
   <header class="page__header">
     <p class="page__subtitle">
-      Intenciones con payload AFIP (74 y 274). Las procesadas incluyen el PDF de la carta de porte
-      para visualizar y descargar.
+      Intenciones con payload AFIP (74 y 274). Enviá a ARCA las pendientes; las procesadas incluyen
+      el PDF para visualizar y descargar.
     </p>
     <app-button variant="outline" size="md" (clicked)="cargar()">
       <app-icon name="list" />
@@ -137,11 +137,33 @@
             <button
               type="button"
               class="fila-acciones__btn"
+              title="Enviar a ARCA"
+              aria-label="Enviar a ARCA"
+              [disabled]="busyId() === $any(row)['id']"
+              (click)="enviar($any(row))"
+            >
+              <app-icon name="send" />
+            </button>
+            <button
+              type="button"
+              class="fila-acciones__btn"
               title="Editar despacho y regenerar intención"
               aria-label="Editar despacho y regenerar intención"
               (click)="editarIntencion($any(row))"
             >
               <app-icon name="pencil" />
+            </button>
+          }
+          @if (esProcesada($any(row)['estado'])) {
+            <button
+              type="button"
+              class="fila-acciones__btn fila-acciones__btn--danger"
+              title="Anular CPE"
+              aria-label="Anular CPE"
+              [disabled]="busyId() === $any(row)['id']"
+              (click)="anular($any(row))"
+            >
+              <app-icon name="x" />
             </button>
           }
           @if ($any(row)['tieneDocumento']) {
@@ -212,6 +234,17 @@
           }
         </div>
         <div class="detalle__acciones">
+          @if (esEditable(carta.estado)) {
+            <app-button
+              variant="primary"
+              size="sm"
+              (clicked)="enviar(carta)"
+              [disabled]="busyId() === carta.id"
+            >
+              <app-icon name="send" />
+              Enviar a ARCA
+            </app-button>
+          }
           @if (carta.tieneDocumento) {
             <app-button
               variant="primary"
@@ -230,6 +263,17 @@
             >
               <app-icon name="copy" />
               Descargar
+            </app-button>
+          }
+          @if (esProcesada(carta.estado)) {
+            <app-button
+              variant="outline"
+              size="sm"
+              (clicked)="anular(carta)"
+              [disabled]="busyId() === carta.id"
+            >
+              <app-icon name="x" />
+              Anular
             </app-button>
           }
           <app-button variant="outline" size="sm" (clicked)="cerrarDetalle()">

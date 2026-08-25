@@ -16,4 +16,7 @@
   @if (error()) {
     <span class="field__error">{{ error() }}</span>
   }
+  @if (hint() && !error()) {
+    <span class="field__hint">{{ hint() }}</span>
+  }
 </div>

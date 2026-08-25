@@ -113,9 +113,13 @@ export class DespachoStore {
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 
-  iniciarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+  iniciarViaje(
+    despachoId: string,
+    viajeId: string,
+    checklist: { checklistGasoil: boolean; checklistEfectivo: boolean },
+  ): Observable<Despacho> {
     return this.api
-      .iniciarViaje(despachoId, viajeId)
+      .iniciarViaje(despachoId, viajeId, checklist)
       .pipe(tap((actualizado) => this.reemplazar(actualizado)));
   }
 

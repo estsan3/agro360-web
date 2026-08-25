@@ -19,7 +19,7 @@ function despachoFake(id: string, estado: 'activo' | 'borrador'): Despacho {
     fechaLlegadaEstimada: new Date('2026-08-15T00:00:00'),
     estado,
     viajes: [],
-  };
+  } as unknown as Despacho;
 }
 
 describe('DespachoStore', () => {

@@ -23,6 +23,8 @@ export interface Viaje {
   estado: EstadoViaje;
   progreso: number; // 0-100
   observaciones: string;
+  cpeCodigoTurno: string | null;
+  cpeDominioAcoplado: string | null;
 }
 
 export interface ViajeAdjunto {
@@ -63,6 +65,9 @@ export interface Despacho {
   cpeOrigenCodProvincia: number | null;
   cpeOrigenCodLocalidad: number | null;
   cpeOrigenPlanta: number | null;
+  cpeNroRenspa: string | null;
+  cpeCodigoTurno: string | null;
+  cpeHoraPartida: string | null;
   cpeCorrespondeRetiroProductor: boolean;
   cpeEsSolicitanteCampo: boolean;
   cpeDestinoCuit: string | null;
@@ -81,6 +86,8 @@ export interface Despacho {
   cpeCuitCorredorVs: string | null;
   cpeCuitRepresentanteEntregador: string | null;
   cpeCuitRepresentanteRecibidor: string | null;
+  cpeCuitRemitenteComercialVs2: string | null;
+  cpeCuitRemitenteComercialProductor: string | null;
   viajes: Viaje[];
 }
 
@@ -91,6 +98,8 @@ export interface NuevoViaje {
   dominio: string;
   destino: string;
   toneladas: number;
+  codigoTurno?: string | null;
+  dominioAcoplado?: string | null;
 }
 
 /** Alta de un viaje en campaña ya activa (chofer opcional). */
@@ -134,6 +143,9 @@ export interface NuevoDespacho {
   cpeOrigenCodProvincia?: number | null;
   cpeOrigenCodLocalidad?: number | null;
   cpeOrigenPlanta?: number | null;
+  cpeNroRenspa?: string | null;
+  cpeCodigoTurno?: string | null;
+  cpeHoraPartida?: string | null;
   cpeCorrespondeRetiroProductor?: boolean;
   cpeEsSolicitanteCampo?: boolean;
   cpeDestinoCuit?: string | null;
@@ -152,6 +164,8 @@ export interface NuevoDespacho {
   cpeCuitCorredorVs?: string | null;
   cpeCuitRepresentanteEntregador?: string | null;
   cpeCuitRepresentanteRecibidor?: string | null;
+  cpeCuitRemitenteComercialVs2?: string | null;
+  cpeCuitRemitenteComercialProductor?: string | null;
   viajes: NuevoViaje[];
 }
 
@@ -200,6 +214,7 @@ export interface PuntoEntradaCatalogo {
 export interface CampoCatalogo {
   id: string;
   nombre: string;
+  nroRenspa?: string | null;
   puntosEntrada?: PuntoEntradaCatalogo[];
   /** Alias snake_case del mock API */
   puntos_entrada?: PuntoEntradaCatalogo[];

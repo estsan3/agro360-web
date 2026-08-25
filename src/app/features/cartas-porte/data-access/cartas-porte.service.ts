@@ -49,6 +49,18 @@ export class CartasPorteService {
       .pipe(map(toModel));
   }
 
+  enviar(id: string): Observable<CartaPorte> {
+    return this.http
+      .post<CartaPorteDto>(`${this.base}/${encodeURIComponent(id)}/enviar`, {})
+      .pipe(map(toModel));
+  }
+
+  anular(id: string): Observable<CartaPorte> {
+    return this.http
+      .post<CartaPorteDto>(`${this.base}/${encodeURIComponent(id)}/anular`, {})
+      .pipe(map(toModel));
+  }
+
   eliminar(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${encodeURIComponent(id)}`);
   }

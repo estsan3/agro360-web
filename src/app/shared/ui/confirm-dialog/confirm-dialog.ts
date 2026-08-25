@@ -16,6 +16,9 @@ import { Icon } from '../icon/icon';
 export class ConfirmDialog {
   protected readonly dialog = inject(ConfirmDialogService);
 
+  protected readonly items = computed(() => this.dialog.items());
+  protected readonly puedeConfirmar = computed(() => this.dialog.puedeConfirmar());
+
   protected readonly icono = computed(() =>
     this.dialog.variant() === 'danger' ? 'alert-triangle' : 'alert-circle',
   );

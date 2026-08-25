@@ -7,6 +7,7 @@ import {
 } from './despacho.dto';
 import {
   CamionCatalogo,
+  CampoCatalogo,
   Catalogos,
   ChoferCatalogo,
   Despacho,
@@ -50,6 +51,8 @@ export function toViaje(dto: ViajeDto): Viaje {
     estado: ESTADO_VIAJE_MAP[dto.estado],
     progreso: dto.progreso,
     observaciones: dto.observaciones,
+    cpeCodigoTurno: dto.cpe_codigo_turno ?? null,
+    cpeDominioAcoplado: dto.cpe_dominio_acoplado ?? null,
   };
 }
 
@@ -87,6 +90,9 @@ export function toDespacho(dto: DespachoDto): Despacho {
     cpeOrigenCodProvincia: dto.cpe_origen_cod_provincia ?? null,
     cpeOrigenCodLocalidad: dto.cpe_origen_cod_localidad ?? null,
     cpeOrigenPlanta: dto.cpe_origen_planta ?? null,
+    cpeNroRenspa: dto.cpe_nro_renspa ?? null,
+    cpeCodigoTurno: dto.cpe_codigo_turno ?? null,
+    cpeHoraPartida: dto.cpe_hora_partida ?? null,
     cpeCorrespondeRetiroProductor: dto.cpe_corresponde_retiro_productor ?? true,
     cpeEsSolicitanteCampo: dto.cpe_es_solicitante_campo ?? true,
     cpeDestinoCuit: dto.cpe_destino_cuit ?? null,
@@ -105,6 +111,8 @@ export function toDespacho(dto: DespachoDto): Despacho {
     cpeCuitCorredorVs: dto.cpe_cuit_corredor_vs ?? null,
     cpeCuitRepresentanteEntregador: dto.cpe_cuit_representante_entregador ?? null,
     cpeCuitRepresentanteRecibidor: dto.cpe_cuit_representante_recibidor ?? null,
+    cpeCuitRemitenteComercialVs2: dto.cpe_cuit_remitente_comercial_vs2 ?? null,
+    cpeCuitRemitenteComercialProductor: dto.cpe_cuit_remitente_comercial_productor ?? null,
     viajes: dto.viajes.map(toViaje),
   };
 }
@@ -137,6 +145,9 @@ export function toCrearDespachoDto(input: NuevoDespacho): CrearDespachoDto {
     cpe_origen_cod_provincia: input.cpeOrigenCodProvincia ?? null,
     cpe_origen_cod_localidad: input.cpeOrigenCodLocalidad ?? null,
     cpe_origen_planta: input.cpeOrigenPlanta ?? null,
+    cpe_nro_renspa: input.cpeNroRenspa ?? null,
+    cpe_codigo_turno: input.cpeCodigoTurno ?? null,
+    cpe_hora_partida: input.cpeHoraPartida ?? null,
     cpe_corresponde_retiro_productor: input.cpeCorrespondeRetiroProductor ?? true,
     cpe_es_solicitante_campo: input.cpeEsSolicitanteCampo ?? true,
     cpe_destino_cuit: input.cpeDestinoCuit ?? null,
@@ -155,12 +166,18 @@ export function toCrearDespachoDto(input: NuevoDespacho): CrearDespachoDto {
     cpe_cuit_corredor_vs: input.cpeCuitCorredorVs ?? null,
     cpe_cuit_representante_entregador: input.cpeCuitRepresentanteEntregador ?? null,
     cpe_cuit_representante_recibidor: input.cpeCuitRepresentanteRecibidor ?? null,
+    cpe_cuit_remitente_comercial_vs2: input.cpeCuitRemitenteComercialVs2 ?? null,
+    cpe_cuit_remitente_comercial_productor: input.cpeCuitRemitenteComercialProductor ?? null,
     viajes: input.viajes.map((viaje) => ({
       ...(viaje.id ? { id: viaje.id } : {}),
       chofer_id: viaje.choferId || null,
       ...(viaje.dominio ? { dominio: viaje.dominio.trim().toUpperCase() } : {}),
       destino: viaje.destino,
       toneladas: viaje.toneladas,
+      ...(viaje.codigoTurno ? { cpe_codigo_turno: viaje.codigoTurno } : {}),
+      ...(viaje.dominioAcoplado
+        ? { cpe_dominio_acoplado: viaje.dominioAcoplado.trim().toUpperCase() }
+        : {}),
     })),
   };
 }
@@ -189,7 +206,17 @@ export function toCatalogos(dto: CatalogosDto): Catalogos {
     camiones: (c.camiones ?? []).map(mapCamion),
   });
   return {
-    productores: dto.productores,
+    productores: dto.productores.map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      campos: p.campos.map((c): CampoCatalogo => ({
+        id: c.id,
+        nombre: c.nombre,
+        nroRenspa: c.nro_renspa ?? null,
+        puntosEntrada: c.puntos_entrada,
+        puntos_entrada: c.puntos_entrada,
+      })),
+    })),
     administradores: dto.administradores,
     vendedores: dto.vendedores,
     materiales: dto.materiales,

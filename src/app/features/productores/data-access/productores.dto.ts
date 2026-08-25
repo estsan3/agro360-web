@@ -17,6 +17,7 @@ export interface CampoProductorDto {
   eliminado: boolean;
   nombre: string;
   codigo: string;
+  nro_renspa?: string | null;
   superficie_ha: number;
   localidad: string;
   provincia: string;
@@ -65,6 +66,7 @@ export interface CatalogoProductorDto {
   campos: {
     id: string;
     nombre: string;
+    nro_renspa?: string | null;
     puntos_entrada: {
       id: string;
       nombre: string;

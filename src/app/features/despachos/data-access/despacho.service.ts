@@ -61,11 +61,18 @@ export class DespachoService {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
-  iniciarViaje(despachoId: string, viajeId: string): Observable<Despacho> {
+  iniciarViaje(
+    despachoId: string,
+    viajeId: string,
+    checklist: { checklistGasoil: boolean; checklistEfectivo: boolean },
+  ): Observable<Despacho> {
     return this.http
       .post<DespachoDto>(
         `${this.base}/${despachoId}/viajes/${encodeURIComponent(viajeId)}/iniciar`,
-        {},
+        {
+          checklist_gasoil: checklist.checklistGasoil,
+          checklist_efectivo: checklist.checklistEfectivo,
+        },
       )
       .pipe(map(toDespacho));
   }

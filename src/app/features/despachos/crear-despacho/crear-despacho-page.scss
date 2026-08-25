@@ -264,11 +264,12 @@
   overflow-x: auto;
 
   &--wide &__row {
-    // ☐ | ID | Estado | Transportista | Chofer | Camión | Acoplado | Destino | Tn | Acciones
+    // ☐ | ID | Estado | Transportista | Chofer | Camión | Acoplado | Turno | Destino | Tn | Acciones
     grid-template-columns:
       32px minmax(56px, 0.6fr) minmax(90px, 0.8fr) minmax(140px, 1.2fr)
-      minmax(120px, 1.1fr) minmax(120px, 1.1fr) 0.75fr minmax(110px, 1fr) 0.55fr 120px;
-    min-width: 1180px;
+      minmax(120px, 1.1fr) minmax(120px, 1.1fr) 0.75fr minmax(110px, 0.9fr)
+      minmax(110px, 1fr) 0.55fr 120px;
+    min-width: 1280px;
   }
 
   &__row {
@@ -416,6 +417,13 @@
   gap: 0.5rem;
   font-size: 0.9rem;
   cursor: pointer;
+}
+
+.cpe-toggle__hint {
+  margin: 0;
+  font-size: ty.$font-size-sm;
+  line-height: 1.35;
+  color: t.$color-text-muted;
 }
 
 .cpe-subtitle {

@@ -12,6 +12,10 @@ export interface ViajeDto {
   dominio: string;
   destino: string;
   toneladas: number;
+  cpe_codigo_turno?: string | null;
+  cpe_dominio_acoplado?: string | null;
+  checklist_gasoil?: boolean;
+  checklist_efectivo?: boolean;
   estado:
     | 'borrador'
     | 'en_busqueda_transportistas'
@@ -106,6 +110,9 @@ export interface DespachoDto {
   cpe_origen_cod_provincia?: number | null;
   cpe_origen_cod_localidad?: number | null;
   cpe_origen_planta?: number | null;
+  cpe_nro_renspa?: string | null;
+  cpe_codigo_turno?: string | null;
+  cpe_hora_partida?: string | null;
   cpe_corresponde_retiro_productor?: boolean;
   cpe_es_solicitante_campo?: boolean;
   cpe_destino_cuit?: string | null;
@@ -124,6 +131,8 @@ export interface DespachoDto {
   cpe_cuit_corredor_vs?: string | null;
   cpe_cuit_representante_entregador?: string | null;
   cpe_cuit_representante_recibidor?: string | null;
+  cpe_cuit_remitente_comercial_vs2?: string | null;
+  cpe_cuit_remitente_comercial_productor?: string | null;
   viajes: ViajeDto[];
 }
 
@@ -142,6 +151,8 @@ export interface CrearViajeDto {
   destino: string;
   toneladas: number;
   observaciones?: string;
+  cpe_codigo_turno?: string | null;
+  cpe_dominio_acoplado?: string | null;
 }
 
 export interface ActualizarMetadatosDespachoDto {
@@ -180,6 +191,9 @@ export interface CrearDespachoDto {
   cpe_origen_cod_provincia?: number | null;
   cpe_origen_cod_localidad?: number | null;
   cpe_origen_planta?: number | null;
+  cpe_nro_renspa?: string | null;
+  cpe_codigo_turno?: string | null;
+  cpe_hora_partida?: string | null;
   cpe_corresponde_retiro_productor?: boolean;
   cpe_es_solicitante_campo?: boolean;
   cpe_destino_cuit?: string | null;
@@ -198,12 +212,16 @@ export interface CrearDespachoDto {
   cpe_cuit_corredor_vs?: string | null;
   cpe_cuit_representante_entregador?: string | null;
   cpe_cuit_representante_recibidor?: string | null;
+  cpe_cuit_remitente_comercial_vs2?: string | null;
+  cpe_cuit_remitente_comercial_productor?: string | null;
   viajes: {
     id?: string;
     chofer_id?: string | null;
     dominio?: string;
     destino: string;
     toneladas: number;
+    cpe_codigo_turno?: string | null;
+    cpe_dominio_acoplado?: string | null;
   }[];
 }
 
@@ -214,6 +232,7 @@ export interface CatalogosDto {
     campos: {
       id: string;
       nombre: string;
+      nro_renspa?: string | null;
       puntos_entrada?: {
         id: string;
         nombre: string;

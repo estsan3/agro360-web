@@ -30,6 +30,8 @@ export class SelectInput implements ControlValueAccessor {
   readonly placeholder = input('Seleccionar…');
   readonly options = input.required<SelectOption[]>();
   readonly error = input('');
+  /** Leyenda corta debajo del campo (significado de negocio). */
+  readonly hint = input('');
 
   readonly selectId = `app-select-${nextId++}`;
   readonly value = signal('');

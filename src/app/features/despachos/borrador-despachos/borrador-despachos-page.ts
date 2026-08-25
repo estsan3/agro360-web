@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { NotificationStore } from '../../../notifications/state/notification.store';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -11,7 +12,10 @@ import { TextInput } from '../../../shared/ui/input/text-input';
 import { SearchBar } from '../../../shared/ui/search-bar/search-bar';
 import { SelectInput, SelectOption } from '../../../shared/ui/select/select-input';
 import { StateWrapper } from '../../../shared/ui/state-wrapper/state-wrapper';
+import { CHECKLIST_INICIO_OK, confirmarInicioViaje } from '../data-access/checklist-iniciar';
+import { CartaPorteDto } from '../data-access/despacho.dto';
 import { Viaje } from '../data-access/despacho.model';
+import { DespachoService } from '../data-access/despacho.service';
 import { DespachoStore } from '../data-access/despacho.store';
 
 interface BorradorVm {
@@ -52,6 +56,8 @@ interface BorradorVm {
 })
 export class BorradorDespachosPage {
   private readonly store = inject(DespachoStore);
+  private readonly api = inject(DespachoService);
+  private readonly confirm = inject(ConfirmDialogService);
   private readonly router = inject(Router);
   private readonly datePipe = inject(DatePipe);
   private readonly notifications = inject(NotificationStore);
@@ -261,17 +267,43 @@ export class BorradorDespachosPage {
   }
 
   protected iniciarViaje(despachoId: string, viaje: Viaje): void {
-    this.store.iniciarViaje(despachoId, viaje.id).subscribe((despacho) => {
-      this.notifications.success(
-        'Viaje iniciado',
-        `${viaje.chofer} (${viaje.dominio}) ya está en Gestión operativa`,
+    const despacho = (this.store.despachos().data ?? []).find((item) => item.id === despachoId);
+    if (!despacho) {
+      return;
+    }
+    const continuar = async (cartas: CartaPorteDto[]): Promise<void> => {
+      const ok = await confirmarInicioViaje(
+        this.confirm,
+        despacho,
+        [viaje],
+        cartas,
+        `Confirmá que ${viaje.chofer} (${viaje.dominio}) puede salir a ruta.`,
       );
-      if (despacho.estado === 'activo') {
-        this.notifications.success(
-          'Despacho activo',
-          `"${despacho.nombre}" completó todos sus viajes en borrador`,
-        );
+      if (!ok) {
+        return;
       }
+      this.store
+        .iniciarViaje(despachoId, viaje.id, CHECKLIST_INICIO_OK)
+        .subscribe((actualizado) => {
+          this.notifications.success(
+            'Viaje iniciado',
+            `${viaje.chofer} (${viaje.dominio}) ya está en Gestión operativa`,
+          );
+          if (actualizado.estado === 'activo') {
+            this.notifications.success(
+              'Despacho activo',
+              `"${actualizado.nombre}" completó todos sus viajes en borrador`,
+            );
+          }
+        });
+    };
+    if (!despacho.cpeHabilitada) {
+      void continuar([]);
+      return;
+    }
+    this.api.listarCartasPorte(despachoId).subscribe({
+      next: (cartas) => void continuar(cartas),
+      error: () => void continuar([]),
     });
   }
 

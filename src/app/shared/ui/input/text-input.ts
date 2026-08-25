@@ -23,9 +23,11 @@ let nextId = 0;
 })
 export class TextInput implements ControlValueAccessor {
   readonly label = input('');
-  readonly type = input<'text' | 'email' | 'password' | 'number' | 'date'>('text');
+  readonly type = input<'text' | 'email' | 'password' | 'number' | 'date' | 'time'>('text');
   readonly placeholder = input('');
   readonly error = input('');
+  /** Leyenda corta debajo del campo (significado de negocio). */
+  readonly hint = input('');
   /** Máscara de entrada en vivo (`cuit` → XX-XXXXXXXX-X). */
   readonly mask = input<'cuit' | ''>('');
 

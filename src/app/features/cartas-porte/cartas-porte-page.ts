@@ -44,7 +44,7 @@ const COLUMNS: TableColumn[] = [
   { key: 'destino', label: 'Destino' },
   { key: 'toneladas', label: 'Tn', align: 'right', width: '70px' },
   { key: 'creadaEn', label: 'Creada', width: '140px' },
-  { key: 'acciones', label: '', align: 'right', width: '160px' },
+  { key: 'acciones', label: '', align: 'right', width: '200px' },
 ];
 
 const FILTROS_VACIOS = {
@@ -350,6 +350,63 @@ export class CartasPortePage implements OnInit {
         editar: carta.despachoId,
         carta: carta.id,
         viaje: carta.viajeId,
+      },
+    });
+  }
+
+  protected esProcesada(estado: string): boolean {
+    return estado === 'procesada' || estado === 'autorizada';
+  }
+
+  protected enviar(carta: CartaPorte): void {
+    this.busyId.set(carta.id);
+    this.api.enviar(carta.id).subscribe({
+      next: (actualizada) => {
+        this.busyId.set(null);
+        this.notifications.success(
+          'CPE autorizada',
+          actualizada.nroCtg ? `CTG ${actualizada.nroCtg}` : carta.dominio,
+        );
+        if (this.seleccionada()?.id === carta.id) {
+          this.seleccionada.set(actualizada);
+          if (actualizada.tieneDocumento) {
+            this.cargarPdf(actualizada);
+          }
+        }
+        this.cargar();
+      },
+      error: (err) => {
+        this.busyId.set(null);
+        this.notifications.error(
+          'ARCA rechazó la CPE',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        );
+        this.cargar();
+      },
+    });
+  }
+
+  protected anular(carta: CartaPorte): void {
+    if (!confirm(`¿Anular la CPE ${carta.nroCtg || carta.dominio} ante ARCA?`)) {
+      return;
+    }
+    this.busyId.set(carta.id);
+    this.api.anular(carta.id).subscribe({
+      next: (actualizada) => {
+        this.busyId.set(null);
+        this.notifications.success('CPE anulada', actualizada.nroCtg || carta.dominio);
+        if (this.seleccionada()?.id === carta.id) {
+          this.seleccionada.set(actualizada);
+        }
+        this.cargar();
+      },
+      error: (err) => {
+        this.busyId.set(null);
+        this.notifications.error(
+          'No se pudo anular',
+          err?.error?.error?.mensaje ?? 'Error de negocio',
+        );
+        this.cargar();
       },
     });
   }

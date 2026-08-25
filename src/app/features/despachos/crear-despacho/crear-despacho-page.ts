@@ -160,7 +160,7 @@ export class CrearDespachoPage {
     tarifaLlena: [false],
     cuando: ['ahora' as CuandoDespacho, Validators.required],
     cuandoFecha: [''],
-    cpeHoraPartidaDefault: [''],
+    cpeHoraPartida: [''],
     /** Destino/tn del pedido (heredan los cupos). */
     destinoOferta: [''],
     toneladasOferta: [null as number | null],
@@ -176,6 +176,7 @@ export class CrearDespachoPage {
     cpeOrigenCodLocalidad: [''],
     cpeOrigenPlanta: [null as number | null],
     cpeNroRenspa: [''],
+    cpeCodigoTurno: [''],
     cpeCorrespondeRetiroProductor: [true],
     cpeEsSolicitanteCampo: [true],
     cpeDestinoCuit: [''],
@@ -281,8 +282,9 @@ export class CrearDespachoPage {
       this.form.controls.entradaCampo.reset('');
     });
 
-    this.form.controls.campoId.valueChanges.subscribe(() => {
+    this.form.controls.campoId.valueChanges.subscribe((campoId) => {
       this.form.controls.entradaCampo.reset('');
+      this.heredarRenspaCampo(campoId);
     });
 
     this.form.controls.tarifaLlena.valueChanges.subscribe((llena) => {
@@ -413,6 +415,7 @@ export class CrearDespachoPage {
         tarifaLlena: despacho.tarifaLlena,
         cuando: despacho.cuando,
         cuandoFecha: despacho.cuandoFecha ?? '',
+        cpeHoraPartida: despacho.cpeHoraPartida ?? '',
         destinoOferta: viajes[0]?.destino ?? '',
         toneladasOferta: viajes[0]?.toneladas ?? null,
         toneladasPedido: viajes.reduce((s, v) => s + (v.toneladas || 0), 0) || null,
@@ -429,6 +432,8 @@ export class CrearDespachoPage {
           ? String(despacho.cpeOrigenCodLocalidad)
           : '',
         cpeOrigenPlanta: despacho.cpeOrigenPlanta,
+        cpeNroRenspa: despacho.cpeNroRenspa ?? '',
+        cpeCodigoTurno: despacho.cpeCodigoTurno ?? '',
         cpeCorrespondeRetiroProductor: despacho.cpeCorrespondeRetiroProductor,
         cpeEsSolicitanteCampo: despacho.cpeEsSolicitanteCampo,
         cpeDestinoCuit: despacho.cpeDestinoCuit ?? '',
@@ -446,6 +451,8 @@ export class CrearDespachoPage {
         cpeCuitIntermediarioFlete: despacho.cpeCuitIntermediarioFlete ?? '',
         cpeCuitRemitenteComercialVp: despacho.cpeCuitRemitenteComercialVp ?? '',
         cpeCuitRemitenteComercialVs: despacho.cpeCuitRemitenteComercialVs ?? '',
+        cpeCuitRemitenteComercialVs2: despacho.cpeCuitRemitenteComercialVs2 ?? '',
+        cpeCuitRemitenteComercialProductor: despacho.cpeCuitRemitenteComercialProductor ?? '',
         cpeCuitMercadoATermino: despacho.cpeCuitMercadoATermino ?? '',
         cpeCuitCorredorVp: despacho.cpeCuitCorredorVp ?? '',
         cpeCuitCorredorVs: despacho.cpeCuitCorredorVs ?? '',
@@ -483,7 +490,8 @@ export class CrearDespachoPage {
           choferId,
           camionId,
           dominio: viaje.dominio || camion?.dominio || '',
-          acoplado: camion?.acopladoDominio ?? '',
+          acoplado: (viaje.cpeDominioAcoplado || camion?.acopladoDominio || '').toUpperCase(),
+          codigoTurno: viaje.cpeCodigoTurno ?? '',
           destino: viaje.destino,
           toneladas: String(viaje.toneladas),
           estado: viaje.estado,
@@ -824,6 +832,8 @@ export class CrearDespachoPage {
         dominio: viaje.dominio.trim().toUpperCase(),
         destino: viaje.destino,
         toneladas: Number(viaje.toneladas),
+        ...(viaje.codigoTurno?.trim() ? { codigoTurno: viaje.codigoTurno.trim() } : {}),
+        ...(viaje.acoplado?.trim() ? { dominioAcoplado: viaje.acoplado.trim().toUpperCase() } : {}),
       }));
 
     if (exigirViajes && viajes.length === 0) {
@@ -923,6 +933,9 @@ export class CrearDespachoPage {
       cpeOrigenCodProvincia: this.numONull(form.cpeOrigenCodProvincia),
       cpeOrigenCodLocalidad: this.numONull(form.cpeOrigenCodLocalidad),
       cpeOrigenPlanta: form.cpeOrigenPlanta,
+      cpeNroRenspa: vacioANull(form.cpeNroRenspa),
+      cpeCodigoTurno: vacioANull(form.cpeCodigoTurno),
+      cpeHoraPartida: vacioANull(form.cpeHoraPartida),
       cpeCorrespondeRetiroProductor: form.cpeCorrespondeRetiroProductor,
       cpeEsSolicitanteCampo: form.cpeEsSolicitanteCampo,
       cpeDestinoCuit: vacioANull(form.cpeDestinoCuit),
@@ -936,6 +949,8 @@ export class CrearDespachoPage {
       cpeCuitIntermediarioFlete: vacioANull(form.cpeCuitIntermediarioFlete),
       cpeCuitRemitenteComercialVp: vacioANull(form.cpeCuitRemitenteComercialVp),
       cpeCuitRemitenteComercialVs: vacioANull(form.cpeCuitRemitenteComercialVs),
+      cpeCuitRemitenteComercialVs2: vacioANull(form.cpeCuitRemitenteComercialVs2),
+      cpeCuitRemitenteComercialProductor: vacioANull(form.cpeCuitRemitenteComercialProductor),
       cpeCuitMercadoATermino: vacioANull(form.cpeCuitMercadoATermino),
       cpeCuitCorredorVp: vacioANull(form.cpeCuitCorredorVp),
       cpeCuitCorredorVs: vacioANull(form.cpeCuitCorredorVs),
@@ -1177,6 +1192,19 @@ export class CrearDespachoPage {
       return 'transporte';
     }
     return 'origen';
+  }
+
+  private heredarRenspaCampo(campoId: string | null): void {
+    if (!campoId) {
+      return;
+    }
+    const productor = (this.catalogos().data?.productores ?? []).find(
+      (p) => p.id === this.form.controls.productorId.value,
+    );
+    const renspa = productor?.campos.find((c) => c.id === campoId)?.nroRenspa?.trim();
+    if (renspa) {
+      this.form.controls.cpeNroRenspa.setValue(renspa);
+    }
   }
 
   private crearFila(base?: {

@@ -20,6 +20,11 @@ import { StateWrapper } from '../../shared/ui/state-wrapper/state-wrapper';
 import { Table, TableColumn } from '../../shared/ui/table/table';
 import { TableCellDef } from '../../shared/ui/table/table-cell-def';
 import { DespachoService } from '../despachos/data-access/despacho.service';
+import { CartaPorteDto } from '../despachos/data-access/despacho.dto';
+import {
+  CHECKLIST_INICIO_OK,
+  confirmarInicioViaje,
+} from '../despachos/data-access/checklist-iniciar';
 import {
   Despacho,
   EstadoViaje,
@@ -767,21 +772,45 @@ export class GestionOperativaPage {
       );
       return;
     }
-    from(pendientes)
-      .pipe(
-        concatMap((viaje) => this.store.iniciarViaje(campaniaId, viaje.id)),
-        toArray(),
-      )
-      .subscribe({
-        next: () => {
-          this.expandidas.update((set) => new Set(set).add(campaniaId));
-          this.notifications.success(
-            'Viajes iniciados',
-            `${pendientes.length} viaje(s) salieron a ruta`,
-          );
-        },
-        error: (error: Error) => this.notifications.error('Error al iniciar viajes', error.message),
+    const arrancar = (cartas: CartaPorteDto[]) => {
+      void confirmarInicioViaje(
+        this.confirmDialog,
+        despacho,
+        pendientes,
+        cartas,
+        `Vas a iniciar ${pendientes.length} viaje(s) de "${despacho.nombre}". Confirmá gasoil y efectivo antes de salir.`,
+      ).then((ok) => {
+        if (!ok) {
+          return;
+        }
+        from(pendientes)
+          .pipe(
+            concatMap((viaje) =>
+              this.store.iniciarViaje(campaniaId, viaje.id, CHECKLIST_INICIO_OK),
+            ),
+            toArray(),
+          )
+          .subscribe({
+            next: () => {
+              this.expandidas.update((set) => new Set(set).add(campaniaId));
+              this.notifications.success(
+                'Viajes iniciados',
+                `${pendientes.length} viaje(s) salieron a ruta`,
+              );
+            },
+            error: (error: Error) =>
+              this.notifications.error('Error al iniciar viajes', error.message),
+          });
       });
+    };
+    if (!despacho.cpeHabilitada) {
+      arrancar([]);
+      return;
+    }
+    this.api.listarCartasPorte(campaniaId).subscribe({
+      next: arrancar,
+      error: () => arrancar([]),
+    });
   }
 
   protected contactarChoferesCampania(campania: CampaniaVm): void {

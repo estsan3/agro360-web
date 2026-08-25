@@ -56,4 +56,10 @@
     font-size: ty.$font-size-sm;
     color: t.$color-danger-strong;
   }
+
+  &__hint {
+    font-size: ty.$font-size-sm;
+    line-height: 1.35;
+    color: t.$color-text-muted;
+  }
 }
